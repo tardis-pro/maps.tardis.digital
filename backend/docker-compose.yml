@@ -1,0 +1,134 @@
+version: "3"
+services:
+  # proxy:
+  #   image: nginx:latest
+  #   container_name: proxy-nginx
+  #   links:
+  #     - martin
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/default.conf/default.conf:/etc/nginx/conf.d/default.conf
+  #     - ./nginx/h5bp:/etc/nginx/h5bp/
+  #     - statictiles:/www/statictiles
+  #   restart: unless-stopped
+  # django:
+  #   build:
+  #     context: .
+  #     dockerfile: ./core-monolith/local/Dockerfile
+  #   image: my_awesome_project_local_django
+  #   container_name: django
+  #   depends_on:
+  #     - postgres
+  #   volumes:
+  #     - .:/app:z
+  #   env_file:
+  #     - ./.envs/.local/.django
+  #     - ./.envs/.local/.postgres
+  #   ports:
+  #     - "8000:8000"
+  #   command: /start
+  postgres:
+      image: kartoza/postgis
+      container_name: postgres
+      environment:
+        POSTGRES_DBNAME: ${POSTGRESQL_DB}
+        POSTGRES_USER: ${POSTGRESQL_USER}
+        POSTGRES_PASSWORD: ${POSTGRESQL_PASS}
+        DATADIR: /var/lib/postgresql/data
+        ACCEPT_TIMESCALE_TUNING: TRUE
+        SCHEMA_NAME: public, keycloak, gis
+        POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore,postgis_topology,postgis_raster,pgrouting
+      volumes:
+        - layering:/var/lib/postgresql/data
+      ports:
+        - '5432:5432'
+      restart: unless-stopped
+  keycloak:
+    depends_on:
+      - postgres
+    container_name: local_keycloak
+    environment:
+      DB_VENDOR: postgres
+      DB_ADDR: postgres
+      DB_DATABASE: ${POSTGRESQL_DB}
+      DB_USER: ${POSTGRESQL_USER}
+      DB_PASSWORD: ${POSTGRESQL_PASS}
+    image: jboss/keycloak
+    ports:
+      - "8080:8080"
+      - "9990:9990"
+    restart: unless-stopped
+  martin:
+    image: urbica/martin
+    container_name: martin
+    hostname: martin
+    depends_on:
+      - postgres
+    ports:
+      - "3000:3000"
+    environment:
+      DANGER_ACCEPT_INVALID_CERTS: 'false'
+      WATCH_MODE: 'true'
+      DATABASE_POOL_SIZE: 100
+      KEEP_ALIVE: 75
+      WORKER_PROCESSES: 12
+      DATABASE_URL: "postgres://${POSTGRESQL_USER}:${POSTGRESQL_PASS}@postgres/${DB_DATABASE}"
+  titiler:
+    image: ghcr.io/developmentseed/titiler:latest
+    container_name: titiler
+    hostname: titiler
+    volumes:
+      - rasterdata:/data/
+    ports:
+      - "9000:8000"
+    environment:
+      WORKERS_PER_CORE: 1
+      PORT: 8000 
+      CPL_TMPDIR: /tmp
+      GDAL_CACHEMAX: 25%
+      GDAL_DATA: /opt/share/gdal
+      GDAL_DISABLE_READDIR_ON_OPEN: EMPTY_DIR
+      GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: YES
+      GDAL_HTTP_MULTIPLEX: YES
+      GDAL_HTTP_VERSION: 2
+      MAX_THREADS: 50
+      PYTHONWARNINGS: ignore
+      VSI_CACHE: TRUE
+      VSI_CACHE_SIZE: 536870912
+  maptiler:
+    image: maptiler/tileserver-gl
+    container_name: maptiler
+    hostname: maptiler
+    depends_on:
+      - postgres
+    volumes:
+        - statictiles:/data
+        
+    ports:
+      - "28080:3001"  
+  # backend:
+  #   build:
+  #     context: ./
+  #   container_name: backend
+  #   hostname: app
+  #   # depends_on:
+  #   #   - postgres
+  #   volumes:
+  #     - .:/app
+  #     - node_modules:/app/node_modules/
+  #   ports:
+  #     - 8000:8000
+  #   networks:
+  #     - nest
+  #   env_file: .env
+  #   restart: unless-stopped
+volumes:
+  layering:
+  node_modules:
+  statictiles:
+  rasterdata:
+networks:
+  nest:
+    driver: 'bridge'

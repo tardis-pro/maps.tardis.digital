@@ -1,0 +1,29 @@
+{
+  "options": {
+    "paths": {
+      "fonts": "fonts",
+      "styles": "styles"
+    }
+  },
+  "styles": {
+    "test-style": {
+      "style": "osm-bright/style.json",
+      "tilejson": {
+        "type": "overlay",
+        "bounds": [8.529446, 47.364758, 8.55232, 47.380539]
+      }
+    },
+    "klokantech-basic": {
+      "style": "klokantech-basic/style.json",
+      "tilejson": {
+        "type": "overlay",
+        "bounds": [8.529446, 47.364758, 8.55232, 47.380539]
+      }
+    }
+  },
+  "data": {
+    "openmaptiles": {
+      "mbtiles": "zurich_switzerland.mbtiles"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+secrets.tf
+node_modules/
+env/
+.vscode/
+.env**
+.terraform/

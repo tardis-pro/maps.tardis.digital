@@ -1,0 +1,36 @@
+{
+  "dependencies": {
+    "animejs": "^3.2.0",
+    "deck.gl": "^8.9.6",
+    "mapbox-gl": "npm:empty-npm-package@1.0.0",
+    "maplibre-gl": "^2.4.0",
+    "react": "^18.2.0",
+    "react-autobind": "^1.0.6",
+    "react-dom": "^18.2.0",
+    "react-map-gl": "^7.0.21",
+    "uuid": "^9.0.0"
+  },
+  "browserslist": "> 1.0%, last 2 versions",
+  "devDependencies": {
+    "@types/react": "^18.0.31",
+    "@types/react-dom": "^18.0.11",
+    "autoprefixer": "^10.4.14",
+    "buffer": "^5.5.0",
+    "parcel": "^2.8.3",
+    "postcss": "^8.4.21",
+    "process": "^0.11.10",
+    "tailwindcss": "^3.3.1"
+  },
+  "source": "src/index.html",
+  "scripts": {
+    "start": "parcel src/index.html --no-cache",
+    "build": "parcel build src/index.html",
+    "serve": "npm run clean && parcel serve src/index.html",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "prettier:fix": "prettier \"src/**/*\" --write",
+    "prettier:check": "prettier \"src/**/*\" --check",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "clean": "npx rimraf dist && npx rimraf node_modules && npx rimraf .parcel-cache"
+  }
+}
