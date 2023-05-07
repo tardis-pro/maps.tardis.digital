@@ -5,14 +5,10 @@ from django.db import connection
 
 
 class Command(BaseCommand):
-    help = "Uploads a CSV file to the Geometry model"
-
-    def add_arguments(self, parser):
-        parser.add_argument("source-id", type=int, help="The ID of the source")
+    help = "Creates needed martin and geojson functions"
 
     def handle(self, *args, **options):
-        source_id = options.get("source-id", "1")
-        source_name = f"public.mvt_tile{source_id}"
+        source_name = f"public.mvt_tile"
 
         tilebox_query = """CREATE OR REPLACE FUNCTION TileBBox (z int, x int, y int, srid int = 3857)
             RETURNS geometry
@@ -40,7 +36,7 @@ class Command(BaseCommand):
             $function$;
 """
 
-        martin_function_query = f"""CREATE OR REPLACE FUNCTION {source_name}(z integer, x integer, y integer)
+        martin_function_query = f"""CREATE OR REPLACE FUNCTION {source_name}(z integer, x integer, y integer, source_idq integer)
                                     RETURNS bytea
                                     LANGUAGE plpgsql
                                     IMMUTABLE PARALLEL SAFE STRICT AS
@@ -55,7 +51,7 @@ class Command(BaseCommand):
                                                 TileBBox(z, x, y, 4326),
                                                 4096, 64, true
                                             ) as geom, metadata->'properties'
-                                            FROM public.core_geometry
+                                            FROM public.core_geometry where source_id = source_idq
                                         ) as tile;
                                         RETURN mvt;
                                         END
@@ -108,5 +104,5 @@ class Command(BaseCommand):
             cursor.execute(geojson_feature_collection)
             cursor.execute(get_tile_coords) 
         self.stdout.write(
-            self.style.SUCCESS("Successfully uploaded CSV file to Geometry model")
+            self.style.SUCCESS("Creates needed martin and geojson functions")
         )

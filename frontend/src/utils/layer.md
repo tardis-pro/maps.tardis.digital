@@ -33,11 +33,9 @@ const defaultStyles: any = {
         pointRadiusMinPixels: 2,
         pointRadiusScale: 2000,
         getPointRadius: () => 2,   
-        getFillColor: [200, 0, 80, 180],
-        
-
-
+        getFillColor: [200, 0, 80, 180],       
     }
+    
 }
 
 const defaultOptions: any = { 
@@ -485,3 +483,50 @@ export default {
     ColumnLayer: ColumnLayerExample
   }
 };
+
+
+
+
+//refactor  the  above  code
+
+import { v4 as uuidv4 } from 'uuid';
+import {
+  ScatterplotLayer,
+  ArcLayer,
+  LineLayer,
+  BitmapLayer,
+  IconLayer,
+  ColumnLayer,
+  GeoJsonLayer,
+  PolygonLayer,
+  PathLayer,
+  TextLayer
+} from '@deck.gl/layers';
+import {PathStyleExtension, FillStyleExtension} from '@deck.gl/extensions';
+import {parseColor, setOpacity} from '../utils/color';
+
+import { GeometryType, defaultStyles, defaultOptions, defaultActions, MARKER_SIZE_MAP, flattenVertices } from './deckConstants';
+import { dataSamples } from './dataSamples'; // Assuming you have a separate file for data samples
+
+// This function will be used to get data and props for each layer example
+const getLayerExampleProps = (layer, dataFunc, extraProps) => ({
+  layer,
+  getData: dataFunc,
+  props: {
+    id: uuidv4(),
+    pickable: true,
+    autoHighlight: true,
+    onClick: info => console.log(info),
+    ...extraProps
+  }
+});
+
+// Then you can define your layer examples with less redundancy:
+const ArcLayerExample = getLayerExampleProps(ArcLayer, () => dataSamples.routes, {
+  getSourcePosition: d => d.START,
+  getTargetPosition: d => d.END,
+  getSourceColor: d => [64, 255, 0],
+  getTargetColor: d => [0, 128, 200],
+  getHeight: d => 1,
+  getTilt: d => 0,
+});

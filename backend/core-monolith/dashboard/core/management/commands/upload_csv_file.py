@@ -19,7 +19,7 @@ def upload_csv_file_to_geometry_model(csv_file_path, source_id):
     # Read the CSV data from the file
     csv_file = default_storage.open(csv_file_path)
     csv_data = csv_file.read().decode("utf-8")
-
+    
     # Parse the CSV data into a list of dictionaries
     csv_reader = csv.DictReader(io.StringIO(csv_data))
     rows = list(csv_reader)

@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "@deck.gl/core": "^8.9.13",
+    "@deck.gl/extensions": "^8.9.13",
+    "@deck.gl/geo-layers": "^8.9.13",
+    "@deck.gl/layers": "^8.9.13",
+    "@deck.gl/react": "^8.9.13",
+    "@reduxjs/toolkit": "^1.9.5",
     "animejs": "^3.2.0",
     "deck.gl": "^8.9.6",
     "mapbox-gl": "npm:empty-npm-package@1.0.0",
@@ -8,6 +14,7 @@
     "react-autobind": "^1.0.6",
     "react-dom": "^18.2.0",
     "react-map-gl": "^7.0.21",
+    "redux-in-worker": "^0.8.0",
     "uuid": "^9.0.0"
   },
   "browserslist": "> 1.0%, last 2 versions",
@@ -16,6 +23,8 @@
     "@types/react-dom": "^18.0.11",
     "autoprefixer": "^10.4.14",
     "buffer": "^5.5.0",
+    "openapi-typescript": "^6.2.4",
+    "openapi-typescript-codegen": "^0.24.0",
     "parcel": "^2.8.3",
     "postcss": "^8.4.21",
     "process": "^0.11.10",
