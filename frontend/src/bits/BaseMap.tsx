@@ -26,7 +26,6 @@ export class BaseMap extends React.Component<{ viewState: ViewState }> {
         }
     }
 
-
     render() {
         return <DeckGL effects={[lightingEffect]} controller={true}
             initialViewState={this.props.viewState} layers={this.state.layers} >

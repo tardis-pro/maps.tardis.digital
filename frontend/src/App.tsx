@@ -3,7 +3,6 @@ import {BaseMap} from './bits/BaseMap';
 
 export const App: React.FC = () => {
   return (
-    <div>
       <BaseMap viewState={{
         "longitude": 72,
         "latitude": 18,
@@ -13,6 +12,5 @@ export const App: React.FC = () => {
         "pitch": 0,
         "bearing": 0
       }} />
-    </div>
   )
 }
