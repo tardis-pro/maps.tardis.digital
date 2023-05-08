@@ -3,6 +3,9 @@ import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import DeckGL from '@deck.gl/react';
 import { lightingEffect } from '../effects/lights';
+import { Button } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { Sidebar } from './Sidebar';
 
 
 type ViewState = {
@@ -17,19 +20,25 @@ type ViewState = {
 
 // create a typed react class for base map
 export class BaseMap extends React.Component<{ viewState: ViewState }> {
-    state: { viewState: ViewState, layers: any[] }
+    state: { viewState: ViewState, layers: any[], mapStyle: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' }
+
     constructor(props: { viewState: ViewState }) {
         super(props);
         this.state = {
             viewState: props.viewState,
-            layers: []
+            layers: [],
+            mapStyle: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
         }
     }
 
     render() {
         return <DeckGL effects={[lightingEffect]} controller={true}
             initialViewState={this.props.viewState} layers={this.state.layers} >
-            <Map reuseMaps mapLib={maplibregl} mapStyle='https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' preventStyleDiffing={true} />
+            <Map reuseMaps mapLib={maplibregl} mapStyle={this.state.mapStyle} preventStyleDiffing={true} >.
+                <Sidebar />
+
+            </Map>
+
         </DeckGL>;
     }
 }
