@@ -61,7 +61,7 @@ services:
       - "9990:9990"
     restart: unless-stopped
   martin:
-    image: urbica/martin
+    image: ghcr.io/maplibre/martin
     container_name: martin
     hostname: martin
     depends_on:

@@ -3,20 +3,21 @@ from django.contrib.gis.db import models
 
 
 class Source(models.Model):
-    sid = models.CharField(max_length=50, unique=True)
+    sid = models.CharField(max_length=50, unique=True, auto_created=True)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=50)
     source_type = models.CharField(max_length=50)
-    attritutes = models.JSONField()
+    attributes = models.JSONField()
     def __str__(self):
         return self.name
+    
     
     class Meta:
         verbose_name_plural = "Sources"
 
 
 class Geometry(models.Model):
-    gid = models.CharField(unique=True,max_length=50, primary_key=True, auto_created=True)
+    gid = models.CharField(unique=True,max_length=50, primary_key=True)
     geom = models.GeometryField()
     metadata = models.JSONField()
     geometry_type = models.CharField(max_length=50)
