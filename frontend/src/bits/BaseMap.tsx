@@ -3,9 +3,8 @@ import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import DeckGL from '@deck.gl/react';
 import { lightingEffect } from '../effects/lights';
-import { Button } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import { Sidebar } from './Sidebar';
+import { createMvtLayer } from '../utils/layer';
 
 
 type ViewState = {
@@ -24,21 +23,28 @@ export class BaseMap extends React.Component<{ viewState: ViewState }> {
 
     constructor(props: { viewState: ViewState }) {
         super(props);
+        const layer= createMvtLayer('http://localhost:3000/mvt_tile/{z}/{x}/{y}?source_id=16', 'rainfalldev')
         this.state = {
             viewState: props.viewState,
-            layers: [],
+            layers: [layer],
             mapStyle: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
         }
+    }
+
+    onLayerAdd = (layer: any) => {
+        
+    }
+
+    onLayerRemove = (layer: any) => {
     }
 
     render() {
         return <DeckGL effects={[lightingEffect]} controller={true}
             initialViewState={this.props.viewState} layers={this.state.layers} >
-            <Map reuseMaps mapLib={maplibregl} mapStyle={this.state.mapStyle} preventStyleDiffing={true} >.
-                <Sidebar />
+            <Map reuseMaps mapLib={maplibregl} mapStyle={this.state.mapStyle}>.
+               
 
             </Map>
-
         </DeckGL>;
     }
 }

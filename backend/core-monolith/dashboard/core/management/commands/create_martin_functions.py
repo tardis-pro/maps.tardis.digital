@@ -36,7 +36,7 @@ class Command(BaseCommand):
             $function$;
 """
 
-        martin_function_query = f"""CREATE OR REPLACE FUNCTION {source_name}(z integer, x integer, y integer, source_idq integer)
+        martin_function_query = f"""CREATE OR REPLACE FUNCTION mvt_tile(z integer, x integer, y integer, query_params json)
                                     RETURNS bytea
                                     LANGUAGE plpgsql
                                     IMMUTABLE PARALLEL SAFE STRICT AS
@@ -44,14 +44,14 @@ class Command(BaseCommand):
                                         DECLARE
                                             mvt bytea;
                                         BEGIN
-                                        SELECT INTO mvt ST_AsMVT(tile, '{source_name}', 4096, 'geom')
+                                        SELECT INTO mvt ST_AsMVT(tile, 'layer', 4096, 'geom')
                                             FROM (
                                             SELECT ST_AsMVTGeom (
                                                 ST_Transform(geom, 4326),
                                                 TileBBox(z, x, y, 4326),
                                                 4096, 64, true
                                             ) as geom, metadata->'properties'
-                                            FROM public.core_geometry where source_id = source_idq
+                                            FROM public.core_geometry where source_id = (query_params->>'source_id')::int
                                         ) as tile;
                                         RETURN mvt;
                                         END

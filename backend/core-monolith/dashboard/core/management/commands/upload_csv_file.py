@@ -51,7 +51,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("csv_file", type=str, help="The path to the CSV file")
-        parser.add_argument("--source-id", type=int, help="The ID of the source")
+        parser.add_argument("--source_id", type=int, help="The ID of the source")
         parser.add_argument("--geometry-id", type=str, help="The ID of the geometry")
 
     def handle(self, *args, **options):
