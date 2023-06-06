@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
+import { RestAuthService } from "../services/akgda";
 
 interface IFormInput {
     email: string;
@@ -43,21 +44,13 @@ export const Signup = () => {
     const [setJson] = useState<string>();
 
     const onSubmit = async (data: IFormInput) => {
-
-        let data_json = JSON.stringify(data);
-
-        try {
-            await fetch("http://localhost:8000/api/rest-auth/login/", {
-                method: "POST",
-                body: data_json,
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                }
-            })
-        } catch (e) {
-            console.log(e);
-        }
+        RestAuthService.restAuthPasswordResetCreate(data)
+        .then((response) => {
+            console.log(response)
+        })
+        .catch((error) => {
+            console.log(error)  
+        });
     };
 
     return (

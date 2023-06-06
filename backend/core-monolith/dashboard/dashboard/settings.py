@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,10 +32,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
-from datetime import timedelta
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
@@ -42,9 +42,9 @@ SIMPLE_JWT = {
 }
 # Application definition
 SPECTACULAR_SETTINGS = {
-   'TITLE': 'ALL KNOWING GIS DASHBOARD API',
-   'DESCRIPTION': 'Your API description',
-   'VERSION': '1.0.0',
+    'TITLE': 'ALL KNOWING GIS DASHBOARD API',
+    'DESCRIPTION': 'Your API description',
+    'VERSION': '1.0.0',
 }
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -56,16 +56,16 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'core',
-     'rest_framework',
+    'rest_framework',
     'rest_framework.authtoken',
-      'dj_rest_auth',
+    'dj_rest_auth',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-     
-        'drf_spectacular',
 
-    
+    'drf_spectacular',
+
+
 ]
 
 MIDDLEWARE = [
@@ -103,18 +103,18 @@ WSGI_APPLICATION = 'dashboard.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
+# https://docs.djangoproject.com/en/4.1/ref/settings/#databasess
+# get this database definitions from env
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
+        'NAME': 'gis_core',
+        'USER': 'keycloak',
+        'PASSWORD': 'keycloak',
         'HOST': 'localhost',
         'PORT': '5432'
     }
-    
+
 }
 
 
@@ -158,4 +158,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-

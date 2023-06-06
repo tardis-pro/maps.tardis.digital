@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
+import { RestAuthService } from "../services/akgda";
 
 interface IFormInput {
     username: string;
@@ -22,9 +23,8 @@ interface IFormInput {
 }
 
 const schema = yup.object().shape({
-    username: yup.string().required("Username is required").min(2, "Username must be of at least 2 characters").max(25),
-    password: yup.string().required("Password is required").min(8, "Password must be of at least 8 characters").max(120)
-});
+    username: yup.string().required("Username is required"),
+    password: yup.string().required("Password is required")});
 
 const useStyles = makeStyles((theme) => ({
     heading: {
@@ -59,28 +59,14 @@ export const Signin = () => {
     const [json, setJson] = useState<string>();
 
     const onSubmit = async (data: IFormInput) => {
-
-        let data_json = JSON.stringify(data);
-        await setJson(JSON.stringify(data))
-
-        try {
-            let result = await fetch("http://localhost:8000/api/rest-auth/login/", {
-                method: "POST",
-                body: data_json,
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                }
-            })
-            if (result.statusText == "OK") {
-            } else {
-                setError('password', { type: 'custom', message: 'Please check if your Password is correct or not!' });
-            }
-            console.log("Reponse Status: " + result.statusText)
-            console.log(result)
-        } catch (e) {
-            console.log(e);
-        }
+        console.log(data)
+        RestAuthService.restAuthLoginCreate(data)
+        .then((response) => {
+            console.log(response)
+        })
+        .catch((error) => {
+            console.log(error)  
+        });
     };
 
     return (
