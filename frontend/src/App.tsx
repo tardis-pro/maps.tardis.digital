@@ -1,17 +1,19 @@
-import React from 'react';
-import { BaseMap } from './bits/BaseMap';
-import 'antd/dist/reset.css';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-export const App: React.FC = () => {
-  return (
-    <BaseMap viewState={{
-      "longitude": 72,
-      "latitude": 18,
-      "zoom": 6.6,
-      "minZoom": 2,
-      "maxZoom": 22,
-      "pitch": 0,
-      "bearing": 0
-    }} />
-  )
+import Signin from './bits/Signin';
+import Signup from './bits/Signup';
+import ResetPassword from './bits/PasswordChange';
+
+export function App() {
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path='/' element={<Signin />} />
+                <Route path='signup' element={<Signup />} />
+                <Route path='resetpassword' element={<ResetPassword />} />
+            </Routes>
+        </BrowserRouter>
+    );
 }
+
+export default App;
