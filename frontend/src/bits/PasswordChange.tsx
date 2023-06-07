@@ -41,8 +41,6 @@ export const Signup = () => {
 
     const { heading, submitButton } = useStyles();
 
-    const [setJson] = useState<string>();
-
     const onSubmit = async (data: IFormInput) => {
         RestAuthService.restAuthPasswordResetCreate(data)
         .then((response) => {

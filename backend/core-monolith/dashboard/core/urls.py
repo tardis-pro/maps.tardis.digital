@@ -8,7 +8,6 @@ urlpatterns = [
     path('projects/<int:pk>/', views.ProjectDetail.as_view(), name='project-detail'),
     path('layers/', views.LayerList.as_view(), name='layer-list'),
     path('layers/<int:pk>/', views.LayerDetail.as_view(), name='layer-detail'),
-    path('rest-auth/password-reset/', views.CustomPasswordResetView.as_view(), name='password_reset'),
     path('user-profile/', views.UserProfileView.as_view(), name='user_profile'),
     path('wfs/', views.GeometryAPIView.as_view(), name='wfs'),
 ]
