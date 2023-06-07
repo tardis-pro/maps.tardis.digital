@@ -10,7 +10,7 @@ import {
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useState } from "react";
+import { ApiError, RestAuthService } from "../services/akgda";
 
 interface IFormInput {
   username: string;
@@ -49,42 +49,18 @@ export const Signup = () => {
 
   const { heading, submitButton } = useStyles();
 
-  const [json, setJson] = useState<string>();
-
   const onSubmit = async (data: IFormInput) => {
 
-    let data_json = JSON.stringify(data);
-    await setJson(JSON.stringify(data))
-
     try {
-      await fetch("http://localhost:8000/api/rest-auth/registration/", {
-        method: "POST",
-        body: data_json,
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        }
-      }).then(response =>
-        response.json().then(data => ({
-          data: data,
-          status: response.status
-        })
-        ).then(res => {
-          if(res.data.password1 == "This password is too common."){
-            setError('password1' , {type: 'custom', message: 'This password is too common.'})
-          }
-          if(res.data.username == "A user with that username already exists."){
-            setError('username' , {type: 'custom', message: 'A user with that username already exists.'})
-          }
-          if(res.data.email == "A user is already registered with this e-mail address."){
-            setError('email' , {type: 'custom', message: 'A user is already registered with this e-mail address.'})
-          }
-          console.log(res.status, res.data)
-          
-        }));
-
-    } catch (e) {
-      console.log(e);
+      
+      await RestAuthService.restAuthRegistrationCreate(data)
+      
+    } catch (e: any) {
+      const body = e.body;
+      Object.keys(body).forEach((key: any) => {
+        console.log(key)
+        setError(key, { type: 'custom', message: body[key] })
+      })
     }
   };
 

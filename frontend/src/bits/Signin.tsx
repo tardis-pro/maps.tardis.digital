@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
+import { RestAuthService } from "../services/akgda";
 
 interface IFormInput {
     username: string;
@@ -56,30 +57,18 @@ export const Signin = () => {
     };
 
     const { heading, submitButton } = useStyles();
-    const [json, setJson] = useState<string>();
 
     const onSubmit = async (data: IFormInput) => {
-
-        let data_json = JSON.stringify(data);
-        await setJson(JSON.stringify(data))
-
         try {
-            let result = await fetch("http://localhost:8000/api/rest-auth/login/", {
-                method: "POST",
-                body: data_json,
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                }
-            })
-            if (result.statusText == "OK") {
-            } else {
-                setError('password', { type: 'custom', message: 'Please check if your Password is correct or not!' });
-            }
-            console.log("Reponse Status: " + result.statusText)
-            console.log(result)
-        } catch (e) {
-            console.log(e);
+    
+          await RestAuthService.restAuthLoginCreate(data)
+    
+        } catch (e: any) {
+          const body = e.body;
+          Object.keys(body).forEach((key: any) => {
+            console.log(key)
+            setError('password', { type: 'custom', message: body[key] })
+          })
         }
     };
 
@@ -167,15 +156,6 @@ export const Signin = () => {
                             </Link>
                         </Typography>
                     </Box>
-                    {json && (
-                        <>
-                            <Typography variant="body1">
-                                Below is the JSON that would normally get passed to the server
-                                when a form gets submitted
-                            </Typography>
-                            <Typography variant="body2">{json}</Typography>
-                        </>
-                    )}
                 </form>
             </Box>
         </Container>
