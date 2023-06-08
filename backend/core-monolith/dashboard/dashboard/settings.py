@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,16 +26,15 @@ SECRET_KEY = 'django-insecure-1e^tiy_0h+)n$d#6$3dddis(r*-9odg2b=_me-92nu$c82k6d@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
-from datetime import timedelta
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
@@ -42,12 +42,13 @@ SIMPLE_JWT = {
 }
 # Application definition
 SPECTACULAR_SETTINGS = {
-   'TITLE': 'ALL KNOWING GIS DASHBOARD API',
-   'DESCRIPTION': 'Your API description',
-   'VERSION': '1.0.0',
+    'TITLE': 'ALL KNOWING GIS DASHBOARD API',
+    'DESCRIPTION': 'Your API description',
+    'VERSION': '1.0.0',
 }
 INSTALLED_APPS = [
     'django.contrib.admin',
+    'corsheaders',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -55,27 +56,30 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'core',
-     'rest_framework',
+    'rest_framework',
     'rest_framework.authtoken',
-      'dj_rest_auth',
+    'dj_rest_auth',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-     
-        'drf_spectacular',
 
-    
+    'drf_spectacular',
+
+
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'dashboard.urls'
 
@@ -99,8 +103,8 @@ WSGI_APPLICATION = 'dashboard.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
+# https://docs.djangoproject.com/en/4.1/ref/settings/#databasess
+# get this database definitions from env
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
@@ -110,7 +114,7 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432'
     }
-    
+
 }
 
 

@@ -8,8 +8,6 @@ const root = ReactDOMClient.createRoot(container);
 
 // why this doesnot render on the browser
 
-
-
 root.render(<App />)
 
 

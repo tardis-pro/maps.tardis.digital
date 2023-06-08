@@ -6,19 +6,31 @@
     "@deck.gl/layers": "^8.9.13",
     "@deck.gl/react": "^8.9.13",
     "@emotion/react": "^11.11.0",
+    "@hookform/resolvers": "^3.1.0",
     "@mantine/core": "^6.0.10",
     "@mantine/hooks": "^6.0.10",
+    "@material-ui/core": "^4.12.4",
+    "@material-ui/icons": "^4.11.3",
+    "@popperjs/core": "^2.11.8",
+    "@react-email/components": "^0.0.6",
     "@reduxjs/toolkit": "^1.9.5",
+    "@types/react-router-dom": "^5.3.3",
     "animejs": "^3.2.0",
+    "antd": "^5.5.1",
     "deck.gl": "^8.9.6",
+    "formik": "^2.4.1",
     "mapbox-gl": "npm:empty-npm-package@1.0.0",
     "maplibre-gl": "^2.4.0",
-    "react": "^18.2.0",
+    "mdb-react-ui-kit": "^6.1.0",
+    "react": ">=16.9.0",
     "react-autobind": "^1.0.6",
-    "react-dom": "^18.2.0",
+    "react-dom": ">=16.9.0",
+    "react-hook-form": "^7.44.3",
     "react-map-gl": "^7.0.21",
+    "react-router-dom": "^6.11.2",
     "redux-in-worker": "^0.8.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "yup": "^1.2.0"
   },
   "browserslist": "> 1.0%, last 2 versions",
   "devDependencies": {
@@ -31,7 +43,7 @@
     "parcel": "^2.8.3",
     "postcss": "^8.4.21",
     "process": "^0.11.10",
-    "tailwindcss": "^3.3.1"
+    "tailwindcss": "^3.3.2"
   },
   "source": "src/index.html",
   "scripts": {
