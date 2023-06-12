@@ -15,19 +15,21 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+import os
 
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'default_secret_key')
+
+DEBUG = os.environ.get('DJANGO_DEBUG') == 'True'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1e^tiy_0h+)n$d#6$3dddis(r*-9odg2b=_me-92nu$c82k6d@'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-
+ 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -62,10 +64,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-
     'drf_spectacular',
-
-
 ]
 
 MIDDLEWARE = [
@@ -106,15 +105,14 @@ WSGI_APPLICATION = 'dashboard.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databasess
 # get this database definitions from env
 DATABASES = {
-    'default': {
+     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'gis_core',
-        'USER': 'keycloak',
-        'PASSWORD': 'keycloak',
-        'HOST': 'localhost',
-        'PORT': '5432'
+        'NAME': os.environ.get('DB_NAME', 'default_db_name'),
+        'USER': os.environ.get('DB_USER', 'default_user'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'default_password'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
-
 }
 
 
@@ -158,3 +156,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
