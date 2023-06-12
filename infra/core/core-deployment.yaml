@@ -1,0 +1,47 @@
+# django-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: core-app
+  template:
+    metadata:
+      labels:
+        app: core-app
+    spec:
+      containers:
+      - name: core-app
+        image: pronittardis/core-app:latest 
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DJANGO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: core-secrets
+              key: DJANGO_SECRET_KEY
+        - name: DJANGO_DEBUG
+          value: "False"
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: POSTGRES_DBNAME 
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: POSTGRES_USER
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_HOST
+          value: "postgres-service"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: POSTGRES_PASSWORD
