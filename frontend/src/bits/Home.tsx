@@ -1,12 +1,19 @@
-import '../effects/Home.css'
+import BaseMap from './BaseMap';
 import Sidebar from './Sidebar'
 
 export const Home = () => {
     return (
-        <div className="home">
-            <div className='radial'>
-                <Sidebar/>
-            </div>
+        <div>
+
+            <Sidebar />
+            <BaseMap viewState={{
+                longitude: -73.75,
+                latitude: 40.73,
+                zoom: 9.6,
+                maxZoom: 16,
+                pitch: 0,
+                bearing: 0
+            }} />
         </div>
     )
 }
