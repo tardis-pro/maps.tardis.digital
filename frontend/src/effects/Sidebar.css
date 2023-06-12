@@ -1,0 +1,82 @@
+.sidebar {
+    margin: 0 15px;
+    height: 100vh;
+    width: 100%;
+    font-family: Roboto, serif;
+    font-size: 17px;
+    font-weight: bold;
+    color: rgb(255, 255, 255);
+    display: flex;
+    flex-wrap: wrap;
+}
+
+hr {
+    width: 100%;
+    border: 1px solid white;
+    opacity: 0.5;
+    margin: 10px 0;
+    align-items: center;
+}
+
+.sidebar-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 300px;
+    background: #fff;
+}
+
+button {
+    margin: 20px;
+    height: 20px;
+    width: 20px;
+}
+
+.radiobutton {
+}
+
+.cls-1 {
+    fill: #ffffff;
+    z-index: 2;
+}
+
+.clmn-1 {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-container {
+    height: 200px;
+    width: 200px;
+}
+
+.avatar {
+    margin: 60 auto 70 auto;
+    border-radius: 32px;
+    height: 64px;
+    width: 64px;
+}
+
+.text-placeholder {
+    width: 0px;
+    height: 10px;
+    cursor: pointer;
+}
+
+.text-placeholder2 {
+    width: 0px;
+    height: 10px;
+}
+
+.text {
+    margin: -40 auto 28% 20%;
+    /* top | right | bottom | left */
+}
+
+ul,
+li {
+    margin: 0;
+    padding: 0;
+    justify-self: center;
+}
