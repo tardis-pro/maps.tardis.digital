@@ -33,8 +33,51 @@ button {
     width: 20px;
 }
 
-.radiobutton {
+input[type=checkbox] {
+    appearance: none;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    outline-style: solid;
+    outline-width: 0px;
+    height: 16;
+    width: 16;
+    cursor: pointer;
 }
+input[type=checkbox] {
+    transition-duration: 0.5s;
+}
+
+.Stores:checked {
+    border-color: #E22887;
+    background-color: #E22887;
+    box-shadow: inset 0 0 0 8px #E22887;   
+}
+.Sales:checked {  
+    border-color: #17AA58;
+    background-color: #17AA58;
+    box-shadow: inset 0 0 0 8px #17AA58;
+}
+.Competitors:checked {  
+    border-color: #FFC04A;
+    background-color: #FFC04A;
+    box-shadow: inset 0 0 0 8px #FFC04A ;
+}
+.Maturity:checked {  
+    border-color: #0088CF;
+    background-color: #0088CF;
+    box-shadow: inset 0 0 0 8px #0088CF;
+}
+.Seasonality:checked {  
+    border-color: #6E72B7;
+    background-color: #6E72B7;
+    box-shadow: inset 0 0 0 8px #6E72B7;
+}
+.Marketshare:checked {  
+    border-color: #34A6E1;
+    background-color: #34A6E1;
+    box-shadow: inset 0 0 0 8px #34A6E1;
+}
+
 
 .cls-1 {
     fill: #ffffff;
