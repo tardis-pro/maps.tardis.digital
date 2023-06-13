@@ -106,4 +106,4 @@ License
 This project is licensed under the terms of the MIT license. See the LICENSE file for the full license text.
 
 Support
-For any queries or support-related questions, please contact us at support@geodashboard.com or
+For any queries or support-related questions, please contact us at default@tardis.digital
