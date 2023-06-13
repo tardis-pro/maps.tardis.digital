@@ -1,4 +1,4 @@
-const file = '/home/pronit/perigon/backend/core-monolith/dashboard/core/seeds/gmlh.json'
+const file = 'gmlh.json'
 
 
 const fs = require('fs')
