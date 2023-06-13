@@ -297,7 +297,6 @@ export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions): C
                 };
 
                 catchErrorCodes(options, result);
-
                 resolve(result.body);
             }
         } catch (error) {

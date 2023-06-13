@@ -56,7 +56,6 @@ export const Signin = () => {
     };
 
     const { heading, submitButton } = useStyles();
-    const [json, setJson] = useState<string>();
 
     const onSubmit = async (data: IFormInput) => {
         console.log(data)
@@ -153,15 +152,6 @@ export const Signin = () => {
                             </Link>
                         </Typography>
                     </Box>
-                    {json && (
-                        <>
-                            <Typography variant="body1">
-                                Below is the JSON that would normally get passed to the server
-                                when a form gets submitted
-                            </Typography>
-                            <Typography variant="body2">{json}</Typography>
-                        </>
-                    )}
                 </form>
             </Box>
         </Container>

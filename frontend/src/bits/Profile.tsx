@@ -1,13 +1,13 @@
-
-import React, { useState } from 'react';
-
 import { Card, Image, Text, Badge, Button, Group } from '@mantine/core';
+import '../effects/Profile.css'
 
 // write a function component for Profile
 // it should take a prop of type ProfileProps
 // it should return a div with the class name "profile"
-export const Profile = (props: ProfileProps) => {
-    return (<Card shadow="sm" padding="lg" radius="md" withBorder>
+export const Profile = () => {
+    return (
+        <div className="profile">
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
         <Card.Section>
             <Image
                 src="https://images.unsplash.com/photo-1527004013197-933c4bb611b3?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=720&q=80"
@@ -31,5 +31,9 @@ export const Profile = (props: ProfileProps) => {
         <Button variant="light" color="blue" fullWidth mt="md" radius="md">
             Book classic tour now
         </Button>
-    </Card>)
+    </Card>
+    </div>
+    )
 }
+
+export default Profile;

@@ -1,4 +1,4 @@
-import { AmbientLight, PointLight, LightingEffect } from '@deck.gl/core';
+import { AmbientLight, PointLight, LightingEffect } from '@deck.gl/core/typed';
 
 const ambientLight = new AmbientLight({
     color: [255, 255, 255],
