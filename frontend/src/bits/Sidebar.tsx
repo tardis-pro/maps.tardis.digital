@@ -9,9 +9,13 @@ import '../effects/Sidebar.css';
 // Define variants outside the component to avoid re-definition on each render
 const variants = {
     closed: {
+        position: "absolute",
+        zIndex: 10,
         background: "radial-gradient(ellipse 90% 125% at 50%, rgba(21, 0, 0, 0) 60%, rgba(21, 0, 0, 0.5) 70%, rgb(21, 0, 0, 1) 90%)"
     },
     open: {
+        position: "absolute",
+        zIndex: 10,
         background: "radial-gradient(ellipse 80% 125% at 60%, rgba(21, 0, 0, 0) 60%, rgba(21, 0, 0, 0.5) 70%, rgb(21, 0, 0, 1) 90%)"
     }
 };
