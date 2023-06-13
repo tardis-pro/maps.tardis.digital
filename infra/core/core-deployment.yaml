@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: core-app
-        image: pronittardis/core-app:latest 
+        image: pronittardis/core-app:v1 
         ports:
         - containerPort: 8000
         env:
@@ -26,22 +26,22 @@ spec:
               key: DJANGO_SECRET_KEY
         - name: DJANGO_DEBUG
           value: "False"
-        - name: DB_NAME
+        - name: DB_DATABASE
           valueFrom:
             secretKeyRef:
-              name: postgres-secrets
-              key: POSTGRES_DBNAME 
+              name: dba-secrets
+              key: DB_DATABASE 
         - name: DB_USER
           valueFrom:
             secretKeyRef:
-              name: postgres-secrets
-              key: POSTGRES_USER
+              name: dba-secrets
+              key: POSTGRESQL_USER
         - name: DB_PORT
           value: "5432"
         - name: DB_HOST
           value: "postgres-service"
-        - name: DB_PASSWORD
+        - name: POSTGRESQL_PASS
           valueFrom:
             secretKeyRef:
-              name: postgres-secrets
-              key: POSTGRES_PASSWORD
+              name: dba-secrets
+              key: POSTGRESQL_PASS

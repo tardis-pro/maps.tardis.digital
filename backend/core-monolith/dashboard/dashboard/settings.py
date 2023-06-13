@@ -12,14 +12,19 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
+import os
+from .utils import load_env 
+
+get_env = os.environ.get
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-import os
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'default_secret_key')
+load_env(BASE_DIR / "../.env")
+SECRET_KEY = get_env('DJANGO_SECRET_KEY')
 
-DEBUG = os.environ.get('DJANGO_DEBUG') == 'True'
+DEBUG = True
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -103,15 +108,15 @@ WSGI_APPLICATION = 'dashboard.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databasess
-# get this database definitions from env
+# get this database definitions from get_env
 DATABASES = {
      'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.environ.get('DB_NAME', 'default_db_name'),
-        'USER': os.environ.get('DB_USER', 'default_user'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'default_password'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'NAME': get_env('DB_DATABASE', 'default_db_name'),
+        'USER': get_env('POSTGRESQL_USER', 'default_user'),
+        'PASSWORD': get_env('POSTGRESQL_PASS', 'default_password'),
+        'HOST': get_env('DB_HOST', 'localhost'),
+        'PORT': get_env('DB_PORT', '5432'),
     }
 }
 

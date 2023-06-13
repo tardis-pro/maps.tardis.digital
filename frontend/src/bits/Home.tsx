@@ -11,6 +11,7 @@ export const Home = () => {
                 latitude: 40.73,
                 zoom: 9.6,
                 maxZoom: 16,
+                minZoom: 4, 
                 pitch: 0,
                 bearing: 0
             }} />
