@@ -1,7 +1,9 @@
-import { motion } from "framer-motion";
+import { motion, useCycle } from "framer-motion";
+import { useState } from 'react'
 import stores from '../effects/Stores.svg'
 import sales from '../effects/Sales.svg';
 import competitors from '../effects/Competitors.svg'
+import graphs from '../effects/Graph.svg'
 
 const variant1 = {
     open: {
@@ -45,7 +47,7 @@ const staggering = {
 
 const style = {
     padding: '1.5em 0.97em',
-    fontWeight: 'normal'
+    fontWeight: 'normal',
 };
 
 const title = {
@@ -53,47 +55,85 @@ const title = {
 }
 
 interface Item {
+    id: number;
     text: string;
     icon: string;
 }
 
 const items: Item[] = [
     {
+        id: 1,
         text: "Stores",
         icon: stores
     },
     {
+        id: 2,
         text: "Sales",
         icon: sales
     },
     {
+        id: 3,
         text: "Competitors",
         icon: competitors
+    },
+    {
+        id: 4,
+        text: "Maturity",
+        icon: graphs
+    },
+    {
+        id: 5,
+        text: "Seasonality",
+        icon: graphs
+    },
+    {
+        id: 6,
+        text: "Marketshare",
+        icon: graphs
     },
 ];
 
 export const Navigation = () => {
+    const [isActive, setActive] = useCycle(false, true);
+
+    const handleTap = (e: any) => {
+        if (e.target.checked) {
+            setActive(1);
+        } else {
+            setActive(0);
+        }
+    };
+
     const listManagement = items.map((item) =>
         <motion.li
             className="text-placeholder"
             style={style}
             variants={variant1}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0 }}
+            whileTap={{ opacity: isActive ? 1 : 0.5 }}
         >
-            <span style={{ width: 170, display: 'flex' }}>
-                <img src={item.icon} alt="Stores" style={{ width: 25, height: 25, marginRight: 20 }} />
-                {item.text}
-                <span>
-                    <input
-                        type="radio"
-                        className="radiobutton"
-                        style={{
-                            alignSelf: "flex-end",
-                            flex: 1
-                        }}
-                    />
-                </span> 
+            <span style={{ width: 170, display: 'flex', justifyContent: 'space-between' }}>
+                <img src={item.icon} alt="Stores" style={{ width: 25, height: 25 }} />
+                <div style={{ width: 100 }}>
+                    {item.text}
+                </div>
+                <motion.input
+                    type="checkbox"
+                    className={item.text}
+                    style={{ y: 6 }}
+                    whileTap={{ scale: 0.7 }}
+                    onChange={handleTap}
+                    transition={{
+                        duration: 0.5,
+                        ease: [0, 0.71, 0.2, 1.01],
+                        scale: {
+                            type: "spring",
+                            damping: 5,
+                            stiffness: 100,
+                            restDelta: 0.001
+                        }
+                    }}
+                />
             </span>
         </motion.li>
     )
