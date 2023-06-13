@@ -39,10 +39,11 @@ spec:
               key: POSTGRES_DBNAME 
         - name: POSTGRES_MULTIPLE_EXTENSIONS
           value: postgis,hstore,postgis_topology,postgis_raster,pgrouting
-
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
         volumeMounts:
-        - name: postgres-persistent-storage
-          mountPath: /var/lib/postgresql/data
+          - name: postgres-persistent-storage
+            mountPath: /var/lib/postgresql/data
   volumeClaimTemplates:
   - metadata:
       name: postgres-persistent-storage
@@ -51,4 +52,4 @@ spec:
       storageClassName: "standard"
       resources:
         requests:
-          storage: 1Gi
+          storage: 2Gi

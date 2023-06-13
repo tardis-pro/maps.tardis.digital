@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DeckGL from '@deck.gl/react/typed';
-import { ScatterplotLayer, ScreenGridLayer } from 'deck.gl/typed';
+import { ScatterplotLayer,MVTLayer, ScreenGridLayer } from 'deck.gl/typed';
 import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
@@ -14,6 +14,12 @@ const colorRange = [
     [240, 59, 32, 212],
     [189, 0, 38, 255]
 ];
+const pointsLayer = new MVTLayer({
+    data: ["http://127.0.0.1:46793/mvt_tile/{z}/{x}/{y}?source_id=1"],
+    pointRadiusUnits: 'pixels',
+    getRadius: 3,
+    getFillColor: [230, 0, 0]
+  });
 
 const BaseMap = (props) => {
     const { viewState } = props;
@@ -30,7 +36,8 @@ const BaseMap = (props) => {
                 colorRange: colorRange,
                 gpuAggregation: true,
                 aggregation: 'SUM'
-            })
+            }),
+            pointsLayer
         ],
         mapStyle: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
     });
