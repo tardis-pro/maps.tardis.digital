@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import { motion, useCycle } from "framer-motion";
 import Dashboard from './Dashboard';
 import Notification from './Notification';
 import Settings from './Settings';
 import Navigation from './Navigation';
 import '../effects/Sidebar.css'
-import { duration } from '@material-ui/core';
 
 export const Sidebar: React.FC = function () {
     const [isOpen, toggleOpen] = useCycle(false, true);

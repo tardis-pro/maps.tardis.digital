@@ -1,3 +1,7 @@
+.home {
+    position: relative;
+}
+
 .sidebar {
     margin: 0 15px;
     height: 100vh;
@@ -8,6 +12,7 @@
     color: rgb(255, 255, 255);
     display: flex;
     flex-wrap: wrap;
+    position: relative;
 }
 
 hr {
@@ -33,6 +38,7 @@ button {
     width: 20px;
 }
 
+
 input[type=checkbox] {
     appearance: none;
     border: 1px solid #fff;
@@ -43,36 +49,50 @@ input[type=checkbox] {
     width: 16;
     cursor: pointer;
 }
+
 input[type=checkbox] {
     transition-duration: 0.5s;
+}
+
+
+input[type=text]{
+    color: #fff;
+}
+input[type=text]::placeholder{
+    color: #fff;
 }
 
 .Stores:checked {
     border-color: #E22887;
     background-color: #E22887;
-    box-shadow: inset 0 0 0 8px #E22887;   
+    box-shadow: inset 0 0 0 8px #E22887;
 }
-.Sales:checked {  
+
+.Sales:checked {
     border-color: #17AA58;
     background-color: #17AA58;
     box-shadow: inset 0 0 0 8px #17AA58;
 }
-.Competitors:checked {  
+
+.Competitors:checked {
     border-color: #FFC04A;
     background-color: #FFC04A;
-    box-shadow: inset 0 0 0 8px #FFC04A ;
+    box-shadow: inset 0 0 0 8px #FFC04A;
 }
-.Maturity:checked {  
+
+.Maturity:checked {
     border-color: #0088CF;
     background-color: #0088CF;
     box-shadow: inset 0 0 0 8px #0088CF;
 }
-.Seasonality:checked {  
+
+.Seasonality:checked {
     border-color: #6E72B7;
     background-color: #6E72B7;
     box-shadow: inset 0 0 0 8px #6E72B7;
 }
-.Marketshare:checked {  
+
+.Marketshare:checked {
     border-color: #34A6E1;
     background-color: #34A6E1;
     box-shadow: inset 0 0 0 8px #34A6E1;
@@ -124,4 +144,41 @@ li {
     justify-self: center;
 }
 
-.d{fill:#17aa58;}
+.d {
+    fill: #17aa58;
+}
+
+.list-wrapper {
+    max-height: calc(50% - 50px);
+    width: 100%;
+    overflow: hidden visible;
+}
+
+.search-box {
+    position: absolute;
+    bottom: 20px;
+    left: 45px;
+    width: 170px;
+}
+
+.search-box input {
+    height: 30px;
+    width: 100%;
+    padding-left: 10px;
+    padding-right: 35px;
+    caret-color: white;
+    border: none;
+    border-radius: 10px;
+    background-color: #3A2E2F;
+    outline: none;
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    margin-left: 5px;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
