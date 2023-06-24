@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion, useCycle } from "framer-motion";
 import Dashboard from './Dashboard';
 import Notification from './Notification';
