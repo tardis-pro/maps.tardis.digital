@@ -300,6 +300,7 @@ export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions): C
                 resolve(result.body);
             }
         } catch (error) {
+            console.log(error)
             reject(error);
         }
     });

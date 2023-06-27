@@ -1,5 +1,6 @@
 import BaseMap from './BaseMap';
 import Sidebar from './Sidebar'
+import search from '../effects/Search.svg'
 
 export const Home = () => {
     return (
