@@ -8,8 +8,8 @@ export const Home = () => {
 
             <Sidebar />
             <BaseMap viewState={{
-                longitude: -73.75,
-                latitude: 40.73,
+                longitude: 73.75,
+                latitude: 18.73,
                 zoom: 9.6,
                 maxZoom: 16,
                 minZoom: 4, 

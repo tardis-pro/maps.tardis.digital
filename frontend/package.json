@@ -1,10 +1,10 @@
 {
   "dependencies": {
-    "@deck.gl/core": "^8.9.13",
-    "@deck.gl/extensions": "^8.9.13",
-    "@deck.gl/geo-layers": "^8.9.13",
-    "@deck.gl/layers": "^8.9.13",
-    "@deck.gl/react": "^8.9.13",
+    "@deck.gl/core": "^8.9.19",
+    "@deck.gl/extensions": "^8.9.19",
+    "@deck.gl/geo-layers": "^8.9.19",
+    "@deck.gl/layers": "^8.9.19",
+    "@deck.gl/react": "^8.9.19",
     "@emotion/react": "^11.11.0",
     "@hookform/resolvers": "^3.1.0",
     "@mantine/core": "^6.0.10",
