@@ -50,7 +50,7 @@ class Command(BaseCommand):
                                                 ST_Transform(geom, 4326),
                                                 TileBBox(z, x, y, 4326),
                                                 4096, 64, true
-                                            ) as geom, metadata->'properties'
+                                            ) as geom, metadata
                                             FROM public.core_geometry where source_id = (query_params->>'source_id')::int
                                         ) as tile;
                                         RETURN mvt;
