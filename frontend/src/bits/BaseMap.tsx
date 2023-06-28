@@ -5,19 +5,25 @@ import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
 import { isWebGL2 } from '@luma.gl/core';
+import * as d3 from 'd3';
+// Define the color range
+var colorRange = [
+    [0, 255, 0, 255], // Red, fully opaque
+    [255, 0, 0, 255] // Green, fully opaque
+  ]; // Example: Red to Green
+// Create a color scale
+var colorScale = d3.scaleLinear()
+  .domain([100, 8000])
+  .range(colorRange)
 
-const colorRange = [
-    [255, 255, 178, 25],
-    [254, 217, 118, 85],
-    [254, 178, 76, 127],
-    [253, 141, 60, 170],
-    [240, 59, 32, 212],
-    [189, 0, 38, 255]
-];
 const polygonLayer = new MVTLayer({
-    data: "http://127.0.0.1:43929/mvt_tile?source_id=15",
+    data: "http://127.0.0.1:43929/mvt_tile?source_id=16",
     getFillColor: f => {
-        console.log(f)
+        console.log(f.properties.nrf)
+        console.log(colorScale(f.properties.nrf))
+        const colorVal = colorScale(f.properties.arf)
+        console.log(colorVal.toString())
+       return colorVal;
     },
     pickable: true,
     autoHighlight: true,

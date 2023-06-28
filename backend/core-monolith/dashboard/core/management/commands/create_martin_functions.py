@@ -47,8 +47,8 @@ class Command(BaseCommand):
                                         SELECT INTO mvt ST_AsMVT(tile, 'layer', 4096, 'geom')
                                             FROM (
                                             SELECT ST_AsMVTGeom (
-                                                ST_Transform(geom, 4326),
-                                                TileBBox(z, x, y, 4326),
+                                                ST_Transform(geom, 3857),
+                                                TileBBox(z, x, y, 3857),
                                                 4096, 64, true
                                             ) as geom, metadata
                                             FROM public.core_geometry where source_id = (query_params->>'source_id')::int
