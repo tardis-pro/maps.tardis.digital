@@ -11,8 +11,8 @@ export const Home = () => {
                 longitude: 73.75,
                 latitude: 18.73,
                 zoom: 9.6,
-                maxZoom: 16,
-                minZoom: 4, 
+                maxZoom: 22,
+                minZoom: 0, 
                 pitch: 0,
                 bearing: 0
             }} />

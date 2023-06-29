@@ -42,12 +42,7 @@ spec:
         volumeMounts:
           - name: pps
             mountPath: /var/lib/postgresql/data
-  volumeClaimTemplates:
-  - metadata:
-      name: pps
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "standard"
-      resources:
-        requests:
-          storage: 2Gi
+      volumes:
+        - name: pps
+          persistentVolumeClaim:
+            claimName: my-pvc

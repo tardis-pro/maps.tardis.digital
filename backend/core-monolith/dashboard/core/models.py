@@ -17,7 +17,7 @@ class Source(models.Model):
 
 
 class Geometry(models.Model):
-    gid = models.CharField(unique=True,max_length=50, primary_key=True)
+    gid = models.BigAutoField(primary_key=True)
     geom = models.GeometryField()
     metadata = models.JSONField()
     geometry_type = models.CharField(max_length=50)
