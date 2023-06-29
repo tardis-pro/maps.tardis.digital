@@ -30,8 +30,9 @@ class Command(BaseCommand):
             # Initialize a dictionary for this column
             column_metadata = {'dtype': dtype}
             unique_counts = df[column].nunique()
-
-# Print the counts
+            print(column)
+            print(dtype)
+            # Print the counts
             print(unique_counts)
             # If the data type is numeric, get the min and max
             if 'int' in dtype or 'float' in dtype:
