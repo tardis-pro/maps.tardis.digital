@@ -1,16 +1,24 @@
-.home {
+/* .home {
     position: relative;
+} */
+html {
+    font-family: Roboto, serif;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.map {
+    height: 100vh;
+    width: 100vw;
+    z-index: 4;
 }
 
 .sidebar {
     margin: 0 15px;
     height: 100vh;
     width: 100%;
-    font-family: Roboto, serif;
-    font-size: 17px;
-    font-weight: bold;
-    color: rgb(255, 255, 255);
     display: flex;
+    color: #ffffff;
     flex-wrap: wrap;
     position: relative;
 }
@@ -23,14 +31,14 @@ hr {
     align-items: center;
 }
 
-.sidebar-background {
+/* .sidebar-background {
     position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
-    width: 300px;
+    width: 100%;
     background: #fff;
-}
+} */
 
 button {
     margin: 20px;
@@ -55,10 +63,11 @@ input[type=checkbox] {
 }
 
 
-input[type=text]{
+input[type=text] {
     color: #fff;
 }
-input[type=text]::placeholder{
+
+input[type=text]::placeholder {
     color: #fff;
 }
 
@@ -107,6 +116,7 @@ input[type=text]::placeholder{
 .clmn-1 {
     display: flex;
     flex-direction: column;
+    width: 63px;
 }
 
 .profile-container {
@@ -142,10 +152,10 @@ li {
     margin: 0;
     padding: 0;
     justify-self: center;
+    list-style-type: none;
 }
 
 /* html{
     background-image: url(./image.png) 
   }
    */
-  

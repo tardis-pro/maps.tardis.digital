@@ -83,6 +83,7 @@ const BaseMap = (props) => {
             initialViewState={viewState}
             layers={state.layers}
             onWebGLInitialized={onInitialized}
+            style={{zIndex:1}}
         >
             <Map
                 reuseMaps
