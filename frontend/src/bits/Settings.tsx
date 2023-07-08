@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 export const Settings = () => {
     return (
-        <button>
+        <button style={{zIndex:2}}>
             <motion.svg
                 initial={{ opacity: 0.5 }}
                 variants={{

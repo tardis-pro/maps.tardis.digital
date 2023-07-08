@@ -3,7 +3,7 @@ import { motion } from "framer-motion"
 export const Dashboard = ({ toggle }: { toggle: any }) => {
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'row' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', zIndex: 2 }}>
             <button
                 onClick={toggle}
             >
