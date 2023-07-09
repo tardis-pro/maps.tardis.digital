@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Stores from '../effects/Stores.svg';
 import Sales from '../effects/Sales.svg';
 import Competitors from '../effects/Competitors.svg'
+import Graph from '../effects/Graph.svg'
 
 interface Item {
     text: string;
@@ -14,6 +15,9 @@ const items: Item[] = [
     { text: "Stores", icon: Stores },
     { text: "Sales", icon: Sales },
     { text: "Competitors", icon: Competitors },
+    { text: "Maturity", icon: Graph },
+    { text: "Seasonality", icon: Graph },
+    { text: "Marketshare", icon: Graph }
 ];
 
 const variant1 = {
@@ -48,7 +52,10 @@ const variant2 = {
 
 const staggering = {
     open: {
-        transition: { staggerChildren: 0.07, delayChildren: 0.2, display: { duration: 0.5 } }
+        transition: { staggerChildren: 0.07, delayChildren: 0.2, display: { duration: 0.5 } },
+    },
+    closed: {
+        pointerEvents: 'none'
     }
 };
 
