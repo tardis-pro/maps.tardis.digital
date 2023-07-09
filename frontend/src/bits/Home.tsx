@@ -20,7 +20,7 @@ export const Home = () => {
             }}
                 className="map"
             />
-            <div className="search-box" style={{zIndex: 3}}>
+            <div className="search-box" style={{ zIndex: 3 }}>
                 <input type="text" placeholder="Search..." spellcheck='false' />
                 <img className="search-icon" src={search} alt="Search Icon" />
             </div>

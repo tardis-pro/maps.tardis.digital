@@ -52,21 +52,21 @@ const variant2 = {
 
 const staggering = {
     open: {
-        transition: { staggerChildren: 0.07, delayChildren: 0.2, display: { duration: 0.5 } },
+        transition: { staggerChildren: 0.07, delayChildren: 0.2 },
     },
     closed: {
         pointerEvents: 'none'
     }
 };
 
-export const Navigation: React.FC = () => {
+export const Navigation: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
     const [activeStates, setActiveStates] = useState<boolean[]>(
-        Array(items.length).fill(false)
+        Array(items.length).fill(true)
     )
 
-    const handleTap = (index: number) => {
+    const handleTap = (index: number, checked: boolean) => {
         const newActiveStates = [...activeStates]
-        newActiveStates[index] = !newActiveStates[index]
+        newActiveStates[index] = checked;
         setActiveStates(newActiveStates)
     }
     return (
@@ -80,11 +80,10 @@ export const Navigation: React.FC = () => {
                         id={item.text}
                         style={{
                             padding: '1.5em 0.7em',
-                            fontWeight: 'normal'
+                            fontWeight: 'normal',
                         }}
+                        animate={{ opacity: isOpen && activeStates[index] ? 0.5 : 1 }}
                         variants={variant1}
-                        initial={{ opacity: 0 }}
-                        whileTap={{ opacity: activeStates[index] ? 0.5 : 1 }}
                         key={index}
                     >
                         <span
@@ -101,7 +100,7 @@ export const Navigation: React.FC = () => {
                                 className={item.text}
                                 style={{ y: 6 }}
                                 whileTap={{ scale: 0.7 }}
-                                onChange={() => handleTap(index)}
+                                onChange={(event) => handleTap(index, !event.target.checked)}
                                 transition={{
                                     duration: 0.2,
                                     ease: [0, 0.71, 0.2, 1.01],
@@ -117,7 +116,7 @@ export const Navigation: React.FC = () => {
                     </motion.li>
                 ))
             }
-            <motion.hr initial={{ opacity: 0 }} variants={variant1} style={{marginTop: 35}}/>
+            <motion.hr initial={{ opacity: 0 }} variants={variant1} style={{ marginTop: 35 }} />
 
         </motion.div>
     )
