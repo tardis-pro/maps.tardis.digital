@@ -38,7 +38,7 @@ const Sidebar: React.FC = () => {
                     <Notification />
                     <Settings />
                     <motion.hr className='hr2' variants={{ open: { y: -120 }, closed: { y: 0, transition: { y: { stiffness: 1000, duration: 0.5 } } } }} transition={transition} style={{zIndex:2}}/>
-                    <Navigation />
+                    <Navigation isOpen={isOpen} />
                 </motion.div>
             </motion.div>
         </motion.nav>

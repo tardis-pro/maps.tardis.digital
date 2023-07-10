@@ -155,6 +155,37 @@ li {
     list-style-type: none;
 }
 
+.search-box {
+    position: absolute;
+    font-style: normal;
+    bottom: 20px;
+    left: 15px;
+    width: 200px;
+}
+
+.search-box input {
+    height: 30px;
+    width: 100%;
+    font-weight: normal;
+    padding-left: 10px;
+    padding-right: 35px;
+    caret-color: white;
+    border: none;
+    border-radius: 10px;
+    background-color: #3A2E2F;
+    outline: none;
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    margin-left: 5px;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 /* html{
     background-image: url(./image.png) 
   }
