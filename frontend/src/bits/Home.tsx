@@ -9,19 +9,21 @@ export const Home = () => {
     return (
         <motion.div>
             <Sidebar />
-            <BaseMap viewState={{
-                longitude: 55.1403,
-                latitude: 25.0805,
-                zoom: 9.6,
-                maxZoom: 22,
-                minZoom: 0,
-                pitch: 0,
-                bearing: 0
-            }}
-                className="map"
-            />
+            <div onContextMenu={(e) => e.preventDefault()} >
+                <BaseMap viewState={{
+                    longitude: 55.1403,
+                    latitude: 25.0805,
+                    zoom: 9.6,
+                    maxZoom: 22,
+                    minZoom: 0,
+                    pitch: 0,
+                    bearing: 0
+                }}
+                    className="map"
+                />
+            </div>
             <div className="search-box" style={{ zIndex: 3 }}>
-                <input type="text" placeholder="Search..." spellcheck='false' />
+                <input type="text" placeholder="Search..." spellCheck='false' />
                 <img className="search-icon" src={search} alt="Search Icon" />
             </div>
         </motion.div>

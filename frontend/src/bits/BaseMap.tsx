@@ -75,6 +75,10 @@ const BaseMap = (props) => {
     useEffect(() => {
         // your logic here when component mounts or updates
     }, [viewState]);
+    
+    const handleContextMenu = (event) => {
+        event.preventDefault();
+      }
 
     return (
         <DeckGL
