@@ -81,7 +81,7 @@ const BaseMap = (props) => {
     return (
         <DeckGL
             effects={[lightingEffect]}
-            controller={{doubleClickZoom: false, scrollZoom: {smooth: true, speed: 0.1}, minPitch: 0, maxPitch: 79}}
+            controller={{doubleClickZoom: false, scrollZoom: {smooth: true, speed: 0.1}, inertia: 300, minPitch: 0, maxPitch: 79}}
             initialViewState={viewState}
             layers={state.layers}
             onWebGLInitialized={onInitialized}
