@@ -9,7 +9,7 @@ jobs:
   build:
     strategy:
       matrix:
-        node-version: [14, 16, 18]
+        node-version: [16, 18]
 
     runs-on: ubuntu-latest
     defaults:
@@ -29,13 +29,10 @@ jobs:
     
     - name: Install Yarn
       run: npm install -g yarn
-      working-directory: './frontend'
     - name: Install dependencies
       run: yarn install
-      working-directory: './frontend'
     - name: Build the app
       run: yarn build
-      working-directory: './frontend'
     - name: Archive artifacts
       uses: actions/upload-artifact@v2
       with:
