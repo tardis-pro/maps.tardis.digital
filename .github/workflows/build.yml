@@ -33,7 +33,7 @@ jobs:
             type=semver,pattern={{major}}
             type=sha
       - name: Build Docker image
-        run: docker build -t tardisdigital/core-app:${{ steps.meta.outputs.tags }} ./backend/core-monolith/
+        run: docker build -t ${{ steps.meta.outputs.tags }} ./backend/core-monolith/
 
       - name: Push Docker image
-        run: docker push tardisdigital/core-app:${{ steps.meta.outputs.tags }}
+        run: docker push ${{ steps.meta.outputs.tags }}
