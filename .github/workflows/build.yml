@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - main
-      - ci
+      - cit
   pull_request:
     branches:
-      - ci
+      - cit
 jobs:
   build:
     runs-on: ubuntu-latest
