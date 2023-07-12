@@ -1,0 +1,40 @@
+name: Build React App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'yarn'
+    - name: Change working directory
+      run: cd frontend
+    - name: Install Yarn
+      run: npm install -g yarn
+
+    - name: Install dependencies
+      run: yarn install
+
+    - name: Build the app
+      run: yarn build
+
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: build
+        path: build/
