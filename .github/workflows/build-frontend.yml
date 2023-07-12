@@ -22,19 +22,18 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
-    - name: Change working directory
-      run: cd frontend
+    
     - name: Install Yarn
       run: npm install -g yarn
-
+      working-directory: './frontend'
     - name: Install dependencies
       run: yarn install
-
+      working-directory: './frontend'
     - name: Build the app
       run: yarn build
-
+      working-directory: './frontend'
     - name: Archive artifacts
       uses: actions/upload-artifact@v2
       with:
         name: build
-        path: build/
+        path: ./frontend/build/
