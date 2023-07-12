@@ -12,17 +12,20 @@ jobs:
         node-version: [14, 16, 18]
 
     runs-on: ubuntu-latest
-
+    defaults:
+       run:
+         working-directory: ./frontend/
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
-      working-directory: './frontend'
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
+        cache-dependency-path: './frontend/yarn.lock'
+
     
     - name: Install Yarn
       run: npm install -g yarn
