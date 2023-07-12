@@ -1,6 +1,7 @@
 import { motion, useCycle } from "framer-motion";
 import BaseMap from './BaseMap'
 import Sidebar from './Sidebar'
+import SmoothScroll from "./SmoothScroll"
 import search from '../effects/Search.svg'
 
 export const Home = () => {
@@ -14,8 +15,8 @@ export const Home = () => {
                     longitude: 55.1403,
                     latitude: 25.0805,
                     zoom: 9.6,
-                    maxZoom: 22,
-                    minZoom: 0,
+                    maxZoom: 20,
+                    minZoom: 1.5,
                     pitch: 0,
                     bearing: 0
                 }}

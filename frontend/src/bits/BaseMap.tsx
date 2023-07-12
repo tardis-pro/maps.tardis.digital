@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DeckGL from '@deck.gl/react/typed';
+import { MapView } from '@deck.gl/core';
 import { ScatterplotLayer, MVTLayer, ScreenGridLayer } from 'deck.gl/typed';
 import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
@@ -40,17 +41,17 @@ const pointsLayer = new MVTLayer({
 //     autoHighlight: true,
 //     onClick: info => console.log(info.object)
 // });
-// new ScreenGridLayer({
-//     id: 'grid',
-//     data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json',
-//     opacity: 0.8,
-//     getPosition: d => [d[0], d[1]],
-//     getWeight: d => d[2],
-//     cellSizePixels: 20,
-//     colorRange: colorRange,
-//     gpuAggregation: true,
-//     aggregation: 'SUM'
-// })
+const gridLayer = new ScreenGridLayer({
+    id: 'grid',
+    data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json',
+    opacity: 0.8,
+    getPosition: d => [d[0], d[1]],
+    getWeight: d => d[2],
+    cellSizePixels: 2,
+    colorRange: colorRange,
+    gpuAggregation: true,
+    aggregation: 'SUM'
+})
 
 const BaseMap = (props) => {
     const { viewState } = props;
@@ -58,7 +59,8 @@ const BaseMap = (props) => {
     const [state, setState] = useState({
         layers: [
             // polygonLayer,
-            pointsLayer
+            pointsLayer,
+            gridLayer
         ],
         mapStyle: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
     });
@@ -75,19 +77,15 @@ const BaseMap = (props) => {
     useEffect(() => {
         // your logic here when component mounts or updates
     }, [viewState]);
-    
-    const handleContextMenu = (event) => {
-        event.preventDefault();
-      }
 
     return (
         <DeckGL
             effects={[lightingEffect]}
-            controller={true}
+            controller={{doubleClickZoom: false, scrollZoom: {smooth: true, speed: 0.1}, minPitch: 0, maxPitch: 79}}
             initialViewState={viewState}
             layers={state.layers}
             onWebGLInitialized={onInitialized}
-            style={{zIndex:1}}
+            style={{ zIndex: 1 }}
         >
             <Map
                 reuseMaps
