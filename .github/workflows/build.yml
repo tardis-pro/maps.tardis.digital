@@ -10,18 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Get current version
-      id: version
-      run: echo "{VERSION}={(git describe --tags --abbrev=0 || echo "0.1.0")}" >> $GITHUB_OUTPUT
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            tardisdigital/core-app
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+      - name: Build Docker image
+        run: docker build -t tardisdigital/core-app:${{ steps.meta.outputs.tags }} ./backend/core-monolith/
 
-    - name: Build Docker image
-      run: docker build -t tardisdigital/core-app:${{ steps.version.outputs.VERSION }} ./backend/core-monolith/
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Push Docker image
-      run: docker push tardisdigital/core-app:${{ steps.version.outputs.VERSION }}
+      - name: Push Docker image
+        run: docker push tardisdigital/core-app:${{ steps.meta.outputs.tags }}
