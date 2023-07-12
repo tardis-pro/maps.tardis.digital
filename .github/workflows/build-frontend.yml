@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - cit
 jobs:
   build:
     strategy:
