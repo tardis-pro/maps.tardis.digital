@@ -20,7 +20,7 @@ jobs:
       run: echo ::set-output name=VERSION::$(git describe --tags --abbrev=0 || echo "0.1.0")
 
     - name: Build Docker image
-      run: docker build -t tardisdigital/:${{ steps.version.outputs.VERSION }} ./backend/core-monolith/
+      run: docker build -t tardisdigital/core-app:${{ steps.version.outputs.VERSION }} ./backend/core-monolith/
     
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
