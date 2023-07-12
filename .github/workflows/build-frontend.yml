@@ -19,6 +19,7 @@ jobs:
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
+      working-directory: './frontend'
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
