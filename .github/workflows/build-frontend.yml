@@ -4,37 +4,36 @@ on:
   push:
     branches:
       - main
-
 jobs:
   build:
     strategy:
       matrix:
-        node-version: [14, 16, 18]
+        node-version: [16, 18]
 
     runs-on: ubuntu-latest
-
+    defaults:
+       run:
+         working-directory: ./frontend/
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
-    - name: Change working directory
-      run: cd frontend
+        cache-dependency-path: './frontend/yarn.lock'
+
+    
     - name: Install Yarn
       run: npm install -g yarn
-
     - name: Install dependencies
       run: yarn install
-
     - name: Build the app
       run: yarn build
-
     - name: Archive artifacts
       uses: actions/upload-artifact@v2
       with:
         name: build
-        path: build/
+        path: ./frontend/build/
