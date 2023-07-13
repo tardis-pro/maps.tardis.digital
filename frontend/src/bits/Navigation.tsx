@@ -5,6 +5,7 @@ import Stores from '../effects/Stores.svg';
 import Sales from '../effects/Sales.svg';
 import Competitors from '../effects/Competitors.svg'
 import Graph from '../effects/Graph.svg'
+import eventBus from "utils/eventBus";
 
 interface Item {
     text: string;
@@ -67,6 +68,7 @@ export const Navigation: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
     const handleTap = (index: number, checked: boolean) => {
         const newActiveStates = [...activeStates]
         newActiveStates[index] = checked;
+        eventBus.emit('widget.map.layer.add', { layer: items[index].text, checked: checked })
         setActiveStates(newActiveStates)
     }
     return (
