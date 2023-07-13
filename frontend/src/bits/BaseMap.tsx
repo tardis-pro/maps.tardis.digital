@@ -7,6 +7,8 @@ import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
 import { isWebGL2 } from '@luma.gl/core';
 import * as d3 from 'd3';
+import eventBus from 'utils/eventBus';
+
 // Define the color range
 var colorRange = [
     [0, 255, 0, 255], // Red, fully opaque
@@ -76,12 +78,20 @@ const BaseMap = (props) => {
 
     useEffect(() => {
         // your logic here when component mounts or updates
+        eventBus.on('widget.map.layer.add', (layer) => {
+            console.log(layer)
+        })
+        return () => {
+            eventBus.off('widget.map.layer.add', (layer) => {
+                console.log(layer)
+            })
+        }
     }, [viewState]);
 
     return (
         <DeckGL
             effects={[lightingEffect]}
-            controller={{doubleClickZoom: false, scrollZoom: {smooth: true, speed: 0.1}, inertia: 300, minPitch: 0, maxPitch: 79}}
+            controller={{ doubleClickZoom: false, scrollZoom: { smooth: true, speed: 0.1 }, inertia: 300, minPitch: 0, maxPitch: 79 }}
             initialViewState={viewState}
             layers={state.layers}
             onWebGLInitialized={onInitialized}
