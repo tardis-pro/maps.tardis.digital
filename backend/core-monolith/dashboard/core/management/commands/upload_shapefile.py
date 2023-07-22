@@ -26,7 +26,7 @@ def upload_shapefile_to_geometry_model(shapefile_path, source_id, source_name):
     # Upload the shapefile data to the Geometry model
     # Geometry.objects.all().delete()
     
-    keys_to_remove = ['geometry']
+    keys_to_remove = ['geometry', 'master_timestamp']
     for index, row in df.iterrows():
         geom = row['geometry'].__geo_interface__
         # exit()

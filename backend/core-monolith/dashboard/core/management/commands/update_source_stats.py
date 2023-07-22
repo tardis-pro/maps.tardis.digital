@@ -16,13 +16,13 @@ import pandas as pd
 
 class Command(BaseCommand):
     help = "Uploads a location geojson to the Geometry model"
-
+    
     def update_source_attributes(self, source_id):
         geomList = Geometry.objects.filter(source_id=source_id).values_list('metadata', flat=True)
         df = pd.DataFrame(geomList)
         metadata = {}
 
-# Iterate over the columns
+        # Iterate over the columns
         for column in df.columns:
             # Get the data type of the column
             dtype = str(df[column].dtype)
@@ -55,16 +55,21 @@ class Command(BaseCommand):
         source_model_instance.save()
 
         pass
-
+    def update_all_source_attributes(self):
+        source_list = Source.objects.all()
+        for source in source_list:
+            self.update_source_attributes(source.id)
     def add_arguments(self, parser):
-        parser.add_argument("source_id", type=str,
-                            help="The ID of the source")
+        parser.add_argument("source_id", nargs='?', default='all', type=str,
+                        help="The ID of the source")
 
     def handle(self, *args, **options):
         print(options)
         source_id = options.get("source_id")
-
-        self.update_source_attributes(source_id)
+        if(source_id == 'all'):
+            self.update_all_source_attributes()
+        else:
+            self.update_source_attributes(source_id)
         self.stdout.write(
             self.style.SUCCESS(
                 "Successfully uploaded geojson to Geometry model")

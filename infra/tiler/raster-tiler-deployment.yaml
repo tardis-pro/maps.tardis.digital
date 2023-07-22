@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: titiler-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: titiler
+  template:
+    metadata:
+      labels:
+        app: titiler
+    spec:
+      containers:
+      - name: titiler-container
+        image: titiler
+        ports:
+        - containerPort: 8000
