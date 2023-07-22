@@ -25,11 +25,10 @@ def upload_csv_file_to_geometry_model(csv_file_path, source_id, source_name):
     csv_reader = csv.DictReader(io.StringIO(csv_data))
     rows = list(csv_reader)
     geometries = []
+    source, created = Source.objects.get_or_create(sid=source_id, name=source_name, attributes={})
     # Upload the CSV data to the Geometry model
     # Geometry.objects.all().delete()
     for row in rows:
-        source, created = Source.objects.get_or_create(sid=source_id, name=source_name, attributes={})
-        
         metadata = {
             key: value
             for key, value in row.items()
@@ -37,7 +36,7 @@ def upload_csv_file_to_geometry_model(csv_file_path, source_id, source_name):
         }
         
         if row["Longitude"] != "" and float(row["Latitude"]) != "":
-            geometry = Geometry.objects.create(
+            geometry = Geometry(
                 geom=Point(float(row["Longitude"]), float(row["Latitude"])),
                 metadata=metadata,
                 geometry_type="Point",

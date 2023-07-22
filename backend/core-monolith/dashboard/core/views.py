@@ -30,7 +30,7 @@ class ProjectDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProjectSerializer
 
 class LayerList(generics.ListCreateAPIView):
-    queryset = Layer.objects.all()
+    queryset = Layer.objects.prefetch_related('source').all()
     serializer_class = LayerSerializer
 
 class LayerDetail(generics.RetrieveUpdateDestroyAPIView):

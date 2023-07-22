@@ -14,8 +14,6 @@ class Source(models.Model):
     
     class Meta:
         verbose_name_plural = "Sources"
-
-
 class Geometry(models.Model):
     gid = models.BigAutoField(primary_key=True)
     geom = models.GeometryField()
@@ -27,7 +25,8 @@ class Geometry(models.Model):
     def __hasattr__(self):
         return self.source
     class Meta:
-        verbose_name_plural = "Geometries"  
+        verbose_name_plural = "Geometries" 
+        unique_together = ('gid', 'source') 
 
 # Create your models here.
 class Layer(models.Model):
@@ -36,7 +35,6 @@ class Layer(models.Model):
     source = models.ForeignKey(Source, on_delete=models.CASCADE)
     attritutes = models.JSONField()
     style = models.JSONField()
-    geometries = models.ManyToManyField(Geometry, blank=True)
     def __str__(self):
         return self.name
 

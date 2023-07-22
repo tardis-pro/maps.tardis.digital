@@ -11,6 +11,7 @@ class SourceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class LayerSerializer(serializers.ModelSerializer):
+    source = SourceSerializer()
     class Meta:
         model = Layer
         fields = '__all__'
