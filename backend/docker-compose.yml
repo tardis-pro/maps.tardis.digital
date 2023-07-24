@@ -15,9 +15,8 @@ services:
   #   restart: unless-stopped
   core-app:
     build:
-      context: .
-      dockerfile: ./core-monolith/Dockerfile
-    image: pronittardis/core-app:main
+      context: ./core-monolith
+      dockerfile: ./Dockerfile
     container_name: core-app
     depends_on:
       - postgres
