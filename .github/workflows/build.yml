@@ -22,7 +22,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            tardisdigital/core-app
+            pronittardis/core-app
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
