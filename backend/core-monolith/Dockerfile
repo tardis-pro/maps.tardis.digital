@@ -15,6 +15,7 @@ RUN pip3 install setuptools==58
 RUN pip3 install -r requirements.txt
 COPY . /app/
 WORKDIR /app/dashboard
+RUN chmod 600 /app/.env
 RUN chmod +x ./init.sh
 ENTRYPOINT ["./init.sh"]
 CMD ["gunicorn", "dashboard.wsgi:application", "--bind", "0.0.0.0:8000"]
