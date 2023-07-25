@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /app
 
-COPY requirements.txt /app/
+COPY dashboard/requirements.txt /app/
 RUN apt-get update \
     && apt-get install -y binutils libproj-dev gdal-bin  libgdal-dev python3-gdal \
     && apt-get clean -y
