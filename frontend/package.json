@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@aws-amplify/auth": "^5.5.5",
     "@deck.gl/core": "^8.9.19",
     "@deck.gl/extensions": "^8.9.19",
     "@deck.gl/geo-layers": "^8.9.19",
@@ -17,6 +18,7 @@
     "@shopify/react-native-skia": "^0.1.193",
     "@types/react-router-dom": "^5.3.3",
     "animejs": "^3.2.0",
+    "aws-sdk": "^2.1423.0",
     "broadcast-channel": "^5.1.0",
     "d3": "^7.8.5",
     "date-fns": "^2.30.0",
@@ -34,6 +36,8 @@
     "react-router-dom": "^6.11.2",
     "redux-in-worker": "^0.8.0",
     "resize-observer-polyfill": "^1.5.1",
+    "styled-components": "^6.0.5",
+    "utils": "^0.3.1",
     "uuid": "^9.0.0",
     "yup": "^1.2.0"
   },
@@ -43,12 +47,17 @@
     "@types/react-dom": "^18.0.11",
     "autoprefixer": "^10.4.14",
     "buffer": "^5.5.0",
+    "events": "^3.1.0",
     "openapi-typescript": "^6.2.4",
     "openapi-typescript-codegen": "^0.24.0",
     "parcel": "^2.9.3",
     "postcss": "^8.4.21",
     "process": "^0.11.10",
-    "tailwindcss": "^3.3.2"
+    "punycode": "^1.4.1",
+    "querystring-es3": "^0.2.1",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^5.1.6",
+    "url": "^0.11.0"
   },
   "source": "src/index.html",
   "scripts": {
