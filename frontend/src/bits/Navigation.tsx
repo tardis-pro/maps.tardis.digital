@@ -67,8 +67,8 @@ export const Navigation: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
 
     const handleTap = (index: number, checked: boolean) => {
         const newActiveStates = [...activeStates]
-        newActiveStates[index] = checked;
-        eventBus.emit('widget.map.layer.add', { layer: items[index].text, checked: checked })
+        newActiveStates[index] = checked;        
+        eventBus.emit('widget.map.layer.add', { layer: items[index].text, checked: !checked })
         setActiveStates(newActiveStates)
     }
     return (

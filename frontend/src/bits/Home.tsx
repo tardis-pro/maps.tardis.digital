@@ -27,7 +27,7 @@ export const Home = () => {
                 <BaseMap viewState={{
                     longitude: 55.1403,
                     latitude: 25.0805,
-                    zoom: 9.6,
+                    zoom: 0,
                     maxZoom: 20,
                     minZoom: 1.5,
                     pitch: 0,
@@ -36,12 +36,12 @@ export const Home = () => {
                     className="map"
                 />
             </div>
-            <div style={{ zIndex: 3, position: "absolute", top: 20, right: 20 }}>
+            {/* <div style={{ zIndex: 3, position: "absolute", top: 20, right: 20 }}>
                 <form onSubmit={handleSubmit}>
-                <Uploader/>
+                <FileUpload/>
                     <button type="submit">Create New User</button>
                 </form>
-            </div>
+            </div> */}
             <div className="search-box" style={{ zIndex: 3 }}>
                 <input type="text" placeholder="Search..." spellCheck='false' />
                 <img className="search-icon" src={search} alt="Search Icon" />
