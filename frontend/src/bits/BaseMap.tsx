@@ -5,7 +5,7 @@ import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
 import { isWebGL2 } from '@luma.gl/core';
-import * as d3 from 'd3';
+// import * as d3 from 'd3';
 import eventBus from 'utils/eventBus';
 
 // Define the color range
@@ -14,23 +14,23 @@ var colorRange = [
     [255, 0, 0, 255] // Green, fully opaque
 ]; // Example: Red to Green
 // Create a color scale
-var colorScale = d3.scaleLinear()
-    .domain([0, 1])
-    .range(colorRange)
+// var colorScale = d3.scaleLinear()
+//     .domain([0, 1])
+//     .range(colorRange)
 
 
 
-const pointsLayer = new MVTLayer({
-    id: 'mvt-layer',
-    data: ["http://127.0.0.1:36687/mvt_tile/{z}/{x}/{y}?source_id=3"],
-    pointRadiusUnits: 'pixels',
-    getRadius: 3,
-    getFillColor: f => {
-        console.log(f.properties.value)
-        console.log(colorScale(f.properties.value))
-        return colorScale(f.properties.value)
-    }
-});
+// const pointsLayer = new MVTLayer({
+//     id: 'mvt-layer',
+//     data: ["http://127.0.0.1:36687/mvt_tile/{z}/{x}/{y}?source_id=3"],
+//     pointRadiusUnits: 'pixels',
+//     getRadius: 3,
+//     getFillColor: f => {
+//         console.log(f.properties.value)
+//         console.log(colorScale(f.properties.value))
+//         return colorScale(f.properties.value)
+//     }
+// });
 
 
 const BaseMap = (props) => {
