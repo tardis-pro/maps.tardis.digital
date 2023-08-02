@@ -97,6 +97,7 @@ const BaseMap = (props) => {
             <Map
                 reuseMaps
                 mapLib={maplibregl}
+                mapStyle={'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'}
             />
         </DeckGL>
     );

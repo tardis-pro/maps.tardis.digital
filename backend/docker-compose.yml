@@ -16,12 +16,8 @@ services:
   core-app:
     build:
       context: ./core-monolith
-<<<<<<< Updated upstream
-      dockerfile: ./Dockerfile
-=======
       dockerfile: ./core-monolith/Dockerfile
     image: pronittardis/core-app:main
->>>>>>> Stashed changes
     container_name: core-app
     depends_on:
       - postgres
