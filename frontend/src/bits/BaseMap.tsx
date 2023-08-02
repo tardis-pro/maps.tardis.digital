@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import DeckGL from '@deck.gl/react/typed';
-import { MapView } from '@deck.gl/core';
-import { ScatterplotLayer, MVTLayer, ScreenGridLayer } from 'deck.gl/typed';
+import { MVTLayer, ScreenGridLayer } from 'deck.gl/typed';
 import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
@@ -18,6 +17,9 @@ var colorRange = [
 var colorScale = d3.scaleLinear()
     .domain([0, 1])
     .range(colorRange)
+
+
+
 const pointsLayer = new MVTLayer({
     id: 'mvt-layer',
     data: ["http://127.0.0.1:36687/mvt_tile/{z}/{x}/{y}?source_id=3"],
@@ -29,43 +31,30 @@ const pointsLayer = new MVTLayer({
         return colorScale(f.properties.value)
     }
 });
-// const polygonLayer = new MVTLayer({
-//     id: 'mvt-polygon-layer',
-//     data: "http://127.0.0.1:43929/mvt_tile?source_id=3",
-//     getFillColor: f => {
-//         console.log(f.properties.nrf)
-//         console.log(colorScale(f.properties.nrf))
-//         const colorVal = colorScale(f.properties.arf)
-//         console.log(colorVal.toString())
-//        return colorVal;
-//     },
-//     pickable: true,
-//     autoHighlight: true,
-//     onClick: info => console.log(info.object)
-// });
-const gridLayer = new ScreenGridLayer({
-    id: 'grid',
-    data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json',
-    opacity: 0.8,
-    getPosition: d => [d[0], d[1]],
-    getWeight: d => d[2],
-    cellSizePixels: 2,
-    colorRange: colorRange,
-    gpuAggregation: true,
-    aggregation: 'SUM'
-})
+
 
 const BaseMap = (props) => {
     const { viewState } = props;
+    const [layerVisibility, setLayerVisibility] = useState({ 'Stores': true, 'Sales': true })
+    const deck = useRef(null);
+    const layers = useMemo(() => {
+        const layers = [
+            new ScreenGridLayer({
+                id: 'grid',
+                data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json',
+                opacity: 0.8,
+                visible: layerVisibility['Stores'],
+                getPosition: d => [d[0], d[1]],
+                getWeight: d => d[2],
+                cellSizePixels: 2,
+                colorRange: colorRange,
+                gpuAggregation: true,
+                aggregation: 'SUM',
+            })
+        ]
+        return layers
+    }, [layerVisibility])
 
-    const [state, setState] = useState({
-        layers: [
-            // polygonLayer,
-            pointsLayer,
-            gridLayer
-        ],
-        mapStyle: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
-    });
 
     const onInitialized = gl => {
         if (!isWebGL2(gl)) {
@@ -76,34 +65,43 @@ const BaseMap = (props) => {
         }
     };
 
+    function toggleLayer(key: any, checked: boolean) {
+        const newLayerVisibility = JSON.parse(JSON.stringify(layerVisibility))
+        newLayerVisibility[key] = checked
+        setLayerVisibility(newLayerVisibility)
+        console.log(deck.current);
+    }
+
     useEffect(() => {
         // your logic here when component mounts or updates
-        eventBus.on('widget.map.layer.add', (layer) => {
-            console.log(layer)
+        eventBus.on('widget.map.layer.add', ({layer, checked}) => {
+            toggleLayer(layer, checked)
         })
         return () => {
-            eventBus.off('widget.map.layer.add', (layer) => {
-                console.log(layer)
-            })
+            // eventBus.off('widget.map.layer.add', (layer) => {
+            //     toggleLayer('Stores')
+            // })
         }
     }, [viewState]);
 
     return (
         <DeckGL
+            ref={deck}
             effects={[lightingEffect]}
             controller={{ doubleClickZoom: false, scrollZoom: { smooth: true, speed: 0.1 }, inertia: 300, minPitch: 0, maxPitch: 79 }}
             initialViewState={viewState}
-            layers={state.layers}
+            layers={layers}
             onWebGLInitialized={onInitialized}
             style={{ zIndex: 1 }}
         >
             <Map
                 reuseMaps
                 mapLib={maplibregl}
-                mapStyle={state.mapStyle}
+                mapStyle={'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'}
             />
         </DeckGL>
     );
 };
 
 export default BaseMap;
+
