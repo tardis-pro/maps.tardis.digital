@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import DeckGL from '@deck.gl/react/typed';
-import { MVTLayer, ScreenGridLayer } from 'deck.gl/typed';
+import { GeoJsonLayer, MVTLayer, ScreenGridLayer, TextLayer } from 'deck.gl/typed';
 import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
 import { isWebGL2 } from '@luma.gl/core';
 // import * as d3 from 'd3';
 import eventBus from 'utils/eventBus';
+import { charusat, pointData } from './cit';
 
 // Define the color range
 var colorRange = [
@@ -32,7 +33,27 @@ var colorRange = [
 //     }
 // });
 
-
+const geojsonLayer = new GeoJsonLayer({
+    data: charusat,
+    opacity: 0.8,
+    filled: true,
+    visible: true,
+    getFillColor: [0, 0, 255, 200],
+    pickable: true,
+    getText: f => f.properties.name,
+    getTextAnchor: 'middle'
+});
+const layer = new TextLayer({
+    id: 'text-layer',
+    data: pointData.features,
+    pickable: true,
+    getPosition: d => d.geomoetry.coordinates,
+    getText: d => d.properties.name,
+    getSize: 32,
+    getAngle: 0,
+    getTextAnchor: 'middle',
+    getAlignmentBaseline: 'center'
+});
 const BaseMap = (props) => {
     const { viewState } = props;
     const [layerVisibility, setLayerVisibility] = useState({ 'Stores': true, 'Sales': true })
@@ -50,7 +71,9 @@ const BaseMap = (props) => {
                 colorRange: colorRange,
                 gpuAggregation: true,
                 aggregation: 'SUM',
-            })
+            }),
+            geojsonLayer,
+            layer
         ]
         return layers
     }, [layerVisibility])
@@ -74,7 +97,7 @@ const BaseMap = (props) => {
 
     useEffect(() => {
         // your logic here when component mounts or updates
-        eventBus.on('widget.map.layer.add', ({layer, checked}) => {
+        eventBus.on('widget.map.layer.add', ({ layer, checked }) => {
             toggleLayer(layer, checked)
         })
         return () => {
