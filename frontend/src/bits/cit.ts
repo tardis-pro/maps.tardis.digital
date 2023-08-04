@@ -36,18 +36,13 @@ export const charusat = {
 }
 
 export const pointData = {
-    "type": "FeatureCollection",
-    "features": [
-        {
-            "type": "Feature",
-            "properties": { "name": "Charotar University of Science and Technology" },
-            "geometry": {
-                "coordinates": [
-                    72.82044481349237,
-                    22.599829377817116
-            ],
-            "type": "Point"
-            }
-        }
-    ]
+    "type": "Feature",
+    "properties": { "name": "Charotar University of Science and Technology" },
+    "geometry": {
+        "coordinates": [
+            72.82044481349237,
+            22.599829377817116
+        ],
+        "type": "Point"
+    }
 }
