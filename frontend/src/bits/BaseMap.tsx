@@ -33,37 +33,12 @@ var colorRange = [
 //     }
 // });
 
-const geojsonLayer = new GeoJsonLayer({
-    data: charusat,
-    opacity: 0.8,
-    filled: true,
-    visible: true,
-    getFillColor: [0, 0, 255, 200],
-    pickable: true,
-    getText: f => f.properties.name,
-    getTextAnchor: 'middle'
-});
 const ICON_MAPPING = {
     marker: { x: 0, y: 0, width: 128, height: 128, mask: true }
 };
-const layer = new TextLayer({
-    id: 'text-layer',
-    data: [pointData],
-    pickable: true,
-    getPosition: d => d.geometry.coordinates,
-    getText: d => d.properties.name,
-    getSize: 32,
-    getAngle: 0,
-    iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-    iconMapping: ICON_MAPPING,
-    getIcon: d => 'marker',
-    sizeScale: 1/2,
-    getTextAnchor: 'middle',
-    getAlignmentBaseline: 'center'
-});
 const BaseMap = (props) => {
     const { initialViewState } = props;
-    const [layerVisibility, setLayerVisibility] = useState({ 'Stores': false, 'Sales': false })
+    const [layerVisibility, setLayerVisibility] = useState({ 'Stores': true, 'Sales': true })
     const deck = useRef(null);
     const [viewState, setViewState] = useState(initialViewState);
 
@@ -86,8 +61,32 @@ const BaseMap = (props) => {
                 gpuAggregation: true,
                 aggregation: 'SUM',
             }),
-            geojsonLayer,
-            layer
+            new GeoJsonLayer({
+                data: charusat,
+                opacity: 0.8,
+                filled: true,
+                visible: viewState.zoom > 14,
+                getFillColor: [0, 0, 255, 200],
+                pickable: true,
+                getText: f => f.properties.name,
+                getTextAnchor: 'middle'
+            }),
+            new TextLayer({
+                id: 'text-layer',
+                data: [pointData],
+                pickable: true,
+                visible: viewState.zoom > 16,
+                getPosition: d => d.geometry.coordinates,
+                getText: d => d.properties.name,
+                getSize: iconSizeScale(viewState.zoom),
+                getAngle: 0,
+                iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+                iconMapping: ICON_MAPPING,
+                getIcon: d => 'marker',
+                sizeScale: 1 / 2,
+                getTextAnchor: 'middle',
+                getAlignmentBaseline: 'center'
+            })
         ]
         return layers
     }, [layerVisibility, viewState])
