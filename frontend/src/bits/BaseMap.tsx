@@ -56,6 +56,7 @@ const layer = new TextLayer({
     iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
     iconMapping: ICON_MAPPING,
     getIcon: d => 'marker',
+    sizeScale: 1/2,
     getTextAnchor: 'middle',
     getAlignmentBaseline: 'center'
 });
