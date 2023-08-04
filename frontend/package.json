@@ -16,6 +16,7 @@
     "@react-email/components": "^0.0.6",
     "@reduxjs/toolkit": "^1.9.5",
     "@shopify/react-native-skia": "^0.1.193",
+    "@types/d3": "^7.4.0",
     "@types/react-router-dom": "^5.3.3",
     "animejs": "^3.2.0",
     "aws-sdk": "^2.1423.0",
@@ -41,7 +42,7 @@
     "uuid": "^9.0.0",
     "yup": "^1.2.0"
   },
-  "browserslist": "> 1.0%, last 2 versions",
+  "browserslist": "> 1.0%, last 5 versions",
   "devDependencies": {
     "@types/react": "^18.0.31",
     "@types/react-dom": "^18.0.11",

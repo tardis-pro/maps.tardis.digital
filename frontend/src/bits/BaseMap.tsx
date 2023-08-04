@@ -5,9 +5,9 @@ import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
 import { isWebGL2 } from '@luma.gl/core';
-import * as d3 from 'd3';
 import eventBus from 'utils/eventBus';
 import { charusat, pointData } from './cit';
+import { scaleLinear } from 'd3-scale';
 
 // Define the color range
 var colorRange = [
@@ -43,7 +43,7 @@ const BaseMap = (props) => {
     const [viewState, setViewState] = useState(initialViewState);
 
     const layers = useMemo(() => {
-        const iconSizeScale = d3.scaleLinear()
+        const iconSizeScale = scaleLinear()
             .domain([14, 32]) // Zoom levels
             .range([20, 30]);
             console.log(iconSizeScale(viewState.zoom));
