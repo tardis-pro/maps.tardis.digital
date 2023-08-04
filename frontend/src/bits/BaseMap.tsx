@@ -5,7 +5,7 @@ import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
 import { isWebGL2 } from '@luma.gl/core';
-// import * as d3 from 'd3';
+import * as d3 from 'd3';
 import eventBus from 'utils/eventBus';
 import { charusat, pointData } from './cit';
 
@@ -33,39 +33,21 @@ var colorRange = [
 //     }
 // });
 
-const geojsonLayer = new GeoJsonLayer({
-    data: charusat,
-    opacity: 0.8,
-    filled: true,
-    visible: true,
-    getFillColor: [0, 0, 255, 200],
-    pickable: true,
-    getText: f => f.properties.name,
-    getTextAnchor: 'middle'
-});
 const ICON_MAPPING = {
     marker: { x: 0, y: 0, width: 128, height: 128, mask: true }
 };
-const layer = new TextLayer({
-    id: 'text-layer',
-    data: [pointData],
-    pickable: true,
-    getPosition: d => d.geometry.coordinates,
-    getText: d => d.properties.name,
-    getSize: 32,
-    getAngle: 0,
-    iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-    iconMapping: ICON_MAPPING,
-    getIcon: d => 'marker',
-    sizeScale: 1/2,
-    getTextAnchor: 'middle',
-    getAlignmentBaseline: 'center'
-});
 const BaseMap = (props) => {
-    const { viewState } = props;
+    const { initialViewState } = props;
     const [layerVisibility, setLayerVisibility] = useState({ 'Stores': true, 'Sales': true })
     const deck = useRef(null);
+    const [viewState, setViewState] = useState(initialViewState);
+
     const layers = useMemo(() => {
+        const iconSizeScale = d3.scaleLinear()
+            .domain([14, 32]) // Zoom levels
+            .range([20, 30]);
+            console.log(iconSizeScale(viewState.zoom));
+            
         const layers = [
             new ScreenGridLayer({
                 id: 'grid',
@@ -79,11 +61,35 @@ const BaseMap = (props) => {
                 gpuAggregation: true,
                 aggregation: 'SUM',
             }),
-            geojsonLayer,
-            layer
+            new GeoJsonLayer({
+                data: charusat,
+                opacity: 0.8,
+                filled: true,
+                visible: viewState.zoom > 14,
+                getFillColor: [0, 0, 255, 200],
+                pickable: true,
+                getText: f => f.properties.name,
+                getTextAnchor: 'middle'
+            }),
+            new TextLayer({
+                id: 'text-layer',
+                data: [pointData],
+                pickable: true,
+                visible: viewState.zoom > 16,
+                getPosition: d => d.geometry.coordinates,
+                getText: d => d.properties.name,
+                getSize: iconSizeScale(viewState.zoom),
+                getAngle: 0,
+                iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+                iconMapping: ICON_MAPPING,
+                getIcon: d => 'marker',
+                sizeScale: 1 / 2,
+                getTextAnchor: 'middle',
+                getAlignmentBaseline: 'center'
+            })
         ]
         return layers
-    }, [layerVisibility])
+    }, [layerVisibility, viewState])
 
 
     const onInitialized = gl => {
@@ -121,8 +127,10 @@ const BaseMap = (props) => {
             controller={{ doubleClickZoom: false, scrollZoom: { smooth: true, speed: 0.1 }, inertia: 300, minPitch: 0, maxPitch: 79 }}
             initialViewState={viewState}
             layers={layers}
+            onViewStateChange={e => setViewState(e.viewState)}
             onWebGLInitialized={onInitialized}
             style={{ zIndex: 1 }}
+
         >
             <Map
                 reuseMaps
