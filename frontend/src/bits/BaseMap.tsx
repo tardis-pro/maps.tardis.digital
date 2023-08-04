@@ -1,17 +1,14 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import DeckGL from "@deck.gl/react/typed";
-import { GeoJsonLayer, MVTLayer, ScenegraphLayer, ScreenGridLayer, TextLayer } from 'deck.gl/typed';
+import DeckGL from '@deck.gl/react/typed';
+import { GeoJsonLayer, MVTLayer, ScreenGridLayer, TextLayer } from 'deck.gl/typed';
 import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
 import { isWebGL2 } from '@luma.gl/core';
 import eventBus from 'utils/eventBus';
-import { Protocol } from 'pmtiles';
-import { pointData } from './cit';
-import { scaleLinear } from 'd3-scale';
-import * as pmtiles from "pmtiles";
-import { style, conditionalStyles } from './tile'
-import { set } from 'date-fns';
+import { charusat, pointData } from './cit';
+
+// Define the color range
 var colorRange = [
     [0, 255, 0, 255], // Red, fully opaque
     [255, 0, 0, 255] // Green, fully opaque
@@ -21,24 +18,41 @@ var colorRange = [
 //     .domain([0, 1])
 //     .range(colorRange)
 
-const ICON_MAPPING = {
-    marker: { x: 0, y: 0, width: 128, height: 128, mask: true }
-};
-const mvtLayer = new MVTLayer({
-    id: 'mvt-layer',
-    data: "http://localhost:3000/output", // Your data URL or tileset
-    minZoom: 0,
-    maxZoom: 23,
-    iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-    iconMapping: ICON_MAPPING,
-    getIcon: d => 'marker',
-    sourceLayer: 'outputgeojson',
-    sizeScale: 15,
-    getSize: d => 5,
-    getColor: d => [255, 0, 0],
-    // filter: (feature) => feature.properties.timestamp === currentTime,
-});
 
+
+// const pointsLayer = new MVTLayer({
+//     id: 'mvt-layer',
+//     data: ["http://127.0.0.1:36687/mvt_tile/{z}/{x}/{y}?source_id=3"],
+//     pointRadiusUnits: 'pixels',
+//     getRadius: 3,
+//     getFillColor: f => {
+//         console.log(f.properties.value)
+//         console.log(colorScale(f.properties.value))
+//         return colorScale(f.properties.value)
+//     }
+// });
+
+const geojsonLayer = new GeoJsonLayer({
+    data: charusat,
+    opacity: 0.8,
+    filled: true,
+    visible: true,
+    getFillColor: [0, 0, 255, 200],
+    pickable: true,
+    getText: f => f.properties.name,
+    getTextAnchor: 'middle'
+});
+const layer = new TextLayer({
+    id: 'text-layer',
+    data: pointData.features,
+    pickable: true,
+    getPosition: d => d.geomoetry.coordinates,
+    getText: d => d.properties.name,
+    getSize: 32,
+    getAngle: 0,
+    getTextAnchor: 'middle',
+    getAlignmentBaseline: 'center'
+});
 const BaseMap = (props) => {
     const { initialViewState } = props;
     const [layerVisibility, setLayerVisibility] = useState({ 'Stores': true, 'Sales': true })
@@ -60,19 +74,20 @@ const BaseMap = (props) => {
             .range([20, 30]);
 
         const layers = [
-
-            // layer,
-            // new PMTLayer({
-            //     id: "pmtiles-layer",
-            //     data: "https://maps-tardis-digital.s3.ap-south-1.amazonaws.com/output.pmtiles",
-            //     onClick: (info) => {
-            //       console.log(info);
-            //     },
-            //     maxZoom: 20,
-            //     minZoom: 18,
-            //     getFillColor: (d: any) => [255 * (+d.properties.STATEFP / 90), 0, 0],
-            //     pickable: true,
-            //   }),
+            new ScreenGridLayer({
+                id: 'grid',
+                data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json',
+                opacity: 0.8,
+                visible: layerVisibility['Stores'],
+                getPosition: d => [d[0], d[1]],
+                getWeight: d => d[2],
+                cellSizePixels: 2,
+                colorRange: colorRange,
+                gpuAggregation: true,
+                aggregation: 'SUM',
+            }),
+            geojsonLayer,
+            layer
         ]
         return layers
     }, [layerVisibility, viewState])

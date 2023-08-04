@@ -44,7 +44,7 @@ export const Home = () => {
         <motion.div>
             <Sidebar />
             <div onContextMenu={(e) => e.preventDefault()} >
-                <BaseMap initialViewState={{
+                <BaseMap viewState={{
                     longitude: 72.81822394442798,
                     latitude: 22.600007667401925,
                     zoom: 18,
