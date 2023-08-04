@@ -42,14 +42,20 @@ const geojsonLayer = new GeoJsonLayer({
     getText: f => f.properties.name,
     getTextAnchor: 'middle'
 });
+const ICON_MAPPING = {
+    marker: { x: 0, y: 0, width: 128, height: 128, mask: true }
+};
 const layer = new TextLayer({
     id: 'text-layer',
-    data: pointData.features,
+    data: [pointData],
     pickable: true,
-    getPosition: d => d.geomoetry.coordinates,
+    getPosition: d => d.geometry.coordinates,
     getText: d => d.properties.name,
     getSize: 32,
     getAngle: 0,
+    iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+    iconMapping: ICON_MAPPING,
+    getIcon: d => 'marker',
     getTextAnchor: 'middle',
     getAlignmentBaseline: 'center'
 });
