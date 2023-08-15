@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import DeckGL from '@deck.gl/react/typed';
-import { GeoJsonLayer, MVTLayer, ScreenGridLayer, TextLayer } from 'deck.gl/typed';
+import { GeoJsonLayer, MVTLayer, ScenegraphLayer, ScreenGridLayer, TextLayer } from 'deck.gl/typed';
 import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
 import { isWebGL2 } from '@luma.gl/core';
 import eventBus from 'utils/eventBus';
-import { charusat, pointData } from './cit';
+import { pointData } from './cit';
 import { scaleLinear } from 'd3-scale';
+import { TardisModel } from './Tardis';
+import { customStyle } from './carto-dark';
+import { PMTLayer } from '@maticoapp/deck.gl-pmtiles/src';
 
 // Define the color range
 var colorRange = [
@@ -32,22 +35,35 @@ var colorRange = [
 //         return colorScale(f.properties.value)
 //     }
 // });
-
+const layer = new ScenegraphLayer({
+    id: 'scenegraph-layer',
+    data: [pointData],
+    pickable: true,
+    scenegraph: 'https://s3.amazonaws.com/tardis.digital/TARDIS.glb',
+    getPosition: d => d.geometry.coordinates,
+    getOrientation: d => [0, 0, 0],
+    _animations: {
+        '*': { speed: 5 }
+    },
+    sizeScale: 50,
+    _lighting: 'pbr',
+});
 const ICON_MAPPING = {
     marker: { x: 0, y: 0, width: 128, height: 128, mask: true }
 };
+
 const BaseMap = (props) => {
     const { initialViewState } = props;
     const [layerVisibility, setLayerVisibility] = useState({ 'Stores': true, 'Sales': true })
     const deck = useRef(null);
     const [viewState, setViewState] = useState(initialViewState);
+ 
 
     const layers = useMemo(() => {
         const iconSizeScale = scaleLinear()
             .domain([14, 32]) // Zoom levels
             .range([20, 30]);
-            console.log(iconSizeScale(viewState.zoom));
-            
+
         const layers = [
             new ScreenGridLayer({
                 id: 'grid',
@@ -61,32 +77,18 @@ const BaseMap = (props) => {
                 gpuAggregation: true,
                 aggregation: 'SUM',
             }),
-            new GeoJsonLayer({
-                data: charusat,
-                opacity: 0.8,
-                filled: true,
-                visible: viewState.zoom > 14,
-                getFillColor: [0, 0, 255, 200],
-                pickable: true,
-                getText: f => f.properties.name,
-                getTextAnchor: 'middle'
-            }),
-            new TextLayer({
-                id: 'text-layer',
-                data: [pointData],
-                pickable: true,
-                visible: viewState.zoom > 16,
-                getPosition: d => d.geometry.coordinates,
-                getText: d => d.properties.name,
-                getSize: iconSizeScale(viewState.zoom),
-                getAngle: 0,
-                iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-                iconMapping: ICON_MAPPING,
-                getIcon: d => 'marker',
-                sizeScale: 1 / 2,
-                getTextAnchor: 'middle',
-                getAlignmentBaseline: 'center'
-            })
+            layer,
+            // new PMTLayer({
+            //     id: "pmtiles-layer",
+            //     data: "https://maps-tardis-digital.s3.ap-south-1.amazonaws.com/output.pmtiles",
+            //     onClick: (info) => {
+            //       console.log(info);
+            //     },
+            //     maxZoom: 20,
+            //     minZoom: 18,
+            //     getFillColor: (d: any) => [255 * (+d.properties.STATEFP / 90), 0, 0],
+            //     pickable: true,
+            //   }),
         ]
         return layers
     }, [layerVisibility, viewState])
@@ -135,7 +137,7 @@ const BaseMap = (props) => {
             <Map
                 reuseMaps
                 mapLib={maplibregl}
-                mapStyle={'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'}
+                mapStyle={customStyle}
             />
         </DeckGL>
     );
