@@ -66,7 +66,6 @@ const Uploader = () => {
                 PartNumber: Math.floor(i / partSize) + 1,
                 ETag: upload.ETag,
             });
-
         }
 
         // Complete the Multipart upload
