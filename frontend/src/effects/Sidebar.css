@@ -166,15 +166,3 @@ input[type=text]::placeholder {
     top: 50%;
     transform: translateY(-50%);
 }
-
-ul,
-li {
-    margin: 0;
-    padding: 0;
-    justify-self: center;
-    list-style-type: none;
-}
-
-.widget_row {
-    width: 100;
-}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import AWS, { S3 } from 'aws-sdk';
-// import { Auth } from '@aws-amplify/auth';
+import { Auth } from '@aws-amplify/auth';
+import { format } from 'url';
 
 require('dotenv').config()
 
@@ -65,6 +66,7 @@ const Uploader = () => {
                 PartNumber: Math.floor(i / partSize) + 1,
                 ETag: upload.ETag,
             });
+
         }
 
 
@@ -77,7 +79,7 @@ const Uploader = () => {
             },
         }).promise();
 
-        console.log("Upload Successfull!");
+        console.log("Upload Successful!");
     };
 
     return (

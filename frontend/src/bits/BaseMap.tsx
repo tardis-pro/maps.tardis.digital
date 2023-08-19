@@ -38,7 +38,7 @@ const ICON_MAPPING = {
 };
 const BaseMap = (props) => {
     const { initialViewState } = props;
-    const [layerVisibility, setLayerVisibility] = useState({ 'Stores': true, 'Sales': true })
+    const [layerVisibility, setLayerVisibility] = useState({ 'Stores': false, 'Sales': false })
     const deck = useRef(null);
     const [viewState, setViewState] = useState(initialViewState);
 
@@ -63,10 +63,10 @@ const BaseMap = (props) => {
             }),
             new GeoJsonLayer({
                 data: charusat,
-                opacity: 0.8,
+                opacity: 1,
                 filled: true,
-                visible: viewState.zoom > 14,
-                getFillColor: [0, 0, 255, 200],
+                getFillColor: [57, 57, 57],
+                visible: viewState.zoom > 11,
                 pickable: true,
                 getText: f => f.properties.name,
                 getTextAnchor: 'middle'
@@ -75,9 +75,11 @@ const BaseMap = (props) => {
                 id: 'text-layer',
                 data: [pointData],
                 pickable: true,
-                visible: viewState.zoom > 16,
+                visible: viewState.zoom > 12,
                 getPosition: d => d.geometry.coordinates,
                 getText: d => d.properties.name,
+                getColor: [223,229,236],
+                fontWeight: 400,
                 getSize: iconSizeScale(viewState.zoom),
                 getAngle: 0,
                 iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
