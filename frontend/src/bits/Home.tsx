@@ -25,9 +25,9 @@ export const Home = () => {
             <Sidebar />
             <div onContextMenu={(e) => e.preventDefault()} >
                 <BaseMap initialViewState={{
-                    longitude: 72.81822394442798,
-                    latitude: 22.600007667401925,
-                    zoom: 18,
+                    longitude: -74.0060,
+                    latitude: 40.7128,
+                    zoom: 8,
                     maxZoom: 20,
                     minZoom: 1.5,
                     pitch: 0,
@@ -36,12 +36,12 @@ export const Home = () => {
                     className="map"
                 />
             </div>
-            {/* <div style={{ zIndex: 3, position: "absolute", top: 20, right: 20 }}>
+            <div style={{ zIndex: 3, position: "absolute", top: 20, right: 0, display: 'inline-block'}}>
                 <form onSubmit={handleSubmit}>
-                <FileUpload/>
+                <Uploader/>
                     <button type="submit">Create New User</button>
                 </form>
-            </div> */}
+            </div>
             <div className="search-box" style={{ zIndex: 3 }}>
                 <input type="text" placeholder="Search..." spellCheck='false' />
                 <img className="search-icon" src={search} alt="Search Icon" />
