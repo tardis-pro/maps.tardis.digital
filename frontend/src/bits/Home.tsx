@@ -1,9 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { motion, useCycle, Reorder } from "framer-motion";
-// import { Responsive, WidthProvider } from "react-grid-layout";
-import GridLayout from "react-grid-layout";
-import "/node_modules/react-grid-layout/css/styles.css";
-import "/node_modules/react-resizable/css/styles.css";
 import BaseMap from './BaseMap'
 import Sidebar from './Sidebar'
 import Uploader from "./Uploader";
@@ -12,10 +8,17 @@ import '../effects/Home.css';
 
 // const ResponsiveGridLayout = WidthProvider(Responsive);
 
+const listItems = [
+    { name: "Michael Jordan", id: 1 },
+    { name: "Kobe Bryant", id: 2 },
+    { name: "LeBron James", id: 3 },
+    { name: "Magic Johnson", id: 4 }
+];
+
 export const Home = () => {
     const [isOpen, toggleOpen] = useCycle(false, true);
+    const [items, setItems] = useState(listItems);
     const constraintsRef = useRef(null);
-    const [mounted, setmounted] = useState(false);
     const [newUserInfo, setNewUserInfo] = useState({
         profileImages: []
     });
@@ -56,11 +59,40 @@ export const Home = () => {
                     className="map"
                 />
             </div>
-            <div style={{ zIndex: 3, position: "absolute", top: 20, right: 0, display: 'inline-block'}}>
+            <div style={{ zIndex: 3, position: "absolute", top: 20, right: 0, color: '#cdcdcd', display: 'inline-block' }}>
                 <form onSubmit={handleSubmit}>
-                <Uploader/>
+                    <Uploader />
                     <button type="submit">Create New User</button>
                 </form>
+            </div>
+            <div style={{
+                zIndex: 3,
+                flexWrap: "wrap",
+                position: "absolute",
+                bottom: 40,
+                right: 40,
+                backgroundColor: 'black',
+                width: 800,
+                height: 200
+            }}>
+                <motion.div className="drag-area" ref={constraintsRef} />
+                <Reorder.Group values={items} onReorder={setItems} style={{
+                    height: '100%',
+                    alignItems: "center",
+                    color: 'yellow',
+                    backgroundColor: 'tan',
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: "10px"
+                }}>
+                    {items.map((item) => (
+                        // Change the li to Reorder.Item and add value prop
+                        <Reorder.Item key={item.id} drag value={item} style={{ height: '100%' }}>
+                            <Item />
+                        </Reorder.Item>
+                    ))}
+                </Reorder.Group>
+                <motion.div drag />
             </div>
             <div className="search-box" style={{ zIndex: 3 }}>
                 <input type="text" placeholder="Search..." spellCheck='false' />
@@ -70,50 +102,19 @@ export const Home = () => {
     )
 }
 
-const fixLayout = (layout) => {
-    // `y` is calculated by `h` in the layout object, since `h` is 20
-    // first row will be 0, second 20, third 40
-    const maxY = 1
-
-    // xs or cols, we only have 3 cols
-    const xs = [0, 1, 2, 3, 4, 5]
-
-    // when an item goes to a new row, there is an empty column in the maxY row
-    // so here we find which columns exist
-    // tslint:disable-next-line:max-line-length
-    const maxRowXs = layout.map((item) => {
-        if (item.y === maxY || (item.y === maxY-1 && item.h === 2)) {
-            if (item.w === 2) {
-                return [item.x, item.x + 1]; // Append item.x + 1 for items with item.w equal to 2
-            } else {
-                return item.x; // Keep the original x value for other items in the same row
-            }
-        } else {
-            return null; // For items in other rows, keep them as null
-        }
-    }).flat().filter((value) => value !== null);
-    console.log(maxRowXs)
-
-
-    // find the missing col
-    // tslint:disable-next-line:max-line-length
-    const missingX = xs.find((value) => maxRowXs.every((maxRowX) => maxRowX !== value))
-    console.log(missingX)
-
-    // bring the item from the new row into maxY row
-    // and place it in the missing column
-    const fixedLayout = layout.map((item) => {
-        if (item.y > maxY) {
-            const fixedItem = {
-                ...item,
-                y: maxY,
-                x: missingX
-            }
-            return fixedItem
-        }
-        return item
-    })
-    return fixedLayout
+const Item = () => {
+    return (
+        <div style={{
+            height: '100%',
+            width: 90,
+            backgroundColor: 'grey',
+            flex: '1',
+            border: '1px solid red',
+            borderRadius: 10
+        }}>
+            Pronit
+        </div>
+    )
 }
 
 export default Home;

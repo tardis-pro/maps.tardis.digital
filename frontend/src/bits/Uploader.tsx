@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import AWS, { S3 } from 'aws-sdk';
-import { Auth } from '@aws-amplify/auth';
-import { format } from 'url';
+// import { Auth } from '@aws-amplify/auth';
 
 require('dotenv').config()
 
@@ -78,7 +77,7 @@ const Uploader = () => {
             },
         }).promise();
 
-        console.log("Upload Successful!");
+        console.log("Upload Successfull!");
     };
 
     return (
