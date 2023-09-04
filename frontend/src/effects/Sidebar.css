@@ -135,13 +135,6 @@ input[type=text]::placeholder {
     margin: -40 auto 28% 20%;
 }
 
-ul,
-li {
-    margin: 0;
-    padding: 0;
-    justify-self: center;
-    list-style-type: none;
-}
 
 .search-box {
     position: absolute;
@@ -172,4 +165,16 @@ li {
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
+}
+
+ul,
+li {
+    margin: 0;
+    padding: 0;
+    justify-self: center;
+    list-style-type: none;
+}
+
+.widget_row {
+    width: 100;
 }

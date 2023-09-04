@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import AWS, { S3 } from 'aws-sdk';
-import { Auth } from '@aws-amplify/auth';
-import { format } from 'url';
+// import { Auth } from '@aws-amplify/auth';
 
 require('dotenv').config()
 
@@ -68,6 +67,7 @@ const Uploader = () => {
             });
         }
 
+
         // Complete the Multipart upload
         await s3.completeMultipartUpload({
             ...params,
@@ -77,14 +77,21 @@ const Uploader = () => {
             },
         }).promise();
 
-        console.log("Upload Successful!");
+        console.log("Upload Successfull!");
     };
 
     return (
-        <div>
+        <div style={
+            {
+                display: 'flex',
+                flexDirection: 'column',
+                color: '#cdcdcd'
+            }
+        }>
             <div
                 style={{
                     width: '200px',
+                    color: '#cdcdcd',
                     height: '200px',
                     border: '2px dashed #aaaaaa',
                     borderRadius: '8px',
