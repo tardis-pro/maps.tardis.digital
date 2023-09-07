@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import DeckGL from '@deck.gl/react/typed';
-import { GeoJsonLayer, MVTLayer, ScreenGridLayer, TextLayer } from 'deck.gl/typed';
+import { ScreenGridLayer } from 'deck.gl/typed';
 import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
 import { isWebGL2 } from '@luma.gl/core';
 import * as d3 from 'd3';
 import eventBus from 'utils/eventBus';
-import { charusat, pointData } from './cit';
 
 // Define the color range
 var colorRange = [
@@ -19,23 +18,6 @@ var colorRange = [
 //     .domain([0, 1])
 //     .range(colorRange)
 
-
-
-// const pointsLayer = new MVTLayer({
-//     id: 'mvt-layer',
-//     data: ["http://127.0.0.1:36687/mvt_tile/{z}/{x}/{y}?source_id=3"],
-//     pointRadiusUnits: 'pixels',
-//     getRadius: 3,
-//     getFillColor: f => {
-//         console.log(f.properties.value)
-//         console.log(colorScale(f.properties.value))
-//         return colorScale(f.properties.value)
-//     }
-// });
-
-const ICON_MAPPING = {
-    marker: { x: 0, y: 0, width: 128, height: 128, mask: true }
-};
 const BaseMap = (props) => {
     const { initialViewState } = props;
     const [layerVisibility, setLayerVisibility] = useState({ 'Stores': false, 'Sales': false })
@@ -61,34 +43,34 @@ const BaseMap = (props) => {
                 gpuAggregation: true,
                 aggregation: 'SUM',
             }),
-            new GeoJsonLayer({
-                data: charusat,
-                opacity: 1,
-                filled: true,
-                getFillColor: [57, 57, 57],
-                visible: viewState.zoom > 11,
-                pickable: true,
-                getText: f => f.properties.name,
-                getTextAnchor: 'middle'
-            }),
-            new TextLayer({
-                id: 'text-layer',
-                data: [pointData],
-                pickable: true,
-                visible: viewState.zoom > 12,
-                getPosition: d => d.geometry.coordinates,
-                getText: d => d.properties.name,
-                getColor: [223,229,236],
-                fontWeight: 400,
-                getSize: iconSizeScale(viewState.zoom),
-                getAngle: 0,
-                iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-                iconMapping: ICON_MAPPING,
-                getIcon: d => 'marker',
-                sizeScale: 1 / 2,
-                getTextAnchor: 'middle',
-                getAlignmentBaseline: 'center'
-            })
+            // new GeoJsonLayer({
+            //     data: charusat,
+            //     opacity: 1,
+            //     filled: true,
+            //     getFillColor: [57, 57, 57],
+            //     visible: viewState.zoom > 11,
+            //     pickable: true,
+            //     getText: f => f.properties.name,
+            //     getTextAnchor: 'middle'
+            // }),
+            // new TextLayer({
+            //     id: 'text-layer',
+            //     data: [],
+            //     pickable: true,
+            //     visible: viewState.zoom > 12,
+            //     getPosition: d => d.geometry.coordinates,
+            //     getText: d => d.properties.name,
+            //     getColor: [223,229,236],
+            //     fontWeight: 400,
+            //     getSize: iconSizeScale(viewState.zoom),
+            //     getAngle: 0,
+            //     iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+            //     iconMapping: ICON_MAPPING,
+            //     getIcon: d => 'marker',
+            //     sizeScale: 1 / 2,
+            //     getTextAnchor: 'middle',
+            //     getAlignmentBaseline: 'center'
+            // })
         ]
         return layers
     }, [layerVisibility, viewState])
