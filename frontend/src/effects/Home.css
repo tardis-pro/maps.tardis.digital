@@ -2,3 +2,10 @@
   background-image: url(./image.png) 
 }
  */
+
+.block {
+  background: skyblue;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
