@@ -1,0 +1,107 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Users\SAMARTH\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js -f
+
+PATH: 
+  C:\Program Files\PowerShell\7;C:\Python311\Scripts\;C:\Python311\;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.2\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.2\libnvvp;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\ProgramData\Oracle\Java\javapath;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0\;C:\windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files (x86)\mmix;C:\Program Files\dotnet\;C:\MinGW\bin;C:\Program Files\Git\cmd;C:\ProgramData\chocolatey\bin;C:\Program Files\PostgreSQL\14\bin;C:\Users\SAMARTH\AppData\Local\Android\Sdk\platform-tools;C:\Program Files\NASM;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Tools\MSVC\14.29.30133\bin\Hostx64\x64;C:\Program Files\OpenSSL-Win64\bin;C:\Program Files\wkhtmltopdf\bin;C:\Python27;C:\Python27\Tools\Scripts;C:\Program Files\nodejs\;C:\Program Files\Git LFS;C:\Users\SAMARTH\AppData\Local\Programs\Python\Python310\;C:\Users\SAMARTH\AppData\Local\Programs\Python\Python310\Scripts;C:\msys64\mingw64\include;C:\msys64\mingw64\bin;C:\msys64\mingw64\lib;C:\curl;C:\Program Files\CMake\bin;C:\Program Files\Docker\Docker\resources\bin;C:\Users\SAMARTH\AppData\Roaming\npm\;C:\Program Files\NVIDIA Corporation\Nsight Compute 2019.5.0\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Lua;C:\tools\lxrunoffline;C:\Program Files\starship\bin\;C:\Program Files\PowerShell\7\;C:\Program Files\Go\bin;C:\Program Files\Amazon\AWSCLIV2\;C:\Users\SAMARTH\.cargo\bin;C:\Users\SAMARTH\.local\share\solana\install\active_release\bin;C:\Users\SAMARTH\AppData\Local\activestate\cache\bin;C:\Users\SAMARTH\AppData\Local\ActiveState\StateTool\release\bin;C:\Users\SAMARTH\scoop\shims;C:\Users\SAMARTH\AppData\Local\Microsoft\WindowsApps;C:\Users\SAMARTH\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\SAMARTH\.dotnet\tools;C:\Program Files\CodeBlocks\MinGW\bin;C:\Users\SAMARTH\coreutils\src\bin;C:\Program Files\heroku\bin;C:\Program Files (x86)\Nmap;C:\Users\SAMARTH\.dotnet\tools;C:\Users\SAMARTH\AppData\Local\Microsoft\WindowsApps;C:\Program Files\PostgreSQL\15\bin;C:\Users\SAMARTH\.fly\bin;C:\Program Files\Neovim\bin;C:\Program Files\GDAL;C:\Users\SAMARTH\go\bin
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  18.7.0
+
+Platform: 
+  win32 x64
+
+Trace: 
+  Error: getaddrinfo ENOTFOUND registry.yarnpkg.com
+      at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:111:26)
+
+npm manifest: 
+  {
+    "dependencies": {
+      "@aws-amplify/auth": "^5.5.5",
+      "@deck.gl/core": "^8.9.19",
+      "@deck.gl/extensions": "^8.9.19",
+      "@deck.gl/geo-layers": "^8.9.19",
+      "@deck.gl/layers": "^8.9.19",
+      "@deck.gl/react": "^8.9.19",
+      "@emotion/react": "^11.11.0",
+      "@hookform/resolvers": "^3.1.0",
+      "@mantine/core": "^6.0.10",
+      "@mantine/hooks": "^6.0.10",
+      "@material-ui/core": "^4.12.4",
+      "@material-ui/icons": "^4.11.3",
+      "@popperjs/core": "^2.11.8",
+      "@react-email/components": "^0.0.6",
+      "@reduxjs/toolkit": "^1.9.5",
+      "@shopify/react-native-skia": "^0.1.193",
+      "@types/react-router-dom": "^5.3.3",
+      "animejs": "^3.2.0",
+      "array-move": "^4.0.0",
+      "aws-sdk": "^2.1423.0",
+      "broadcast-channel": "^5.1.0",
+      "d3": "^7.8.5",
+      "date-fns": "^2.30.0",
+      "deck.gl": "^8.9.6",
+      "dotenv": "^16.3.1",
+      "formik": "^2.4.1",
+      "framer-motion": "^10.12.16",
+      "mapbox-gl": "npm:empty-npm-package@1.0.0",
+      "maplibre-gl": "^2.4.0",
+      "mdb-react-ui-kit": "^6.1.0",
+      "popmotion": "^11.0.5",
+      "react": ">=16.9.0",
+      "react-autobind": "^1.0.6",
+      "react-dom": ">=16.9.0",
+      "react-hook-form": "^7.44.3",
+      "react-map-gl": "^7.0.21",
+      "react-router-dom": "^6.11.2",
+      "redux-in-worker": "^0.8.0",
+      "resize-observer-polyfill": "^1.5.1",
+      "styled-components": "^6.0.5",
+      "utils": "^0.3.1",
+      "uuid": "^9.0.0",
+      "yup": "^1.2.0"
+    },
+    "browserslist": "> 1.0%, last 2 versions",
+    "devDependencies": {
+      "@types/react": "^18.0.31",
+      "@types/react-dom": "^18.0.11",
+      "autoprefixer": "^10.4.14",
+      "buffer": "^5.5.0",
+      "crypto-browserify": "^3.12.0",
+      "events": "^3.1.0",
+      "openapi-typescript": "^6.2.4",
+      "openapi-typescript-codegen": "^0.24.0",
+      "os-browserify": "^0.3.0",
+      "parcel": "^2.9.3",
+      "path-browserify": "^1.0.0",
+      "postcss": "^8.4.21",
+      "process": "^0.11.10",
+      "punycode": "^1.4.1",
+      "querystring-es3": "^0.2.1",
+      "stream-browserify": "^3.0.0",
+      "tailwindcss": "^3.3.3",
+      "typescript": "^5.1.6",
+      "url": "^0.11.0"
+    },
+    "source": "src/index.html",
+    "scripts": {
+      "start": "parcel src/index.html --no-cache",
+      "build": "parcel build src/index.html",
+      "serve": "npm run clean && parcel serve src/index.html",
+      "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+      "prettier:fix": "prettier \"src/**/*\" --write",
+      "prettier:check": "prettier \"src/**/*\" --check",
+      "type-check": "tsc --noEmit",
+      "test": "jest",
+      "clean": "npx rimraf dist && npx rimraf node_modules && npx rimraf .parcel-cache"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

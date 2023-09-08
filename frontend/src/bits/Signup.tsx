@@ -35,6 +35,7 @@ const useStyles = makeStyles((theme) => ({
   },
   submitButton: {
     marginTop: theme.spacing(4),
+    height: 50
   },
 }));
 
