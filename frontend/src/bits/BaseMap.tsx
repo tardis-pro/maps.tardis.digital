@@ -4,6 +4,7 @@ import { ScreenGridLayer } from 'deck.gl/typed';
 import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
+import { Protocol } from 'pmtiles';
 import { isWebGL2 } from '@luma.gl/core';
 import * as d3 from 'd3';
 import eventBus from 'utils/eventBus';
@@ -24,12 +25,20 @@ const BaseMap = (props) => {
     const deck = useRef(null);
     const [viewState, setViewState] = useState(initialViewState);
 
+    useEffect(() => {
+        let protocol = new Protocol();
+        maplibregl.addProtocol("pmtiles", protocol.tile);
+        return () => {
+            maplibregl.removeProtocol("pmtiles");
+        };
+    }, []);
+
     const layers = useMemo(() => {
         const iconSizeScale = d3.scaleLinear()
             .domain([14, 32]) // Zoom levels
             .range([20, 30]);
-            console.log(iconSizeScale(viewState.zoom));
-            
+        console.log(iconSizeScale(viewState.zoom));
+
         const layers = [
             new ScreenGridLayer({
                 id: 'grid',
@@ -43,6 +52,17 @@ const BaseMap = (props) => {
                 gpuAggregation: true,
                 aggregation: 'SUM',
             }),
+            // new PMTLayer({
+            //     id: "pmtiles-layer",
+            //     data: "https://maps-tardis-digital.s3.ap-south-1.amazonaws.com/data/india_v1.pmtiles",
+            //     onClick: (info) => {
+            //       console.log(info);
+            //     },
+            //     maxZoom: 20,
+            //     minZoom: 18,
+            //     getFillColor: (d: any) => [255 * (+d.properties.STATEFP / 90), 0, 0],
+            //     pickable: true,
+            //   }),
             // new GeoJsonLayer({
             //     data: charusat,
             //     opacity: 1,
@@ -128,28 +148,26 @@ const BaseMap = (props) => {
                 reuseMaps
                 ref={mapRef}
                 mapLib={maplibregl}
-                mapStyle={style}
-                onClick={(e) => {
-                    const features = mapRef?.current?.queryRenderedFeatures(e.point);
-                    const displayProperties = [
-                        'type',
-                        'properties',
-                        'id',
-                        'layer',
-                        'source',
-                        'sourceLayer',
-                        'state'
-                    ];
-            
-                    const displayFeatures = features.map((feat) => {
-                        const displayFeat = {};
-                        displayProperties.forEach((prop) => {
-                            displayFeat[prop] = feat[prop];
-                        });
-                        return displayFeat;
-                    });
-                    console.log(displayFeatures);
-            
+                mapStyle={{
+                    version: 8,
+                    sources: {
+                        sample: {
+                            type: "vector",
+                            url:
+                                "https://maps-tardis-digital.s3.ap-south-1.amazonaws.com/data/india_v1.pmtiles"
+                        }
+                    },
+                    layers: [
+                        {
+                            id: "zcta",
+                            source: "sample",
+                            "source-layer": "zcta",
+                            type: "line",
+                            paint: {
+                                "line-color": "#999"
+                            }
+                        }
+                    ]
                 }}
             />
         </DeckGL>
