@@ -19,7 +19,7 @@ export const style = {
     "sources": {
         "openmaptiles": {
             "type": "vector",
-            "url": "http://localhost:3000/planet-full-v2.1.3.16"
+            "url": "http://localhost:3000/planet-full-v2.1.3.17"
         },
         "vectordata": {
             "type": "vector",

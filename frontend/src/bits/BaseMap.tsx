@@ -1,3 +1,5 @@
+// organize this code in a reusable fashion
+
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import DeckGL from '@deck.gl/react/typed';
 import { ScreenGridLayer } from 'deck.gl/typed';
@@ -8,6 +10,7 @@ import { Protocol } from 'pmtiles';
 import { isWebGL2 } from '@luma.gl/core';
 import * as d3 from 'd3';
 import eventBus from 'utils/eventBus';
+import { style } from './tile';
 
 // Define the color range
 var colorRange = [
@@ -24,7 +27,7 @@ const BaseMap = (props) => {
     const [layerVisibility, setLayerVisibility] = useState({ 'Stores': false, 'Sales': false })
     const deck = useRef(null);
     const [viewState, setViewState] = useState(initialViewState);
-
+    const mapRef = useRef(null);
     useEffect(() => {
         let protocol = new Protocol();
         maplibregl.addProtocol("pmtiles", protocol.tile);
@@ -148,27 +151,7 @@ const BaseMap = (props) => {
                 reuseMaps
                 ref={mapRef}
                 mapLib={maplibregl}
-                mapStyle={{
-                    version: 8,
-                    sources: {
-                        sample: {
-                            type: "vector",
-                            url:
-                                "https://maps-tardis-digital.s3.ap-south-1.amazonaws.com/data/india_v1.pmtiles"
-                        }
-                    },
-                    layers: [
-                        {
-                            id: "zcta",
-                            source: "sample",
-                            "source-layer": "zcta",
-                            type: "line",
-                            paint: {
-                                "line-color": "#999"
-                            }
-                        }
-                    ]
-                }}
+                mapStyle={style}
             />
         </DeckGL>
     );
