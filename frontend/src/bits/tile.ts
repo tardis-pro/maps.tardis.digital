@@ -1,8 +1,8 @@
 export const style = {
     "version": 8,
-    "name": "Default Light Standard",
+    "name": "Type 40",
     "metadata": {
-        "style_version": "0.2.9"
+        "style_version": "0.40.0"
     },
     "light": {
         "anchor": "map",
@@ -14,10 +14,16 @@ export const style = {
             30
         ]
     },
+    "sprite": "http://192.168.1.185:8080/styles/default-light-standard/sprite",
+    "glyphs": "http://192.168.1.185:8080/fonts/{fontstack}/{range}.pbf",
     "sources": {
         "openmaptiles": {
             "type": "vector",
-            "url": "pmtiles://https://maps-tardis-digital.s3.ap-south-1.amazonaws.com/data/india_v2.pmtiles"
+            "url": "http://localhost:3000/planet-full-v2.1.3.16"
+        },
+        "vectordata": {
+            "type": "vector",
+            "url": "http://192.168.1.185:8080/data/vectordata.json"
         },
     },
     "layers": [
@@ -36,12 +42,66 @@ export const style = {
             "minzoom": 0,
             "maxzoom": 24,
             "layout": {
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
                 "fill-color": "rgba(153, 235, 191, 1)",
                 "fill-opacity": 1,
                 "fill-outline-color": "rgba(154, 212, 106, 0)"
+            }
+        },
+        {
+            "id": "landcover_wood",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landcover",
+            "minzoom": 0,
+            "maxzoom": 24,
+            "filter": [
+                "any",
+                [
+                    "==",
+                    "class",
+                    "wood"
+                ],
+                [
+                    "==",
+                    "subclass",
+                    "wood"
+                ]
+            ],
+            "layout": {
+                "visibility": "visible"
+            },
+            "paint": {
+                "fill-antialias": false,
+                "fill-color": "rgba(153, 235, 191, 1)",
+                "fill-opacity": 1
+            }
+        },
+        {
+            "id": "landcover_grass",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landcover",
+            "minzoom": 0,
+            "maxzoom": 24,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "class",
+                    "grass"
+                ]
+            ],
+            "layout": {
+                "visibility": "visible"
+            },
+            "paint": {
+                "fill-antialias": false,
+                "fill-color": "rgba(153, 235, 191, 1)",
+                "fill-opacity": 1,
+                "fill-outline-color": "rgba(0, 0, 0, 0)"
             }
         },
         {
@@ -59,7 +119,7 @@ export const style = {
                 ]
             ],
             "layout": {
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
                 "fill-color": "rgba(180, 232, 253, 1)",
@@ -76,39 +136,51 @@ export const style = {
             "type": "fill",
             "source": "openmaptiles",
             "source-layer": "landuse",
-            "minzoom": 11,
+            "minzoom": 0,
             "maxzoom": 24,
+            "filter": [
+                "any",
+                [
+                    "==",
+                    "class",
+                    "stadium"
+                ],
+                [
+                    "==",
+                    "class",
+                    "playground"
+                ]
+            ],
             "layout": {
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
-                "fill-color": [
-                    "match",
-                    ["get", "class"],
-                    ["residential"], "#FF8600",
-                    ["religious"], "#AAF0FF",
-                    ["education"], "#BB95FF",
-                    ["industrial"], "#FFCB39",
-                    ["construction"], "#FFCB39",
-                    ["cemetery"], "#BDB9D4",
-                    ["landfill"], "#E8D04D",
-                    ["commercial"], "#5EB2FF",
-                    ["quarry"], "#AE84AC",
-                    ["scrub"], "#4EE3D7",
-                    ["railway"], "#72C6E6",
-                    ["stadium"], "#9AB94F",
-                    ["farmyard"], "#64A356",
-                    ["greenfield"], "#A4DBB8",
-                    ["aquaculture"], "#A9E5DF",
-                    ["pitch"], "#91A426",
-                    ["military"], "#484C98",
-                    ["brownfield"], "#D33D75",
-                    ["retail"], "#FF8600",
-                    ["greenhouse_horticulture"], "#44C253",
-                    ["garages"], "#7279A6",
-                    "rgba(153, 235, 191, 1)"
-                ],
-                "fill-opacity": 0.5,
+                "fill-color": "rgba(153, 235, 191, 1)",
+                "fill-opacity": 1,
+                "fill-outline-color": "rgba(154, 212, 106, 0)"
+            }
+        },
+        {
+            "id": "landuse_pitch",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landuse",
+            "minzoom": 0,
+            "maxzoom": 24,
+            "filter": [
+                "any",
+                [
+                    "==",
+                    "class",
+                    "pitch"
+                ]
+            ],
+            "layout": {
+                "visibility": "visible"
+            },
+            "paint": {
+                "fill-color": "rgba(153, 235, 191, 1)",
+                "fill-opacity": 1,
                 "fill-outline-color": "rgba(154, 212, 106, 0)"
             }
         },
@@ -117,27 +189,20 @@ export const style = {
             "type": "fill",
             "source": "openmaptiles",
             "source-layer": "landcover",
-            "maxzoom": 23,
-            // "filter": [ "in", ["get", "class"],["literal", ["sand", "wood", "grass", "wetland", "farmland"]] ],
+            "maxzoom": 24,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "class",
+                    "sand"
+                ]
+            ],
             "layout": {
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
-                "fill-color": [
-                    "match",
-                    ["get", "class"], ["wood"],
-                    "#4A9341",
-                    ["farmland"],
-                    "#664F2E",
-                    ["sand"],
-                    "#C29E42",
-                    ["wetland"],
-                    "#367624",
-                    ["grass"],
-                    "#7FC447",
-                    "#70A401"
-                ],
-                "fill-opacity": 0.5,
+                "fill-color": "rgba(246, 236, 221, 1)"
             }
         },
         {
@@ -145,7 +210,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "waterway",
-            "minzoom": 0,
+            "minzoom": 13,
             "maxzoom": 21,
             "filter": [
                 "all",
@@ -219,7 +284,7 @@ export const style = {
             ],
             "layout": {
                 "line-cap": "round",
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
                 "line-color": "rgba(180, 232, 253, 1)",
@@ -271,7 +336,7 @@ export const style = {
             ],
             "layout": {
                 "line-cap": "round",
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
                 "line-color": "rgba(180, 232, 253, 1)",
@@ -306,7 +371,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "aeroway",
-            "minzoom": 0,
+            "minzoom": 11,
             "filter": [
                 "all",
                 [
@@ -342,7 +407,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "aeroway",
-            "minzoom": 0,
+            "minzoom": 11,
             "filter": [
                 "all",
                 [
@@ -378,7 +443,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -451,7 +516,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 15,
             "filter": [
                 "all",
                 [
@@ -517,7 +582,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -576,7 +641,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -651,7 +716,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 10,
             "filter": [
                 "all",
                 [
@@ -720,7 +785,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 10,
             "filter": [
                 "all",
                 [
@@ -789,7 +854,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 10,
             "filter": [
                 "all",
                 [
@@ -878,7 +943,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 16,
             "filter": [
                 "all",
                 [
@@ -924,7 +989,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -953,7 +1018,7 @@ export const style = {
                     "stops": [
                         [
                             7,
-                            1
+                            0
                         ],
                         [
                             16,
@@ -976,7 +1041,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -1021,7 +1086,7 @@ export const style = {
                     "stops": [
                         [
                             12,
-                            1
+                            0
                         ],
                         [
                             15,
@@ -1036,7 +1101,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -1060,7 +1125,7 @@ export const style = {
                     "stops": [
                         [
                             12.5,
-                            1
+                            0
                         ],
                         [
                             13,
@@ -1083,7 +1148,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "all",
                 [
@@ -1107,7 +1172,7 @@ export const style = {
                     "stops": [
                         [
                             12,
-                            1
+                            0.1
                         ],
                         [
                             15,
@@ -1127,7 +1192,7 @@ export const style = {
                     "stops": [
                         [
                             12,
-                            1
+                            0
                         ],
                         [
                             15,
@@ -1142,7 +1207,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 7,
             "filter": [
                 "all",
                 [
@@ -1167,7 +1232,7 @@ export const style = {
                     "stops": [
                         [
                             7,
-                            1
+                            0
                         ],
                         [
                             16,
@@ -1190,7 +1255,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 5,
             "filter": [
                 "all",
                 [
@@ -1238,7 +1303,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 5,
             "filter": [
                 "all",
                 [
@@ -1290,7 +1355,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "all",
                 [
@@ -1343,7 +1408,7 @@ export const style = {
                     "stops": [
                         [
                             14,
-                            1
+                            0
                         ],
                         [
                             16,
@@ -1366,7 +1431,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "all",
                 [
@@ -1415,7 +1480,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -1460,7 +1525,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -1488,7 +1553,7 @@ export const style = {
                     "stops": [
                         [
                             14.5,
-                            1
+                            0
                         ],
                         [
                             15,
@@ -1530,7 +1595,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "any",
                 [
@@ -1588,7 +1653,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "any",
                 [
@@ -1656,7 +1721,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -1727,7 +1792,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 15,
             "filter": [
                 "all",
                 [
@@ -1791,7 +1856,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 15,
             "filter": [
                 "all",
                 [
@@ -1863,7 +1928,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 15,
             "maxzoom": 23,
             "filter": [
                 "all",
@@ -1937,7 +2002,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 10,
             "filter": [
                 "all",
                 [
@@ -2010,7 +2075,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 10,
             "filter": [
                 "all",
                 [
@@ -2078,7 +2143,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 10,
             "filter": [
                 "all",
                 [
@@ -2150,7 +2215,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "any",
                 [
@@ -2213,7 +2278,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "any",
                 [
@@ -2277,13 +2342,12 @@ export const style = {
                 ]
             }
         },
-
         {
             "id": "road_path_pedestrian",
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 16,
             "filter": [
                 "all",
                 [
@@ -2338,7 +2402,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 7,
             "filter": [
                 "all",
                 [
@@ -2455,7 +2519,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -2514,7 +2578,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "all",
                 [
@@ -2581,7 +2645,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 7,
             "filter": [
                 "all",
                 [
@@ -2609,7 +2673,7 @@ export const style = {
                     "stops": [
                         [
                             7,
-                            1
+                            0
                         ],
                         [
                             16,
@@ -2633,7 +2697,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 5,
             "filter": [
                 "all",
                 [
@@ -2684,7 +2748,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 5,
             "filter": [
                 "all",
                 [
@@ -2761,7 +2825,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -2831,7 +2895,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -2886,7 +2950,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "maxzoom": 9,
             "filter": [
                 "all",
@@ -2936,7 +3000,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "maxzoom": 9,
             "filter": [
                 "all",
@@ -2985,7 +3049,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 16,
             "filter": [
                 "==",
                 "oneway",
@@ -2996,6 +3060,7 @@ export const style = {
                 "symbol-placement": "line",
                 "text-font": [],
                 "visibility": "visible",
+                "text-field": "",
                 "icon-size": 0.7
             },
             "paint": {
@@ -3009,7 +3074,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 16,
             "filter": [
                 "==",
                 "oneway",
@@ -3020,6 +3085,7 @@ export const style = {
                 "icon-rotate": 180,
                 "text-font": [],
                 "visibility": "visible",
+                "text-field": "",
                 "icon-image": "Arrow",
                 "icon-size": 0.7
             },
@@ -3033,7 +3099,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3102,7 +3168,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 15,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3163,7 +3229,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 13,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3211,7 +3277,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 15,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3274,7 +3340,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 16,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3325,7 +3391,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 10,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3392,7 +3458,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 10,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3460,7 +3526,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 10,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3531,7 +3597,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 16,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3578,7 +3644,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 7,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3631,7 +3697,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 7,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3692,7 +3758,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 7,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3740,7 +3806,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3800,7 +3866,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 7,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3849,7 +3915,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 5,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3898,7 +3964,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 5,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -3951,7 +4017,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -4016,7 +4082,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 12,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -4065,7 +4131,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 7,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -4111,7 +4177,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 7,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -4156,7 +4222,7 @@ export const style = {
             "type": "fill",
             "source": "openmaptiles",
             "source-layer": "building",
-            "minzoom": 0,
+            "minzoom": 14,
             "maxzoom": 24,
             "paint": {
                 "fill-color": "rgba(244, 246, 251, 1)",
@@ -4181,7 +4247,7 @@ export const style = {
             "type": "fill-extrusion",
             "source": "openmaptiles",
             "source-layer": "building",
-            "minzoom": 0.2,
+            "minzoom": 16.2,
             "filter": [
                 "all",
                 [
@@ -4190,7 +4256,7 @@ export const style = {
                 ]
             ],
             "layout": {
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
                 "fill-extrusion-color": "rgba(249, 249, 249, 1)",
@@ -4221,7 +4287,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "building",
-            "minzoom": 0,
+            "minzoom": 16,
             "maxzoom": 24,
             "filter": [
                 "all",
@@ -4257,7 +4323,7 @@ export const style = {
                     21,
                     1.2
                 ],
-                "visibility": "none",
+                "visibility": "visible",
                 "icon-image": "general",
                 "text-font": [
                     "Gentona_Medium"
@@ -4290,7 +4356,7 @@ export const style = {
             "layout": {
                 "line-cap": "round",
                 "line-join": "round",
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
                 "line-color": "rgba(171, 192, 192, 1)",
@@ -4331,7 +4397,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "boundary",
-            "minzoom": 0,
+            "minzoom": 3,
             "filter": [
                 "all",
                 [
@@ -4341,7 +4407,7 @@ export const style = {
                 ]
             ],
             "layout": {
-                "visibility": "none",
+                "visibility": "visible",
                 "line-cap": "round",
                 "line-join": "miter"
             },
@@ -4379,7 +4445,7 @@ export const style = {
             "layout": {
                 "line-cap": "round",
                 "line-join": "miter",
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
                 "line-color": "rgba(189, 189, 210, 1)",
@@ -4404,7 +4470,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "waterway",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -4426,7 +4492,7 @@ export const style = {
                 "text-max-width": 5,
                 "text-size": 14,
                 "symbol-placement": "line",
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
                 "text-color": "hsl(197, 63%, 57%)",
@@ -4439,7 +4505,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "water_name",
-            "minzoom": 0,
+            "minzoom": 14,
             "filter": [
                 "==",
                 "$type",
@@ -4452,7 +4518,7 @@ export const style = {
                 ],
                 "text-max-width": 5,
                 "text-size": 13,
-                "visibility": "none",
+                "visibility": "visible",
                 "text-transform": "none"
             },
             "paint": {
@@ -4466,7 +4532,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 10,
             "filter": [
                 "all",
                 [
@@ -4600,7 +4666,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 10,
             "filter": [
                 "all",
                 [
@@ -4660,7 +4726,7 @@ export const style = {
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "minzoom": 0,
+            "minzoom": 14,
             "filter": [
                 "all",
                 [
@@ -4680,7 +4746,7 @@ export const style = {
             ],
             "layout": {
                 "line-join": "round",
-                "visibility": "visible"
+                "visibility": "none"
             },
             "paint": {
                 "line-color": "rgba(185, 196, 231, 1)",
@@ -4712,7 +4778,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "transportation_name",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "all",
                 [
@@ -4760,7 +4826,7 @@ export const style = {
                         ]
                     ]
                 },
-                "visibility": "none",
+                "visibility": "visible",
                 "text-line-height": 0.95,
                 "symbol-spacing": {
                     "stops": [
@@ -4796,7 +4862,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "transportation_name",
-            "minzoom": 0,
+            "minzoom": 15,
             "filter": [
                 "all",
                 [
@@ -4829,7 +4895,7 @@ export const style = {
                         ]
                     ]
                 },
-                "visibility": "none",
+                "visibility": "visible",
                 "text-line-height": 0.95,
                 "symbol-spacing": {
                     "stops": [
@@ -4865,7 +4931,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "transportation_name",
-            "minzoom": 0,
+            "minzoom": 14,
             "filter": [
                 "all",
                 [
@@ -4898,7 +4964,7 @@ export const style = {
                         ]
                     ]
                 },
-                "visibility": "none",
+                "visibility": "visible",
                 "text-line-height": 0.95,
                 "symbol-spacing": {
                     "stops": [
@@ -4934,7 +5000,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "transportation_name",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "all",
                 [
@@ -4967,7 +5033,7 @@ export const style = {
                         ]
                     ]
                 },
-                "visibility": "none",
+                "visibility": "visible",
                 "text-line-height": 0.95,
                 "symbol-spacing": {
                     "stops": [
@@ -4999,11 +5065,131 @@ export const style = {
             }
         },
         {
+            "id": "road_closure_polygon",
+            "type": "fill",
+            "source": "vectordata",
+            "source-layer": "road_closures",
+            "minzoom": 12,
+            "maxzoom": 21,
+            "layout": {
+                "visibility": "none"
+            },
+            "paint": {
+                "fill-opacity": [
+                    "match",
+                    [
+                        "get",
+                        "layer"
+                    ],
+                    [
+                        "Control_Zone_1"
+                    ],
+                    0.4,
+                    0.8
+                ],
+                "fill-color": "#FFB6D5"
+            }
+        },
+        {
+            "id": "road_closure-casing",
+            "type": "line",
+            "source": "vectordata",
+            "source-layer": "road_closures",
+            "minzoom": 16,
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "none"
+            },
+            "paint": {
+                "line-color": "rgba(253, 209, 208, 1)",
+                "line-width": {
+                    "base": 1.2,
+                    "stops": [
+                        [
+                            12,
+                            4
+                        ],
+                        [
+                            18,
+                            12
+                        ],
+                        [
+                            22,
+                            120
+                        ]
+                    ]
+                },
+                "line-dasharray": [
+                    1
+                ]
+            }
+        },
+        {
+            "id": "road_closure",
+            "type": "line",
+            "source": "vectordata",
+            "source-layer": "road_closures",
+            "minzoom": 16,
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "miter",
+                "visibility": "none"
+            },
+            "paint": {
+                "line-color": "rgba(255, 94, 70, 1)",
+                "line-width": {
+                    "base": 1.2,
+                    "stops": [
+                        [
+                            12,
+                            4
+                        ],
+                        [
+                            18,
+                            12
+                        ],
+                        [
+                            22,
+                            120
+                        ]
+                    ]
+                },
+                "line-dasharray": [
+                    0.3,
+                    0.3
+                ]
+            }
+        },
+        {
+            "id": "road_closure_label",
+            "type": "symbol",
+            "source": "vectordata",
+            "source-layer": "road_closures",
+            "minzoom": 11,
+            "maxzoom": 24,
+            "layout": {
+                "icon-image": "Road_Closed_Sign",
+                "symbol-placement": "point",
+                "text-font": [],
+                "visibility": "none",
+                "text-field": "",
+                "icon-size": 0.72,
+                "text-line-height": 0.95
+            },
+            "paint": {
+                "text-color": "rgba(255, 0, 0, 1)",
+                "icon-color": "rgba(255, 0, 0, 1)",
+                "icon-halo-color": "rgba(255, 255, 255, 1)",
+                "icon-opacity": 1
+            }
+        },
+        {
             "id": "poi",
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "poi",
-            "minzoom": 0,
+            "minzoom": 11,
             "filter": [
                 "all",
                 [
@@ -5058,7 +5244,7 @@ export const style = {
                     21,
                     1.2
                 ],
-                "visibility": "none",
+                "visibility": "visible",
                 "text-optional": false,
                 "icon-optional": false,
                 "text-font": [
@@ -5140,11 +5326,63 @@ export const style = {
             }
         },
         {
+            "id": "transit",
+            "type": "symbol",
+            "source": "openmaptiles",
+            "source-layer": "transit",
+            "minzoom": 11,
+            "layout": {
+                "text-field": [
+                    "get",
+                    "name"
+                ],
+                "text-size": 13,
+                "text-padding": 2,
+                "text-justify": "auto",
+                "text-variable-anchor": [
+                    "top",
+                    "bottom",
+                    "left",
+                    "right"
+                ],
+                "text-offset": [
+                    0.9,
+                    1.2
+                ],
+                "icon-image": "{class}",
+                "icon-size": 0.72,
+                "text-line-height": [
+                    "step",
+                    [
+                        "zoom"
+                    ],
+                    0.95,
+                    21,
+                    1.2
+                ],
+                "visibility": "visible",
+                "text-optional": false,
+                "icon-optional": false,
+                "text-font": [
+                    "Gentona_Medium"
+                ],
+                "symbol-sort-key": [
+                    "get",
+                    "popularity"
+                ]
+            },
+            "paint": {
+                "text-color": "#1D81DD",
+                "text-halo-color": "rgba(255, 255, 255, 1)",
+                "text-halo-width": 1
+            }
+        },
+        {
             "id": "poi_tbt",
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "poi",
-            "minzoom": 0,
+            "minzoom": 16,
             "filter": [
                 "all",
                 [
@@ -5324,7 +5562,7 @@ export const style = {
             "type": "symbol",
             "source": "vectordata",
             "source-layer": "road_signs",
-            "minzoom": 0,
+            "minzoom": 11,
             "filter": [
                 "all",
                 [
@@ -5365,7 +5603,7 @@ export const style = {
             "type": "symbol",
             "source": "vectordata",
             "source-layer": "road_signs",
-            "minzoom": 0,
+            "minzoom": 11,
             "filter": [
                 "any",
                 [
@@ -5426,7 +5664,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "transportation_name",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "all",
                 [
@@ -5455,7 +5693,7 @@ export const style = {
                         ]
                     ]
                 },
-                "visibility": "none",
+                "visibility": "visible",
                 "text-transform": "none",
                 "text-justify": "center",
                 "text-offset": [
@@ -5498,7 +5736,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "transportation_name",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "all",
                 [
@@ -5531,7 +5769,7 @@ export const style = {
                         ]
                     ]
                 },
-                "visibility": "none",
+                "visibility": "visible",
                 "text-transform": "none",
                 "text-line-height": 0.95,
                 "symbol-spacing": {
@@ -5568,7 +5806,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "transportation_name",
-            "minzoom": 0,
+            "minzoom": 12,
             "filter": [
                 "all",
                 [
@@ -5601,7 +5839,7 @@ export const style = {
                         ]
                     ]
                 },
-                "visibility": "none",
+                "visibility": "visible",
                 "text-line-height": 0.95,
                 "symbol-spacing": {
                     "stops": [
@@ -5636,12 +5874,12 @@ export const style = {
             "id": "poi_traffic_signal",
             "type": "symbol",
             "source": "openmaptiles",
-            "source-layer": "traffic_signals",
-            "minzoom": 0,
+            "source-layer": "transit",
+            "minzoom": 15,
             "layout": {
                 "icon-image": "traffic_signal",
                 "icon-size": 0.72,
-                "visibility": "none",
+                "visibility": "visible",
                 "text-optional": false,
                 "icon-optional": false,
                 "text-font": [
@@ -5652,89 +5890,11 @@ export const style = {
             }
         },
         {
-            "id": "ola-pois",
-            "type": "symbol",
-            "source": "vectordata",
-            "source-layer": "hyperchargers",
-            "minzoom": 0,
-            "maxzoom": 24,
-            "filter": [
-                "all",
-                [
-                    "has",
-                    "types"
-                ]
-            ],
-            "layout": {
-                "text-field": {
-                    "type": "identity",
-                    "property": "name"
-                },
-                "text-size": 13,
-                "text-padding": 2,
-                "text-justify": "auto",
-                "text-variable-anchor": [
-                    "top",
-                    "bottom",
-                    "left",
-                    "right"
-                ],
-                "text-offset": [
-                    0.9,
-                    1.2
-                ],
-                "text-line-height": [
-                    "step",
-                    [
-                        "zoom"
-                    ],
-                    0.95,
-                    21,
-                    1.2
-                ],
-                "icon-image": "{types}",
-                "icon-size": 0.72,
-                "visibility": "none",
-                "text-optional": false,
-                "icon-optional": false,
-                "text-font": [
-                    "Gentona_Medium"
-                ]
-            },
-            "paint": {
-                "text-color": [
-                    "match",
-                    [
-                        "get",
-                        "types"
-                    ],
-                    [
-                        "ola-experiencecenter",
-                        "ola_factory"
-                    ],
-                    "#303030",
-                    [
-                        "ola-hypercharger",
-                        "ola-slowcharger"
-                    ],
-                    "#00B227",
-                    [
-                        "ola-servicecenter"
-                    ],
-                    "#5D7599",
-                    "rgba(57, 110, 245, 1)"
-                ],
-                "text-halo-color": "rgba(255, 255, 255, 1)",
-                "text-halo-width": 1,
-                "text-halo-blur": 0
-            }
-        },
-        {
             "id": "poi-vectordata",
             "type": "symbol",
             "source": "vectordata",
             "source-layer": "poi",
-            "minzoom": 0,
+            "minzoom": 11,
             "layout": {
                 "text-field": {
                     "type": "identity",
@@ -5764,7 +5924,7 @@ export const style = {
                     21,
                     1.2
                 ],
-                "visibility": "none",
+                "visibility": "visible",
                 "text-optional": false,
                 "icon-optional": false,
                 "text-font": [
@@ -5853,7 +6013,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "transportation_name",
-            "minzoom": 0,
+            "minzoom": 10,
             "filter": [
                 "all",
                 [
@@ -5898,7 +6058,7 @@ export const style = {
                     9,
                     12
                 ],
-                "visibility": "none",
+                "visibility": "visible",
                 "text-pitch-alignment": "auto",
                 "icon-pitch-alignment": "auto",
                 "icon-padding": 2,
@@ -5916,7 +6076,7 @@ export const style = {
             "id": "poi_metro",
             "type": "symbol",
             "source": "openmaptiles",
-            "source-layer": "metro",
+            "source-layer": "transit",
             "filter": [
                 "all",
                 [
@@ -5924,7 +6084,7 @@ export const style = {
                     "line"
                 ]
             ],
-            "minzoom": 0,
+            "minzoom": 10,
             "layout": {
                 "text-field": [
                     "step",
@@ -5994,7 +6154,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "aerodrome_label",
-            "minzoom": 0,
+            "minzoom": 10,
             "layout": {
                 "icon-image": "Airport",
                 "icon-size": 0.72,
@@ -6015,7 +6175,7 @@ export const style = {
                 "icon-optional": false,
                 "text-padding": 2,
                 "text-size": 13,
-                "visibility": "none",
+                "visibility": "visible",
                 "text-offset": [
                     0.9,
                     0.9
@@ -6041,7 +6201,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0,
+            "minzoom": 14,
             "maxzoom": 17,
             "filter": [
                 "all",
@@ -6057,7 +6217,7 @@ export const style = {
                 ]
             ],
             "layout": {
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Medium"
                 ],
@@ -6077,7 +6237,7 @@ export const style = {
                     ]
                 },
                 "text-transform": "uppercase",
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
                 "text-color": "rgba(90, 104, 115, 1)",
@@ -6100,7 +6260,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0.2,
+            "minzoom": 10.2,
             "maxzoom": 15,
             "filter": [
                 "all",
@@ -6116,7 +6276,7 @@ export const style = {
                 ]
             ],
             "layout": {
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Medium"
                 ],
@@ -6136,7 +6296,7 @@ export const style = {
                     ]
                 },
                 "text-transform": "uppercase",
-                "visibility": "none",
+                "visibility": "visible",
                 "icon-text-fit": "none",
                 "text-padding": 50,
                 "text-line-height": 1.2
@@ -6167,7 +6327,7 @@ export const style = {
                 ]
             ],
             "layout": {
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Medium"
                 ],
@@ -6185,7 +6345,7 @@ export const style = {
                         ]
                     ]
                 },
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
                 "text-color": "rgba(90, 104, 115, 1)",
@@ -6198,7 +6358,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0,
+            "minzoom": 13,
             "filter": [
                 "any",
                 [
@@ -6208,7 +6368,7 @@ export const style = {
                 ]
             ],
             "layout": {
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Book"
                 ],
@@ -6226,7 +6386,7 @@ export const style = {
                         ]
                     ]
                 },
-                "visibility": "none"
+                "visibility": "visible"
             },
             "paint": {
                 "text-color": "rgba(90, 104, 115, 1)",
@@ -6239,7 +6399,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0,
+            "minzoom": 9,
             "maxzoom": 16,
             "filter": [
                 "all",
@@ -6250,19 +6410,19 @@ export const style = {
                 ],
                 [
                     ">",
-                    "pop",
+                    "population",
                     10000
                 ],
                 [
                     "<",
-                    "pop",
+                    "population",
                     300000
                 ]
             ],
             "layout": {
                 "icon-image": "",
                 "text-anchor": "bottom",
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Medium"
                 ],
@@ -6284,7 +6444,7 @@ export const style = {
                         ]
                     ]
                 },
-                "visibility": "none",
+                "visibility": "visible",
                 "text-transform": "uppercase",
                 "text-letter-spacing": 0
             },
@@ -6300,7 +6460,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0,
+            "minzoom": 8,
             "maxzoom": 14,
             "filter": [
                 "all",
@@ -6311,13 +6471,13 @@ export const style = {
                 ],
                 [
                     "<",
-                    "pop",
+                    "population",
                     1000000
                 ]
             ],
             "layout": {
                 "text-anchor": "center",
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Medium"
                 ],
@@ -6360,7 +6520,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0,
+            "minzoom": 8,
             "maxzoom": 14,
             "filter": [
                 "all",
@@ -6371,13 +6531,13 @@ export const style = {
                 ],
                 [
                     ">",
-                    "pop",
+                    "population",
                     1000000
                 ]
             ],
             "layout": {
                 "text-anchor": "center",
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Medium"
                 ],
@@ -6420,7 +6580,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0,
+            "minzoom": 7,
             "maxzoom": 14,
             "filter": [
                 "all",
@@ -6431,13 +6591,13 @@ export const style = {
                 ],
                 [
                     ">",
-                    "pop",
+                    "population",
                     1300000
                 ]
             ],
             "layout": {
                 "text-anchor": "center",
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Medium"
                 ],
@@ -6480,7 +6640,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0,
+            "minzoom": 6,
             "maxzoom": 14,
             "filter": [
                 "all",
@@ -6491,13 +6651,13 @@ export const style = {
                 ],
                 [
                     ">",
-                    "pop",
+                    "population",
                     1500000
                 ]
             ],
             "layout": {
                 "text-anchor": "center",
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Medium"
                 ],
@@ -6540,7 +6700,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0,
+            "minzoom": 5,
             "maxzoom": 14,
             "filter": [
                 "all",
@@ -6551,14 +6711,14 @@ export const style = {
                 ],
                 [
                     ">",
-                    "pop",
+                    "population",
                     2000000
                 ]
             ],
             "layout": {
                 "icon-size": 0.65,
                 "text-anchor": "center",
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Semi_Bold"
                 ],
@@ -6579,7 +6739,7 @@ export const style = {
                 "icon-allow-overlap": true,
                 "icon-optional": false,
                 "icon-anchor": "bottom",
-                "visibility": "none",
+                "visibility": "visible",
                 "text-justify": "center",
                 "symbol-z-order": "auto",
                 "text-offset": [
@@ -6600,7 +6760,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0,
+            "minzoom": 3,
             "maxzoom": 8,
             "filter": [
                 "all",
@@ -6611,7 +6771,7 @@ export const style = {
                 ]
             ],
             "layout": {
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Medium"
                 ],
@@ -6642,7 +6802,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0,
+            "minzoom": 2,
             "maxzoom": 6,
             "filter": [
                 "all",
@@ -6658,7 +6818,7 @@ export const style = {
                 ]
             ],
             "layout": {
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Extra_Bold"
                 ],
@@ -6735,7 +6895,7 @@ export const style = {
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "place",
-            "minzoom": 0,
+            "minzoom": 2,
             "maxzoom": 6,
             "filter": [
                 "all",
@@ -6751,7 +6911,7 @@ export const style = {
                 ]
             ],
             "layout": {
-                "text-field": "{name:latin}",
+                "text-field": "{name:en}",
                 "text-font": [
                     "Gentona_Bold"
                 ],
@@ -6785,6 +6945,6 @@ export const style = {
 
 export const conditionalStyles = {
     ...style,
-    layers: style.layers.filter(layer => layer['source-layer'] == 'transportation')
+    // layers: style.layers.filter(layer => layer['source-layer'] == 'transportation')
 }
 

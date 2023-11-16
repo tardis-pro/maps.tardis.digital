@@ -11,6 +11,7 @@ import { pointData } from './cit';
 import { scaleLinear } from 'd3-scale';
 import * as pmtiles from "pmtiles";
 import { style, conditionalStyles } from './tile'
+import { set } from 'date-fns';
 var colorRange = [
     [0, 255, 0, 255], // Red, fully opaque
     [255, 0, 0, 255] // Green, fully opaque
@@ -20,35 +21,24 @@ var colorRange = [
 //     .domain([0, 1])
 //     .range(colorRange)
 
-
-
-// const pointsLayer = new MVTLayer({
-//     id: 'mvt-layer',
-//     data: ["http://127.0.0.1:36687/mvt_tile/{z}/{x}/{y}?source_id=3"],
-//     pointRadiusUnits: 'pixels',
-//     getRadius: 3,
-//     getFillColor: f => {
-//         console.log(f.properties.value)
-//         console.log(colorScale(f.properties.value))
-//         return colorScale(f.properties.value)
-//     }
-// });
-const layer = new ScenegraphLayer({
-    id: 'scenegraph-layer',
-    data: [pointData],
-    pickable: true,
-    scenegraph: 'https://s3.amazonaws.com/tardis.digital/TARDIS.glb',
-    getPosition: d => d.geometry.coordinates,
-    getOrientation: d => [0, 0, 0],
-    _animations: {
-        '*': { speed: 5 }
-    },
-    sizeScale: 50,
-    _lighting: 'pbr',
-});
 const ICON_MAPPING = {
     marker: { x: 0, y: 0, width: 128, height: 128, mask: true }
 };
+const mvtLayer = new MVTLayer({
+    id: 'mvt-layer',
+    data: "http://localhost:3000/output", // Your data URL or tileset
+    minZoom: 0,
+    maxZoom: 23,
+    iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+    iconMapping: ICON_MAPPING,
+    getIcon: d => 'marker',
+    sourceLayer: 'outputgeojson',
+    sizeScale: 15,
+    getSize: d => 5,
+    getColor: d => [255, 0, 0],
+    // filter: (feature) => feature.properties.timestamp === currentTime,
+});
+
 const BaseMap = (props) => {
     const { initialViewState } = props;
     const [layerVisibility, setLayerVisibility] = useState({ 'Stores': true, 'Sales': true })
@@ -70,18 +60,7 @@ const BaseMap = (props) => {
             .range([20, 30]);
 
         const layers = [
-            // new ScreenGridLayer({
-            //     id: 'grid',
-            //     data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json',
-            //     opacity: 0.8,
-            //     visible: layerVisibility['Stores'],
-            //     getPosition: d => [d[0], d[1]],
-            //     getWeight: d => d[2],
-            //     cellSizePixels: 2,
-            //     colorRange: colorRange,
-            //     gpuAggregation: true,
-            //     aggregation: 'SUM',
-            // }),
+
             // layer,
             // new PMTLayer({
             //     id: "pmtiles-layer",
@@ -120,6 +99,15 @@ const BaseMap = (props) => {
         eventBus.on('widget.map.layer.add', ({ layer, checked }) => {
             toggleLayer(layer, checked)
         })
+        eventBus.on('widget.map.zxy.change', ({ zxy }) => {
+            console.log(viewState);
+            setViewState({
+                ...viewState,
+                zoom: zxy[0],
+                latitude: zxy[1],
+                longitude: zxy[2]
+            })
+        })
         return () => {
             // eventBus.off('widget.map.layer.add', (layer) => {
             //     toggleLayer('Stores')
@@ -132,18 +120,39 @@ const BaseMap = (props) => {
             effects={[lightingEffect]}
             controller={{ doubleClickZoom: false, scrollZoom: { smooth: true, speed: 0.1 }, inertia: 300, minPitch: 0, maxPitch: 79 }}
             initialViewState={viewState}
-            layers={layers}
-            onViewStateChange={e => setViewState(e.viewState)}
+            onViewStateChange={e => {
+                console.log(e.viewState);
+            }}
             onWebGLInitialized={onInitialized}
-            style={{ zIndex: 1 }}
 
         >
             <Map
-                
                 reuseMaps
                 ref={mapRef}
                 mapLib={maplibregl}
-                mapStyle={conditionalStyles}
+                mapStyle={style}
+                onClick={(e) => {
+                    const features = mapRef?.current?.queryRenderedFeatures(e.point);
+                    const displayProperties = [
+                        'type',
+                        'properties',
+                        'id',
+                        'layer',
+                        'source',
+                        'sourceLayer',
+                        'state'
+                    ];
+            
+                    const displayFeatures = features.map((feat) => {
+                        const displayFeat = {};
+                        displayProperties.forEach((prop) => {
+                            displayFeat[prop] = feat[prop];
+                        });
+                        return displayFeat;
+                    });
+                    console.log(displayFeatures);
+            
+                }}
             />
         </DeckGL>
     );

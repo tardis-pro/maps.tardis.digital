@@ -1,0 +1,3 @@
+[submodule "backend/etl/osm-pbf-tiles/planetiler-openmaptiles"]
+	path = backend/etl/osm-pbf-tiles/planetiler-openmaptiles
+	url = https://github.com/pronitdas/planetiler-openmaptiles.git
