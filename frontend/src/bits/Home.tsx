@@ -45,9 +45,9 @@ export const Home = () => {
             <Sidebar />
             <div onContextMenu={(e) => e.preventDefault()} >
                 <BaseMap initialViewState={{
-                    longitude: 72.81822394442798,
-                    latitude: 22.600007667401925,
-                    zoom: 18,
+                    longitude: 72.82254302669458,
+                    latitude: 22.59317476003686,
+                    zoom: 14,
                     maxZoom: 20,
                     minZoom: 1.5,
                     pitch: 0,

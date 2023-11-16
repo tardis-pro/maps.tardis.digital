@@ -1,17 +1,15 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import DeckGL from "@deck.gl/react/typed";
-import { GeoJsonLayer, MVTLayer, ScenegraphLayer, ScreenGridLayer, TextLayer } from 'deck.gl/typed';
+import DeckGL from '@deck.gl/react/typed';
+import { ScreenGridLayer } from 'deck.gl/typed';
 import { Map } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { lightingEffect } from '../effects/lights';
-import { isWebGL2 } from '@luma.gl/core';
-import eventBus from 'utils/eventBus';
 import { Protocol } from 'pmtiles';
-import { pointData } from './cit';
-import { scaleLinear } from 'd3-scale';
-import * as pmtiles from "pmtiles";
-import { style, conditionalStyles } from './tile'
-import { set } from 'date-fns';
+import { isWebGL2 } from '@luma.gl/core';
+import * as d3 from 'd3';
+import eventBus from 'utils/eventBus';
+
+// Define the color range
 var colorRange = [
     [0, 255, 0, 255], // Red, fully opaque
     [255, 0, 0, 255] // Green, fully opaque
@@ -21,50 +19,42 @@ var colorRange = [
 //     .domain([0, 1])
 //     .range(colorRange)
 
-const ICON_MAPPING = {
-    marker: { x: 0, y: 0, width: 128, height: 128, mask: true }
-};
-const mvtLayer = new MVTLayer({
-    id: 'mvt-layer',
-    data: "http://localhost:3000/output", // Your data URL or tileset
-    minZoom: 0,
-    maxZoom: 23,
-    iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-    iconMapping: ICON_MAPPING,
-    getIcon: d => 'marker',
-    sourceLayer: 'outputgeojson',
-    sizeScale: 15,
-    getSize: d => 5,
-    getColor: d => [255, 0, 0],
-    // filter: (feature) => feature.properties.timestamp === currentTime,
-});
-
 const BaseMap = (props) => {
     const { initialViewState } = props;
-    const [layerVisibility, setLayerVisibility] = useState({ 'Stores': true, 'Sales': true })
+    const [layerVisibility, setLayerVisibility] = useState({ 'Stores': false, 'Sales': false })
     const deck = useRef(null);
-    const mapRef = useRef(null);
-    window.mapRef = mapRef;
     const [viewState, setViewState] = useState(initialViewState);
+
     useEffect(() => {
         let protocol = new Protocol();
         maplibregl.addProtocol("pmtiles", protocol.tile);
         return () => {
             maplibregl.removeProtocol("pmtiles");
-        }
+        };
     }, []);
 
     const layers = useMemo(() => {
-        const iconSizeScale = scaleLinear()
+        const iconSizeScale = d3.scaleLinear()
             .domain([14, 32]) // Zoom levels
             .range([20, 30]);
+        console.log(iconSizeScale(viewState.zoom));
 
         const layers = [
-
-            // layer,
+            new ScreenGridLayer({
+                id: 'grid',
+                data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json',
+                opacity: 0.8,
+                visible: layerVisibility['Stores'],
+                getPosition: d => [d[0], d[1]],
+                getWeight: d => d[2],
+                cellSizePixels: 2,
+                colorRange: colorRange,
+                gpuAggregation: true,
+                aggregation: 'SUM',
+            }),
             // new PMTLayer({
             //     id: "pmtiles-layer",
-            //     data: "https://maps-tardis-digital.s3.ap-south-1.amazonaws.com/output.pmtiles",
+            //     data: "https://maps-tardis-digital.s3.ap-south-1.amazonaws.com/data/india_v1.pmtiles",
             //     onClick: (info) => {
             //       console.log(info);
             //     },
@@ -73,6 +63,34 @@ const BaseMap = (props) => {
             //     getFillColor: (d: any) => [255 * (+d.properties.STATEFP / 90), 0, 0],
             //     pickable: true,
             //   }),
+            // new GeoJsonLayer({
+            //     data: charusat,
+            //     opacity: 1,
+            //     filled: true,
+            //     getFillColor: [57, 57, 57],
+            //     visible: viewState.zoom > 11,
+            //     pickable: true,
+            //     getText: f => f.properties.name,
+            //     getTextAnchor: 'middle'
+            // }),
+            // new TextLayer({
+            //     id: 'text-layer',
+            //     data: [],
+            //     pickable: true,
+            //     visible: viewState.zoom > 12,
+            //     getPosition: d => d.geometry.coordinates,
+            //     getText: d => d.properties.name,
+            //     getColor: [223,229,236],
+            //     fontWeight: 400,
+            //     getSize: iconSizeScale(viewState.zoom),
+            //     getAngle: 0,
+            //     iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+            //     iconMapping: ICON_MAPPING,
+            //     getIcon: d => 'marker',
+            //     sizeScale: 1 / 2,
+            //     getTextAnchor: 'middle',
+            //     getAlignmentBaseline: 'center'
+            // })
         ]
         return layers
     }, [layerVisibility, viewState])
@@ -120,38 +138,36 @@ const BaseMap = (props) => {
             effects={[lightingEffect]}
             controller={{ doubleClickZoom: false, scrollZoom: { smooth: true, speed: 0.1 }, inertia: 300, minPitch: 0, maxPitch: 79 }}
             initialViewState={viewState}
-            onViewStateChange={e => {
-                console.log(e.viewState);
-            }}
+            layers={layers}
+            onViewStateChange={e => setViewState(e.viewState)}
             onWebGLInitialized={onInitialized}
+            style={{ zIndex: 1 }}
 
         >
             <Map
                 reuseMaps
                 ref={mapRef}
                 mapLib={maplibregl}
-                mapStyle={style}
-                onClick={(e) => {
-                    const features = mapRef?.current?.queryRenderedFeatures(e.point);
-                    const displayProperties = [
-                        'type',
-                        'properties',
-                        'id',
-                        'layer',
-                        'source',
-                        'sourceLayer',
-                        'state'
-                    ];
-            
-                    const displayFeatures = features.map((feat) => {
-                        const displayFeat = {};
-                        displayProperties.forEach((prop) => {
-                            displayFeat[prop] = feat[prop];
-                        });
-                        return displayFeat;
-                    });
-                    console.log(displayFeatures);
-            
+                mapStyle={{
+                    version: 8,
+                    sources: {
+                        sample: {
+                            type: "vector",
+                            url:
+                                "https://maps-tardis-digital.s3.ap-south-1.amazonaws.com/data/india_v1.pmtiles"
+                        }
+                    },
+                    layers: [
+                        {
+                            id: "zcta",
+                            source: "sample",
+                            "source-layer": "zcta",
+                            type: "line",
+                            paint: {
+                                "line-color": "#999"
+                            }
+                        }
+                    ]
                 }}
             />
         </DeckGL>
