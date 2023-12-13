@@ -10,7 +10,7 @@ import { Protocol } from 'pmtiles';
 import { isWebGL2 } from '@luma.gl/core';
 import * as d3 from 'd3';
 import eventBus from 'utils/eventBus';
-import { style } from './tile';
+import { styleFactory } from './tile';
 
 // Define the color range
 var colorRange = [
@@ -25,17 +25,25 @@ var colorRange = [
 const BaseMap = (props) => {
     const { initialViewState } = props;
     const [layerVisibility, setLayerVisibility] = useState({ 'Stores': false, 'Sales': false })
+    let s = styleFactory({
+        "sources": {
+            "openmaptiles": "http://localhost:3000/planet-full-v2.1.7.4",
+        },
+        "exclusion": ["vectordata"]
+    })
+    const [style, setStyle] = useState(s);
     const deck = useRef(null);
     const [viewState, setViewState] = useState(initialViewState);
     const mapRef = useRef(null);
     useEffect(() => {
         let protocol = new Protocol();
         maplibregl.addProtocol("pmtiles", protocol.tile);
+        // window.mapref = mapRef.current.getMap();
         return () => {
             maplibregl.removeProtocol("pmtiles");
         };
     }, []);
-
+    if (mapRef.current) window.mapRef = mapRef.current.getMap();
     const layers = useMemo(() => {
         const iconSizeScale = d3.scaleLinear()
             .domain([14, 32]) // Zoom levels
@@ -121,7 +129,8 @@ const BaseMap = (props) => {
             toggleLayer(layer, checked)
         })
         eventBus.on('widget.map.zxy.change', ({ zxy }) => {
-            console.log(viewState);
+            console.log(zxy);
+
             setViewState({
                 ...viewState,
                 zoom: zxy[0],
@@ -149,6 +158,7 @@ const BaseMap = (props) => {
         >
             <Map
                 reuseMaps
+                hash
                 ref={mapRef}
                 mapLib={maplibregl}
                 mapStyle={style}

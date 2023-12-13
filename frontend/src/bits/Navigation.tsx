@@ -10,6 +10,7 @@ import eventBus from "utils/eventBus";
 interface Item {
     text: string;
     icon: string;
+    value?: string;
 }
 
 const items: Item[] = [
