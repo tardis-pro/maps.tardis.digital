@@ -6455,7 +6455,22 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             "get",
                             "popScore"
                         ]
-                    ]
+                    },
+                    "symbol-spacing": 500,
+                    "text-field": "{ref}",
+                    "text-font": ["Gentona_Medium"],
+                    "text-offset": [0, 0],
+                    "text-rotation-alignment": "viewport",
+                    "text-size": 10,
+                    "text-line-height": 0.95,
+                    "icon-size": 0.7,
+                    "icon-text-fit": "both",
+                    "icon-text-fit-padding": [7, 12, 9, 12],
+                    "visibility": "visible",
+                    "text-pitch-alignment": "auto",
+                    "icon-pitch-alignment": "auto",
+                    "icon-padding": 2,
+                    "icon-anchor": "center"
                 },
                 "paint": {
                     "text-color": [
