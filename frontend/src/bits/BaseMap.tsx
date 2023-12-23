@@ -27,10 +27,11 @@ const BaseMap = (props) => {
     const [layerVisibility, setLayerVisibility] = useState({ 'Stores': false, 'Sales': false })
     let s = styleFactory({
         "sources": {
-            "openmaptiles": "http://localhost:3000/planet-full-v2.1.7.4",
+            "openmaptiles": "http://localhost:3000/planet-pune-v2.2.0.7",
+            
         },
         "exclusion": ["vectordata"]
-    })
+    })  
     const [style, setStyle] = useState(s);
     const deck = useRef(null);
     const [viewState, setViewState] = useState(initialViewState);
@@ -48,7 +49,6 @@ const BaseMap = (props) => {
         const iconSizeScale = d3.scaleLinear()
             .domain([14, 32]) // Zoom levels
             .range([20, 30]);
-        console.log(iconSizeScale(viewState.zoom));
 
         const layers = [
             new ScreenGridLayer({
