@@ -10,7 +10,7 @@ import { Protocol } from 'pmtiles';
 import { isWebGL2 } from '@luma.gl/core';
 import * as d3 from 'd3';
 import eventBus from 'utils/eventBus';
-import { style } from './tile';
+import { styleFactory } from './tile';
 
 // Define the color range
 var colorRange = [
@@ -25,79 +25,40 @@ var colorRange = [
 const BaseMap = (props) => {
     const { initialViewState } = props;
     const [layerVisibility, setLayerVisibility] = useState({ 'Stores': false, 'Sales': false })
+    let s = styleFactory({
+        "sources": {
+            "openmaptiles": "http://localhost:3000/planet-full-v2.2.2.4",
+            
+        },
+        "exclusion": ["vectordata"]
+    }) 
+    
+    const [style, setStyle] = useState(s);
     const deck = useRef(null);
+    const debug = true;
     const [viewState, setViewState] = useState(initialViewState);
     const mapRef = useRef(null);
     useEffect(() => {
         let protocol = new Protocol();
         maplibregl.addProtocol("pmtiles", protocol.tile);
+        
+        eventBus.on('widget.map.zxy.change', ({ zxy }) => {
+            debugBasemap("poi");
+           
+            setViewState({
+                ...viewState,
+                zoom: zxy[0],
+                latitude: zxy[1],
+                longitude: zxy[2]
+            })
+        })
         return () => {
             maplibregl.removeProtocol("pmtiles");
         };
+        
+
     }, []);
-
-    const layers = useMemo(() => {
-        const iconSizeScale = d3.scaleLinear()
-            .domain([14, 32]) // Zoom levels
-            .range([20, 30]);
-        console.log(iconSizeScale(viewState.zoom));
-
-        const layers = [
-            new ScreenGridLayer({
-                id: 'grid',
-                data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json',
-                opacity: 0.8,
-                visible: layerVisibility['Stores'],
-                getPosition: d => [d[0], d[1]],
-                getWeight: d => d[2],
-                cellSizePixels: 2,
-                colorRange: colorRange,
-                gpuAggregation: true,
-                aggregation: 'SUM',
-            }),
-            // new PMTLayer({
-            //     id: "pmtiles-layer",
-            //     data: "https://maps-tardis-digital.s3.ap-south-1.amazonaws.com/data/india_v1.pmtiles",
-            //     onClick: (info) => {
-            //       console.log(info);
-            //     },
-            //     maxZoom: 20,
-            //     minZoom: 18,
-            //     getFillColor: (d: any) => [255 * (+d.properties.STATEFP / 90), 0, 0],
-            //     pickable: true,
-            //   }),
-            // new GeoJsonLayer({
-            //     data: charusat,
-            //     opacity: 1,
-            //     filled: true,
-            //     getFillColor: [57, 57, 57],
-            //     visible: viewState.zoom > 11,
-            //     pickable: true,
-            //     getText: f => f.properties.name,
-            //     getTextAnchor: 'middle'
-            // }),
-            // new TextLayer({
-            //     id: 'text-layer',
-            //     data: [],
-            //     pickable: true,
-            //     visible: viewState.zoom > 12,
-            //     getPosition: d => d.geometry.coordinates,
-            //     getText: d => d.properties.name,
-            //     getColor: [223,229,236],
-            //     fontWeight: 400,
-            //     getSize: iconSizeScale(viewState.zoom),
-            //     getAngle: 0,
-            //     iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-            //     iconMapping: ICON_MAPPING,
-            //     getIcon: d => 'marker',
-            //     sizeScale: 1 / 2,
-            //     getTextAnchor: 'middle',
-            //     getAlignmentBaseline: 'center'
-            // })
-        ]
-        return layers
-    }, [layerVisibility, viewState])
-
+    
 
     const onInitialized = gl => {
         if (!isWebGL2(gl)) {
@@ -108,50 +69,51 @@ const BaseMap = (props) => {
         }
     };
 
+
+    const debugBasemap = (layerName) => {
+        if(layerName) {
+            const mapRefLocal = window[props.className].mapref;
+            const classes = new Set(mapRefLocal.style.querySourceFeatures('openmaptiles', { sourceLayer:layerName}).map(a => a.properties.class))
+            const subclasses = new Set(mapRefLocal.style.querySourceFeatures('openmaptiles', { sourceLayer:layerName}).map(a => a.properties.subclass))
+            console.log(`source: "${props.className} \n "sourceLayer: ${layerName}
+             \n classes: ${Array.from(classes).join(',')}
+             \n subclasses: ${Array.from(subclasses).join(',')}
+             \n featureCount: ${mapRefLocal.style.querySourceFeatures('openmaptiles', { sourceLayer:layerName}).length}
+             `);
+        }
+    }
     function toggleLayer(key: any, checked: boolean) {
         const newLayerVisibility = JSON.parse(JSON.stringify(layerVisibility))
         newLayerVisibility[key] = checked
         setLayerVisibility(newLayerVisibility)
-        console.log(deck.current);
     }
 
     useEffect(() => {
         // your logic here when component mounts or updates
+        if(mapRef.current) {
+            window[props.className] = {};
+            window[props.className].mapref = mapRef.current.getMap();
+        }
         eventBus.on('widget.map.layer.add', ({ layer, checked }) => {
             toggleLayer(layer, checked)
         })
-        eventBus.on('widget.map.zxy.change', ({ zxy }) => {
-            console.log(viewState);
-            setViewState({
-                ...viewState,
-                zoom: zxy[0],
-                latitude: zxy[1],
-                longitude: zxy[2]
-            })
-        })
-        return () => {
-            // eventBus.off('widget.map.layer.add', (layer) => {
-            //     toggleLayer('Stores')
-            // })
-        }
+        
     }, [viewState]);
     return (
         <DeckGL
             ref={deck}
-            effects={[lightingEffect]}
             controller={{ doubleClickZoom: false, scrollZoom: { smooth: true, speed: 0.1 }, inertia: 300, minPitch: 0, maxPitch: 79 }}
             initialViewState={viewState}
-            layers={layers}
-            onViewStateChange={e => setViewState(e.viewState)}
+            onViewStateChange={e =>  eventBus.emit('widget.map.zxy.change', { zxy: [e.viewState.zoom, e.viewState.latitude, e.viewState.longitude] })}
             onWebGLInitialized={onInitialized}
             style={{ zIndex: 1 }}
-
         >
             <Map
-                reuseMaps
+                reuseMaps={false}
+                hash
                 ref={mapRef}
                 mapLib={maplibregl}
-                mapStyle={style}
+                mapStyle={props.mapStyle || style}
             />
         </DeckGL>
     );
