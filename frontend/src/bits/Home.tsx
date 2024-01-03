@@ -43,10 +43,10 @@ export const Home = () => {
 
     return (
         <motion.div>
-            <div onContextMenu={(e) => e.preventDefault()} >
+            <div style={{ width: "50%", height: "100%", position: "absolute", right: 0 }} onContextMenu={(e) => e.preventDefault()} >
                 <BaseMap initialViewState={{
-                    longitude:77.8365181,
-                    latitude:  13.2308261 ,
+                    longitude: 77.8365181,
+                    latitude: 13.2308261,
                     zoom: 12,
                     maxZoom: 20,
                     minZoom: 1.5,
@@ -54,9 +54,23 @@ export const Home = () => {
                     bearing: 0
                 }}
                     className="map"
+                    debug
                 />
             </div>
-            
+            <div style={{ width: "50%", height: "100%", position: "absolute" ,left: 0 }} onContextMenu={(e) => e.preventDefault()} >
+                <BaseMap initialViewState={{
+                    longitude: 77.8365181,
+                    latitude: 13.2308261,
+                    zoom: 12,
+                    maxZoom: 20,
+                    minZoom: 1.5,
+                    pitch: 0,
+                    bearing: 0
+                }}
+                    mapStyle="http://192.168.1.14:8080/styles/default-light-standard/style.json"
+                    className="scndmap"
+                />
+            </div>
         </motion.div>
     )
 }
@@ -73,7 +87,7 @@ const fixLayout = (layout) => {
     // so here we find which columns exist
     // tslint:disable-next-line:max-line-length
     const maxRowXs = layout.map((item) => {
-        if (item.y === maxY || (item.y === maxY-1 && item.h === 2)) {
+        if (item.y === maxY || (item.y === maxY - 1 && item.h === 2)) {
             if (item.w === 2) {
                 return [item.x, item.x + 1]; // Append item.x + 1 for items with item.w equal to 2
             } else {
