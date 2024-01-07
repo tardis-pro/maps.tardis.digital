@@ -43,21 +43,20 @@ export const Home = () => {
 
     return (
         <motion.div>
-            <div style={{ width: "50%", height: "100%", position: "absolute", right: 0 }} onContextMenu={(e) => e.preventDefault()} >
+            <div style={{ width: "100%", height: "100%", position: "absolute", right: 0 }} onContextMenu={(e) => e.preventDefault()} >
                 <BaseMap initialViewState={{
-                    longitude: 77.8365181,
-                    latitude: 13.2308261,
+                    longitude: 77.58548,
+                    latitude: 12.94401,
                     zoom: 12,
-                    maxZoom: 20,
+                    maxZoom: 24,
                     minZoom: 1.5,
                     pitch: 0,
                     bearing: 0
                 }}
                     className="map"
-                    debug
                 />
             </div>
-            <div style={{ width: "50%", height: "100%", position: "absolute" ,left: 0 }} onContextMenu={(e) => e.preventDefault()} >
+            {/* <div style={{ width: "50%", height: "100%", position: "absolute" ,left: 0 }} onContextMenu={(e) => e.preventDefault()} >
                 <BaseMap initialViewState={{
                     longitude: 77.8365181,
                     latitude: 13.2308261,
@@ -70,7 +69,7 @@ export const Home = () => {
                     mapStyle="http://192.168.1.14:8080/styles/default-light-standard/style.json"
                     className="scndmap"
                 />
-            </div>
+            </div> */}
         </motion.div>
     )
 }
