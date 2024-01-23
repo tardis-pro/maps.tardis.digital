@@ -47,7 +47,6 @@ const Sidebar: React.FC = () => {
 
 const ProfileContainer: React.FC<{ isOpen: boolean }> = ({ isOpen }) => (
     <motion.div initial={{ width: 70 }} className='profile-container' variants={{ open: { width: 200 } }} transition={transition} style={{zIndex:2}}>
-        <motion.img variants={{ open: { scale: 1.5 } }} transition={transition} className='avatar' src="https://upload.wikimedia.org/wikipedia/en/d/d3/Starbucks_Corporation_Logo_2011.svg" alt="Profile" />
         <ProfileText isOpen={isOpen} />
     </motion.div>
 );

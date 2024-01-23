@@ -11,6 +11,7 @@ import { isWebGL2 } from '@luma.gl/core';
 import * as d3 from 'd3';
 import eventBus from 'utils/eventBus';
 import { styleFactory } from './tile';
+import * as dat from 'dat.gui';
 
 // Define the color range
 var colorRange = [
@@ -27,12 +28,12 @@ const BaseMap = (props) => {
     const [layerVisibility, setLayerVisibility] = useState({ 'Stores': false, 'Sales': false })
     let s = styleFactory({
         "sources": {
-            "openmaptiles": "http://localhost:3000/planet-full-v2.2.2.4",
-            
+            "openmaptiles": "http://localhost:3000/planet-full-poi-0-v2.2.2.3",
         },
         "exclusion": ["vectordata"]
     }) 
-    
+    const gui = new dat.GUI();
+
     const [style, setStyle] = useState(s);
     const deck = useRef(null);
     const debug = true;
@@ -71,15 +72,17 @@ const BaseMap = (props) => {
 
 
     const debugBasemap = (layerName) => {
-        if(layerName) {
+        if(false && layerName &&  window[props.className]?.mapref) {
             const mapRefLocal = window[props.className].mapref;
             const classes = new Set(mapRefLocal.style.querySourceFeatures('openmaptiles', { sourceLayer:layerName}).map(a => a.properties.class))
             const subclasses = new Set(mapRefLocal.style.querySourceFeatures('openmaptiles', { sourceLayer:layerName}).map(a => a.properties.subclass))
+            // const pop = mapRefLocal.style.querySourceFeatures('openmaptiles', { sourceLayer:layerName}).map(a => a.properties.pop)
             console.log(`source: "${props.className} \n "sourceLayer: ${layerName}
              \n classes: ${Array.from(classes).join(',')}
              \n subclasses: ${Array.from(subclasses).join(',')}
              \n featureCount: ${mapRefLocal.style.querySourceFeatures('openmaptiles', { sourceLayer:layerName}).length}
              `);
+              //  \n pop: ${pop.join(',')}
         }
     }
     function toggleLayer(key: any, checked: boolean) {
@@ -104,7 +107,7 @@ const BaseMap = (props) => {
             ref={deck}
             controller={{ doubleClickZoom: false, scrollZoom: { smooth: true, speed: 0.1 }, inertia: 300, minPitch: 0, maxPitch: 79 }}
             initialViewState={viewState}
-            onViewStateChange={e =>  eventBus.emit('widget.map.zxy.change', { zxy: [e.viewState.zoom, e.viewState.latitude, e.viewState.longitude] })}
+            // onViewStateChange={e =>  eventBus.emit('widget.map.zxy.change', { zxy: [e.viewState.zoom, e.viewState.latitude, e.viewState.longitude] })}
             onWebGLInitialized={onInitialized}
             style={{ zIndex: 1 }}
         >
@@ -112,6 +115,7 @@ const BaseMap = (props) => {
                 reuseMaps={false}
                 hash
                 ref={mapRef}
+                sho
                 mapLib={maplibregl}
                 mapStyle={props.mapStyle || style}
             />

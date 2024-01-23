@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tiler-ingress
+spec:
+  rules:
+  - host: maps.tardis.digital
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/tiles"
+        backend:
+          service:
+            name: vector-tiler
+            port:
+              number: 3000

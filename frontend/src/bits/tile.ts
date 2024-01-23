@@ -20,8 +20,9 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "type": "vector",
                 "url": sources["openmaptiles"]
             },
-    
         },
+        "sprite": "http://localhost:8080/sprites/default_light_standard/sprites",
+        "glyphs": "http://localhost:8080/fonts/{fontstack}/{range}.pbf",
         "layers": [
             {
                 "id": "background",
@@ -35,7 +36,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "type": "fill",
                 "source": "openmaptiles",
                 "source-layer": "landuse",
-                "minzoom": 14,
+                "minzoom": 9,
                 "maxzoom": 24,
                 "filter": [
                     "any",
@@ -68,12 +69,12 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "fill-opacity": {
                         "stops": [
                             [
-                                14,
-                                0
+                                9,
+                                0.2
                             ],
                             [
-                                15,
-                                0.8
+                                10,
+                                1
                             ]
                         ]
                     },
@@ -265,7 +266,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "type": "fill",
                 "source": "openmaptiles",
                 "source-layer": "landuse",
-                "minzoom": 13,
+                "minzoom": 9,
                 "maxzoom": 24,
                 "filter": [
                     "any",
@@ -278,6 +279,31 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "==",
                         "class",
                         "commercial"
+                    ],
+                    [
+                        "==",
+                        "class",
+                        "garages"
+                    ],
+                    [
+                        "==",
+                        "class",
+                        "depot"
+                    ],
+                    [
+                        "==",
+                        "class",
+                        "parking"
+                    ],
+                    [
+                        "==",
+                        "class",
+                        "bus_stand"
+                    ],
+                    [
+                        "==",
+                        "class",
+                        "bus_station"
                     ]
                 ],
                 "layout": {
@@ -288,11 +314,11 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "fill-opacity": {
                         "stops": [
                             [
-                                13,
-                                0
+                                9,
+                                0.2
                             ],
                             [
-                                14,
+                                10,
                                 1
                             ]
                         ]
@@ -305,7 +331,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "type": "fill",
                 "source": "openmaptiles",
                 "source-layer": "landuse",
-                "minzoom": 13,
+                "minzoom": 9,
                 "maxzoom": 24,
                 "filter": [
                     "any",
@@ -313,6 +339,16 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "==",
                         "class",
                         "education"
+                    ],
+                    [
+                        "==",
+                        "class",
+                        "university"
+                    ],
+                    [
+                        "==",
+                        "class",
+                        "school"
                     ]
                 ],
                 "layout": {
@@ -323,11 +359,11 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "fill-opacity": {
                         "stops": [
                             [
-                                13,
-                                0
+                                9,
+                                0.2
                             ],
                             [
-                                14,
+                                10,
                                 1
                             ]
                         ]
@@ -381,11 +417,11 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "paint": {
                     "line-color": "rgba(55, 198, 255, 1)",
                     "line-dasharray": [
-                        3,
-                        3
+                        8,
+                        4
                     ],
                     "line-gap-width": 0,
-                    "line-opacity": 0.65,
+                    "line-opacity": 0.5,
                     "line-width": {
                         "base": 1.4,
                         "stops": [
@@ -572,7 +608,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "type": "line",
                 "source": "openmaptiles",
                 "source-layer": "aeroway",
-                "minzoom": 11,
+                "minzoom": 8,
                 "filter": [
                     "all",
                     [
@@ -586,21 +622,44 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "runway"
                     ]
                 ],
+                "layout": {
+                    "visibility": "visible",
+                    "line-cap": "butt",
+                    "line-join": "round",
+                    "line-round-limit": 0,
+                    "line-miter-limit": 0
+                },
                 "paint": {
-                    "line-color": "rgba(208, 210, 216, 1)",
+                    "line-color": "rgba(243, 246, 255, 1)",
                     "line-width": {
-                        "base": 1.2,
                         "stops": [
                             [
-                                11,
-                                3
+                                8,
+                                0
+                            ],
+                            [
+                                12,
+                                2
+                            ],
+                            [
+                                14,
+                                4
+                            ],
+                            [
+                                16,
+                                20
+                            ],
+                            [
+                                18,
+                                80
                             ],
                             [
                                 20,
-                                16
+                                160
                             ]
                         ]
-                    }
+                    },
+                    "line-opacity": 1
                 }
             },
             {
@@ -622,18 +681,40 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "taxiway"
                     ]
                 ],
+                "layout": {
+                    "visibility": "visible",
+                    "line-cap": "round",
+                    "line-join": "round",
+                    "line-round-limit": 0
+                },
                 "paint": {
-                    "line-color": "rgba(208, 210, 216, 1)",
+                    "line-color": "rgba(243, 246, 255, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
-                                11,
-                                0.5
+                                8,
+                                0
+                            ],
+                            [
+                                12,
+                                2
+                            ],
+                            [
+                                14,
+                                4
+                            ],
+                            [
+                                16,
+                                20
+                            ],
+                            [
+                                18,
+                                80
                             ],
                             [
                                 20,
-                                6
+                                160
                             ]
                         ]
                     }
@@ -806,15 +887,15 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "stops": [
                             [
                                 15,
-                                10
+                                6
                             ],
                             [
                                 17,
-                                17
+                                8
                             ],
                             [
                                 18,
-                                20
+                                22
                             ],
                             [
                                 19,
@@ -862,18 +943,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 },
                 "paint": {
                     "line-color": "rgba(220, 222, 229, 1)",
-                    "line-opacity": {
-                        "stops": [
-                            [
-                                12,
-                                0
-                            ],
-                            [
-                                12.5,
-                                1
-                            ]
-                        ]
-                    },
+                    "line-opacity": 1,
                     "line-width": {
                         "stops": [
                             [
@@ -907,8 +977,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         ]
                     },
                     "line-dasharray": [
-                        1,
-                        0.5
+                        1
                     ]
                 }
             },
@@ -946,27 +1015,27 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ],
                             [
                                 15,
-                                10
+                                5
                             ],
                             [
                                 16,
-                                12
+                                7
                             ],
                             [
                                 18,
-                                24
+                                22
                             ],
                             [
                                 19,
-                                50
+                                48
                             ],
                             [
                                 20,
-                                88
+                                80
                             ],
                             [
                                 21,
-                                124
+                                118
                             ],
                             [
                                 22,
@@ -975,8 +1044,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         ]
                     },
                     "line-dasharray": [
-                        1,
-                        0.5
+                        1
                     ],
                     "line-opacity": 1
                 }
@@ -1002,36 +1070,37 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     ]
                 ],
                 "layout": {
-                    "line-join": "round"
+                    "line-join": "round",
+                    "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(220, 222, 229, 1)",
+                    "line-color": "rgba(147, 169, 188, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
                                 10,
-                                1
+                                0
                             ],
                             [
                                 15,
-                                10
+                                7
                             ],
                             [
                                 16,
-                                12
+                                9
                             ],
                             [
                                 18,
-                                34
+                                32
                             ],
                             [
                                 19,
-                                66
+                                64
                             ],
                             [
                                 20,
-                                110
+                                103
                             ],
                             [
                                 21,
@@ -1044,8 +1113,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         ]
                     },
                     "line-dasharray": [
-                        3,
-                        3
+                        1
                     ],
                     "line-opacity": 1
                 }
@@ -1075,40 +1143,40 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     ]
                 ],
                 "layout": {
-                    "line-join": "miter"
+                    "line-join": "miter",
+                    "visibility": "none"
                 },
                 "paint": {
-                    "line-color": "rgba(220, 222, 229, 1)",
+                    "line-color": "rgba(147, 169, 188, 1)",
                     "line-dasharray": [
-                        3,
-                        3
+                        1
                     ],
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
                                 10,
-                                1
+                                0
                             ],
                             [
                                 15,
-                                10
+                                7
                             ],
                             [
                                 16,
-                                12
+                                9
                             ],
                             [
                                 18,
-                                34
+                                32
                             ],
                             [
                                 19,
-                                66
+                                64
                             ],
                             [
                                 20,
-                                110
+                                103
                             ],
                             [
                                 21,
@@ -1437,7 +1505,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ],
                             [
                                 16,
-                                10
+                                6
                             ],
                             [
                                 18,
@@ -1475,17 +1543,17 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "line-join": "round"
                 },
                 "paint": {
-                    "line-color": "rgba(255, 255, 255, 1)",
+                    "line-color": "rgba(187, 202, 216, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
-                                4,
+                                10,
                                 1
                             ],
                             [
                                 16,
-                                10
+                                8
                             ],
                             [
                                 18,
@@ -1524,20 +1592,21 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     ]
                 ],
                 "layout": {
-                    "line-join": "round"
+                    "line-join": "round",
+                    "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(255, 255, 255, 1)",
+                    "line-color": "rgba(187, 202, 216, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
-                                4,
+                                10,
                                 1
                             ],
                             [
                                 16,
-                                10
+                                8
                             ],
                             [
                                 18,
@@ -1695,6 +1764,9 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "transit"
                     ]
                 ],
+                "layout": {
+                    "visibility": "none"
+                },
                 "paint": {
                     "line-color": "rgba(196, 197, 205, 1)",
                     "line-width": {
@@ -1741,7 +1813,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     ]
                 ],
                 "layout": {
-                    "visibility": "visible"
+                    "visibility": "none"
                 },
                 "paint": {
                     "line-color": "rgba(196, 197, 205, 1)",
@@ -1826,7 +1898,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(255, 218, 186, 1)",
+                    "line-color": "rgba(255, 255, 255, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
@@ -1846,7 +1918,9 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     },
                     "line-dasharray": [
                         1
-                    ]
+                    ],
+                    "line-opacity": 1,
+                    "line-blur": 0
                 }
             },
             {
@@ -1894,7 +1968,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(255, 218, 186, 1)",
+                    "line-color": "rgba(255, 255, 255, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
@@ -1914,7 +1988,9 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     },
                     "line-dasharray": [
                         1
-                    ]
+                    ],
+                    "line-opacity": 1,
+                    "line-blur": 0
                 }
             },
             {
@@ -2093,15 +2169,15 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "stops": [
                             [
                                 15,
-                                10
+                                6
                             ],
                             [
                                 16,
-                                12
+                                8
                             ],
                             [
                                 18,
-                                23
+                                22
                             ],
                             [
                                 19,
@@ -2168,23 +2244,23 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "stops": [
                             [
                                 15,
-                                6
+                                4
                             ],
                             [
                                 16,
-                                8
+                                6
                             ],
                             [
                                 18,
-                                14
+                                11
                             ],
                             [
                                 19,
-                                34
+                                32
                             ],
                             [
                                 20,
-                                60
+                                58
                             ],
                             [
                                 21,
@@ -2240,27 +2316,27 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ],
                             [
                                 15,
-                                10
+                                5
                             ],
                             [
                                 16,
-                                12
+                                7
                             ],
                             [
                                 18,
-                                24
+                                22
                             ],
                             [
                                 19,
-                                50
+                                48
                             ],
                             [
                                 20,
-                                88
+                                80
                             ],
                             [
                                 21,
-                                124
+                                118
                             ],
                             [
                                 22,
@@ -2298,32 +2374,32 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(220, 222, 229, 1)",
+                    "line-color": "rgba(147, 169, 188, 1)",
                     "line-width": {
                         "stops": [
                             [
                                 10,
-                                1
+                                0
                             ],
                             [
                                 15,
-                                10
+                                7
                             ],
                             [
                                 16,
-                                12
+                                9
                             ],
                             [
                                 18,
-                                34
+                                31
                             ],
                             [
                                 19,
-                                66
+                                63
                             ],
                             [
                                 20,
-                                110
+                                103
                             ],
                             [
                                 21,
@@ -2336,7 +2412,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         ]
                     },
                     "line-translate-anchor": "map",
-                    "line-opacity": 1
+                    "line-opacity": 0.8
                 }
             },
             {
@@ -2370,33 +2446,33 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(220, 222, 229, 1)",
+                    "line-color": "rgba(147, 169, 188, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
                                 10,
-                                1
+                                0
                             ],
                             [
                                 15,
-                                10
+                                7
                             ],
                             [
                                 16,
-                                12
+                                9
                             ],
                             [
                                 18,
-                                34
+                                31
                             ],
                             [
                                 19,
-                                66
+                                63
                             ],
                             [
                                 20,
-                                110
+                                103
                             ],
                             [
                                 21,
@@ -2408,7 +2484,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ]
                         ]
                     },
-                    "line-opacity": 1
+                    "line-opacity": 0.8
                 }
             },
             {
@@ -2446,7 +2522,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(255, 142, 70, 1)",
+                    "line-color": "rgba(187, 202, 216, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
@@ -2469,9 +2545,18 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         ]
                     },
                     "line-dasharray": [
-                        0.3,
+                        0.28,
                         0.3
-                    ]
+                    ],
+                    "line-opacity": 1,
+                    "line-blur": 0,
+                    "line-offset": 0,
+                    "line-translate": [
+                        0,
+                        0
+                    ],
+                    "line-translate-anchor": "map",
+                    "line-gap-width": 0
                 }
             },
             {
@@ -2519,28 +2604,33 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(255, 142, 70, 1)",
+                    "line-color": "rgba(187, 202, 216, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
                                 12,
-                                4
+                                3
                             ],
                             [
                                 18,
-                                12
+                                11
                             ],
                             [
                                 22,
-                                120
+                                110
                             ]
                         ]
                     },
                     "line-dasharray": [
-                        0.3,
+                        0.28,
                         0.3
-                    ]
+                    ],
+                    "line-opacity": 1,
+                    "line-translate-anchor": "map",
+                    "line-gap-width": 0,
+                    "line-offset": 0,
+                    "line-blur": 0
                 }
             },
             {
@@ -2879,7 +2969,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ],
                             [
                                 16,
-                                10
+                                6
                             ],
                             [
                                 18,
@@ -2990,20 +3080,21 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "layout": {
                     "line-join": "round",
                     "visibility": "visible",
-                    "line-cap": "round"
+                    "line-cap": "round",
+                    "line-round-limit": 1.05
                 },
                 "paint": {
-                    "line-color": "rgba(255, 255, 255, 1)",
+                    "line-color": "rgba(187, 202, 216, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
-                                4,
+                                10,
                                 1
                             ],
                             [
                                 16,
-                                10
+                                8
                             ],
                             [
                                 18,
@@ -3014,7 +3105,9 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                                 200
                             ]
                         ]
-                    }
+                    },
+                    "line-translate-anchor": "map",
+                    "line-blur": 0
                 }
             },
             {
@@ -3070,17 +3163,17 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(255, 255, 255, 1)",
+                    "line-color": "rgba(187, 202, 216, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
-                                4,
+                                10,
                                 1
                             ],
                             [
                                 16,
-                                10
+                                8
                             ],
                             [
                                 18,
@@ -3241,7 +3334,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     ]
                 ],
                 "layout": {
-                    "visibility": "visible"
+                    "visibility": "none"
                 },
                 "paint": {
                     "line-color": "rgba(255, 255, 255, 1)",
@@ -3291,7 +3384,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     ]
                 ],
                 "layout": {
-                    "visibility": "visible"
+                    "visibility": "none"
                 },
                 "paint": {
                     "line-color": "rgba(130, 130, 130, 1)",
@@ -3316,115 +3409,6 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ]
                         ]
                     }
-                }
-            },
-            {
-                "id": "road_one_way_arrow",
-                "type": "symbol",
-                "source": "openmaptiles",
-                "source-layer": "transportation",
-                "minzoom": 16,
-                "filter": [
-                    "==",
-                    "oneway",
-                    1
-                ],
-                "layout": {
-                    "icon-image": "arrow",
-                    "symbol-placement": "line",
-                    "text-font": [],
-                    "visibility": "visible",
-                    "text-field": "",
-                    "icon-size": {
-                        "stops": [
-                            [
-                                16,
-                                0.4
-                            ],
-                            [
-                                18,
-                                0.6
-                            ]
-                        ]
-                    },
-                    "icon-pitch-alignment": "viewport",
-                    "symbol-spacing": {
-                        "stops": [
-                            [
-                                16,
-                                250
-                            ],
-                            [
-                                18,
-                                300
-                            ],
-                            [
-                                20,
-                                500
-                            ]
-                        ]
-                    }
-                },
-                "paint": {
-                    "text-color": "rgba(0, 0, 0, 1)",
-                    "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "icon-opacity": 0.4,
-                    "icon-translate-anchor": "map",
-                    "text-translate-anchor": "map"
-                }
-            },
-            {
-                "id": "road_one_way_arrow_opposite",
-                "type": "symbol",
-                "source": "openmaptiles",
-                "source-layer": "transportation",
-                "minzoom": 16,
-                "filter": [
-                    "==",
-                    "oneway",
-                    -1
-                ],
-                "layout": {
-                    "symbol-placement": "line",
-                    "icon-rotate": 180,
-                    "text-font": [],
-                    "visibility": "visible",
-                    "text-field": "",
-                    "icon-image": "Arrow",
-                    "icon-size": {
-                        "stops": [
-                            [
-                                16,
-                                0.4
-                            ],
-                            [
-                                18,
-                                0.6
-                            ]
-                        ]
-                    },
-                    "symbol-spacing": {
-                        "stops": [
-                            [
-                                16,
-                                250
-                            ],
-                            [
-                                16,
-                                250
-                            ],
-                            [
-                                20,
-                                250
-                            ]
-                        ]
-                    },
-                    "icon-pitch-alignment": "viewport"
-                },
-                "paint": {
-                    "icon-color": "rgba(0, 0, 0, 1)",
-                    "icon-halo-color": "rgba(255, 255, 255, 1)",
-                    "icon-opacity": 0.4
                 }
             },
             {
@@ -3631,7 +3615,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(0, 51, 255, 1)",
+                    "line-color": "rgba(220, 222, 229, 1)",
                     "line-opacity": 1,
                     "line-width": {
                         "base": 1.2,
@@ -3755,27 +3739,27 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ],
                             [
                                 15,
-                                10
+                                5
                             ],
                             [
                                 16,
-                                12
+                                7
                             ],
                             [
                                 18,
-                                24
+                                22
                             ],
                             [
                                 19,
-                                50
+                                48
                             ],
                             [
                                 20,
-                                88
+                                80
                             ],
                             [
                                 21,
-                                124
+                                118
                             ],
                             [
                                 22,
@@ -3812,33 +3796,33 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(220, 222, 229, 1)",
+                    "line-color": "rgba(147, 169, 188, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
                                 10,
-                                1
+                                0
                             ],
                             [
                                 15,
-                                10
+                                7
                             ],
                             [
                                 16,
-                                12
+                                9
                             ],
                             [
                                 18,
-                                34
+                                32
                             ],
                             [
                                 19,
-                                66
+                                64
                             ],
                             [
                                 20,
-                                110
+                                103
                             ],
                             [
                                 21,
@@ -3884,33 +3868,33 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "visibility": "visible"
                 },
                 "paint": {
-                    "line-color": "rgba(220, 222, 229, 1)",
+                    "line-color": "rgba(147, 169, 188, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
                                 10,
-                                1
+                                0
                             ],
                             [
                                 15,
-                                10
+                                7
                             ],
                             [
                                 16,
-                                12
+                                9
                             ],
                             [
                                 18,
-                                34
+                                32
                             ],
                             [
                                 19,
-                                66
+                                64
                             ],
                             [
                                 20,
-                                110
+                                103
                             ],
                             [
                                 21,
@@ -4229,7 +4213,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ],
                             [
                                 16,
-                                10
+                                6
                             ],
                             [
                                 18,
@@ -4265,20 +4249,21 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     ]
                 ],
                 "layout": {
-                    "line-join": "round"
+                    "line-join": "round",
+                    "line-cap": "butt"
                 },
                 "paint": {
-                    "line-color": "rgba(255, 255, 255, 1)",
+                    "line-color": "rgba(187, 202, 216, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
-                                4,
+                                10,
                                 1
                             ],
                             [
                                 16,
-                                10
+                                8
                             ],
                             [
                                 18,
@@ -4321,17 +4306,17 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "line-join": "round"
                 },
                 "paint": {
-                    "line-color": "rgba(255, 255, 255, 1)",
+                    "line-color": "rgba(187, 202, 216, 1)",
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
-                                4,
+                                10,
                                 1
                             ],
                             [
                                 16,
-                                10
+                                8
                             ],
                             [
                                 18,
@@ -4479,6 +4464,9 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "bridge"
                     ]
                 ],
+                "layout": {
+                    "visibility": "none"
+                },
                 "paint": {
                     "line-color": "rgba(196, 197, 205, 1)",
                     "line-width": {
@@ -4525,6 +4513,9 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "bridge"
                     ]
                 ],
+                "layout": {
+                    "visibility": "none"
+                },
                 "paint": {
                     "line-color": "rgba(196, 197, 205, 1)",
                     "line-dasharray": [
@@ -4555,7 +4546,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "type": "fill",
                 "source": "openmaptiles",
                 "source-layer": "building",
-                "minzoom": 13,
+                "minzoom": 12,
                 "maxzoom": 24,
                 "layout": {
                     "visibility": "visible"
@@ -4565,7 +4556,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "fill-opacity": {
                         "stops": [
                             [
-                                13,
+                                12,
                                 0
                             ],
                             [
@@ -4583,7 +4574,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "type": "fill-extrusion",
                 "source": "openmaptiles",
                 "source-layer": "building",
-                "minzoom": 16.2,
+                "minzoom": 16,
                 "filter": [
                     "all",
                     [
@@ -4604,68 +4595,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "property": "render_min_height",
                         "type": "identity"
                     },
-                    "fill-extrusion-opacity": {
-                        "stops": [
-                            [
-                                16.2,
-                                0
-                            ],
-                            [
-                                16.5,
-                                1
-                            ]
-                        ]
-                    }
-                }
-            },
-            {
-                "id": "building_name",
-                "type": "symbol",
-                "source": "openmaptiles",
-                "source-layer": "building",
-                "minzoom": 16,
-                "maxzoom": 24,
-                "filter": [
-                    "has",
-                    "name"
-                ],
-                "layout": {
-                    "text-field": {
-                        "type": "identity",
-                        "property": "name"
-                    },
-                    "text-size": 13,
-                    "text-padding": 2,
-                    "icon-size": 0.72,
-                    "text-variable-anchor": [
-                        "top",
-                        "bottom",
-                        "left",
-                        "right"
-                    ],
-                    "text-offset": [
-                        0.9,
-                        1.2
-                    ],
-                    "text-line-height": [
-                        "step",
-                        [
-                            "zoom"
-                        ],
-                        0.95,
-                        21,
-                        1.2
-                    ],
-                    "visibility": "visible",
-                    "icon-image": "general",
-                    "text-font": [
-                        "Gentona_Medium"
-                    ]
-                },
-                "paint": {
-                    "text-color": "rgba(100, 127, 168, 1)",
-                    "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "text-halo-width": 1
+                    "fill-extrusion-opacity": 1
                 }
             },
             {
@@ -4742,7 +4672,9 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "layout": {
                     "visibility": "visible",
                     "line-cap": "round",
-                    "line-join": "miter"
+                    "line-join": "round",
+                    "line-miter-limit": 2,
+                    "line-round-limit": 1.05
                 },
                 "paint": {
                     "line-color": "rgba(189, 189, 210, 1)",
@@ -4750,15 +4682,20 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "stops": [
                             [
                                 10,
-                                1
+                                0.8
                             ],
                             [
-                                14,
-                                0.2
+                                16,
+                                0.1
                             ]
                         ]
                     },
-                    "line-width": 1
+                    "line-width": 1,
+                    "line-dasharray": [
+                        1
+                    ],
+                    "line-gap-width": 0,
+                    "line-blur": 1
                 }
             },
             {
@@ -4867,7 +4804,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "type": "line",
                 "source": "openmaptiles",
                 "source-layer": "transportation",
-                "minzoom": 10,
+                "minzoom": 8,
                 "filter": [
                     "all",
                     [
@@ -4902,7 +4839,9 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "layout": {
                     "line-join": "round",
                     "visibility": "visible",
-                    "line-cap": "round"
+                    "line-cap": "round",
+                    "line-round-limit": 0,
+                    "line-miter-limit": 0
                 },
                 "paint": {
                     "line-color": [
@@ -4977,14 +4916,14 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             "gray"
                         ],
                         "#969892",
-                        "#000000"
+                        "#349EFF"
                     ],
                     "line-width": {
                         "base": 1.2,
                         "stops": [
                             [
                                 14,
-                                1.5
+                                1.2
                             ],
                             [
                                 18,
@@ -4996,7 +4935,8 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ]
                         ]
                     },
-                    "line-opacity": 0.8
+                    "line-opacity": 1,
+                    "line-offset": 0
                 }
             },
             {
@@ -5004,7 +4944,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "type": "line",
                 "source": "openmaptiles",
                 "source-layer": "transportation",
-                "minzoom": 10,
+                "minzoom": 8,
                 "filter": [
                     "all",
                     [
@@ -5035,7 +4975,9 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "layout": {
                     "line-join": "round",
                     "visibility": "visible",
-                    "line-cap": "round"
+                    "line-cap": "round",
+                    "line-round-limit": 0,
+                    "line-miter-limit": 0
                 },
                 "paint": {
                     "line-color": "rgba(234, 103, 255, 1)",
@@ -5044,7 +4986,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "stops": [
                             [
                                 14,
-                                1.5
+                                1.2
                             ],
                             [
                                 18,
@@ -5056,7 +4998,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ]
                         ]
                     },
-                    "line-opacity": 0.8
+                    "line-opacity": 1
                 }
             },
             {
@@ -5112,56 +5054,112 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 }
             },
             {
-                "id": "poi_bus",
+                "id": "road_one_way_arrow",
                 "type": "symbol",
                 "source": "openmaptiles",
-                "source-layer": "transit",
-                "minzoom": 14,
+                "source-layer": "transportation",
+                "minzoom": 15,
                 "filter": [
-                    "all",
-                    [
-                        "==",
-                        "class",
-                        "bus_stop"
-                    ]
+                    "==",
+                    "oneway",
+                    1
                 ],
                 "layout": {
-                    "text-field": "{name}",
-                    "text-size": 13,
-                    "text-padding": 2,
-                    "text-justify": "auto",
-                    "text-variable-anchor": [
-                        "top",
-                        "bottom",
-                        "left",
-                        "right"
-                    ],
-                    "text-offset": [
-                        0.9,
-                        0.9
-                    ],
-                    "icon-image": "bus",
-                    "icon-size": 0.6,
-                    "text-line-height": [
-                        "step",
-                        [
-                            "zoom"
-                        ],
-                        0.95,
-                        21,
-                        1.2
-                    ],
+                    "icon-image": "arrow",
+                    "symbol-placement": "line",
+                    "text-font": [],
                     "visibility": "visible",
-                    "text-optional": false,
-                    "icon-optional": false,
-                    "text-font": [
-                        "Gentona_Medium"
-                    ]
+                    "text-field": "",
+                    "icon-size": {
+                        "stops": [
+                            [
+                                16,
+                                0.4
+                            ],
+                            [
+                                18,
+                                0.6
+                            ]
+                        ]
+                    },
+                    "icon-pitch-alignment": "viewport",
+                    "symbol-spacing": {
+                        "stops": [
+                            [
+                                15,
+                                250
+                            ],
+                            [
+                                18,
+                                400
+                            ],
+                            [
+                                20,
+                                800
+                            ]
+                        ]
+                    }
                 },
                 "paint": {
-                    "text-color": "rgba(71, 145, 255, 1)",
+                    "text-color": "rgba(0, 0, 0, 1)",
                     "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "text-halo-width": 1
+                    "icon-opacity": 0.35,
+                    "icon-translate-anchor": "map",
+                    "text-translate-anchor": "map"
+                }
+            },
+            {
+                "id": "road_one_way_arrow_opposite",
+                "type": "symbol",
+                "source": "openmaptiles",
+                "source-layer": "transportation",
+                "minzoom": 15,
+                "filter": [
+                    "==",
+                    "oneway",
+                    -1
+                ],
+                "layout": {
+                    "symbol-placement": "line",
+                    "icon-rotate": 180,
+                    "text-font": [],
+                    "visibility": "visible",
+                    "text-field": "",
+                    "icon-image": "Arrow",
+                    "icon-size": {
+                        "stops": [
+                            [
+                                16,
+                                0.4
+                            ],
+                            [
+                                18,
+                                0.6
+                            ]
+                        ]
+                    },
+                    "symbol-spacing": {
+                        "stops": [
+                            [
+                                15,
+                                250
+                            ],
+                            [
+                                18,
+                                400
+                            ],
+                            [
+                                20,
+                                800
+                            ]
+                        ]
+                    },
+                    "icon-pitch-alignment": "viewport"
+                },
+                "paint": {
+                    "icon-color": "rgba(0, 0, 0, 1)",
+                    "icon-halo-color": "rgba(255, 255, 255, 1)",
+                    "icon-opacity": 0.35
                 }
             },
             {
@@ -5198,7 +5196,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "text-anchor": "center",
                     "text-field": "{name}",
                     "text-font": [
-                        "Gentona_Book"
+                        "Gentona_Semi_Bold"
                     ],
                     "text-offset": [
                         0,
@@ -5239,12 +5237,14 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ]
                         ]
                     },
-                    "text-pitch-alignment": "viewport"
+                    "text-pitch-alignment": "viewport",
+                    "text-letter-spacing": 0.02,
+                    "text-transform": "uppercase"
                 },
                 "paint": {
-                    "text-color": "rgba(90, 104, 115, 1)",
+                    "text-color": "rgba(114, 136, 149, 1)",
                     "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "text-halo-width": 2,
+                    "text-halo-width": 1,
                     "text-opacity": 1
                 }
             },
@@ -5267,7 +5267,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "text-anchor": "center",
                     "text-field": "{name}",
                     "text-font": [
-                        "Gentona_Book"
+                        "Gentona_Semi_Bold"
                     ],
                     "text-offset": [
                         0,
@@ -5308,12 +5308,14 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ]
                         ]
                     },
-                    "text-pitch-alignment": "viewport"
+                    "text-pitch-alignment": "viewport",
+                    "text-letter-spacing": 0.02,
+                    "text-transform": "uppercase"
                 },
                 "paint": {
-                    "text-color": "rgba(90, 104, 115, 1)",
+                    "text-color": "rgba(114, 136, 149, 1)",
                     "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "text-halo-width": 2,
+                    "text-halo-width": 1,
                     "text-opacity": 1
                 }
             },
@@ -5336,7 +5338,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "text-anchor": "center",
                     "text-field": "{name}",
                     "text-font": [
-                        "Gentona_Book"
+                        "Gentona_Semi_Bold"
                     ],
                     "text-offset": [
                         0,
@@ -5377,12 +5379,14 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ]
                         ]
                     },
-                    "text-pitch-alignment": "viewport"
+                    "text-pitch-alignment": "viewport",
+                    "text-letter-spacing": 0.02,
+                    "text-transform": "uppercase"
                 },
                 "paint": {
-                    "text-color": "rgba(90, 104, 115, 1)",
+                    "text-color": "rgba(114, 136, 149, 1)",
                     "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "text-halo-width": 2,
+                    "text-halo-width": 1,
                     "text-opacity": 1
                 }
             },
@@ -5405,7 +5409,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "text-anchor": "center",
                     "text-field": "{name}",
                     "text-font": [
-                        "Gentona_Book"
+                        "Gentona_Semi_Bold"
                     ],
                     "text-offset": [
                         0,
@@ -5446,12 +5450,14 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ]
                         ]
                     },
-                    "text-pitch-alignment": "viewport"
+                    "text-pitch-alignment": "viewport",
+                    "text-letter-spacing": 0.02,
+                    "text-transform": "uppercase"
                 },
                 "paint": {
-                    "text-color": "rgba(90, 104, 115, 1)",
+                    "text-color": "rgba(114, 136, 149, 1)",
                     "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "text-halo-width": 2,
+                    "text-halo-width": 1,
                     "text-opacity": 1
                 }
             },
@@ -5622,11 +5628,76 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 }
             },
             {
+                "id": "poi_bus",
+                "type": "symbol",
+                "source": "openmaptiles",
+                "source-layer": "transit",
+                "minzoom": 16,
+                "filter": [
+                    "all",
+                    [
+                        "==",
+                        "class",
+                        "bus_stop"
+                    ]
+                ],
+                "layout": {
+                    "text-field": "{name}",
+                    "text-size": 13,
+                    "text-padding": 2,
+                    "text-justify": "auto",
+                    "text-variable-anchor": [
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ],
+                    "text-offset": [
+                        0.9,
+                        0.9
+                    ],
+                    "icon-image": "bus",
+                    "icon-size": 0.6,
+                    "text-line-height": [
+                        "step",
+                        [
+                            "zoom"
+                        ],
+                        0.95,
+                        21,
+                        1.2
+                    ],
+                    "visibility": "visible",
+                    "text-optional": false,
+                    "icon-optional": false,
+                    "text-font": [
+                        "Gentona_Medium"
+                    ]
+                },
+                "paint": {
+                    "text-color": "rgba(71, 145, 255, 1)",
+                    "text-halo-color": "rgba(255, 255, 255, 1)",
+                    "text-halo-width": 1,
+                    "text-opacity": {
+                        "stops": [
+                            [
+                                17.18,
+                                0
+                            ],
+                            [
+                                17.19,
+                                1
+                            ]
+                        ]
+                    }
+                }
+            },
+            {
                 "id": "poi_railway",
                 "type": "symbol",
                 "source": "openmaptiles",
                 "source-layer": "transit",
-                "minzoom": 13,
+                "minzoom": 12,
                 "filter": [
                     "all",
                     [
@@ -5675,11 +5746,145 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 }
             },
             {
+                "id": "poi_metro",
+                "type": "symbol",
+                "source": "openmaptiles",
+                "source-layer": "transit",
+                "minzoom": 12,
+                "filter": [
+                    "all",
+                    [
+                        "==",
+                        "class",
+                        "metro"
+                    ],
+                    [
+                        "==",
+                        "status",
+                        "Operational"
+                    ]
+                ],
+                "layout": {
+                    "text-field": [
+                        "step",
+                        [
+                            "zoom"
+                        ],
+                        "",
+                        10,
+                        "",
+                        11,
+                        [
+                            "get",
+                            "name"
+                        ]
+                    ],
+                    "text-size": 13,
+                    "text-padding": 2,
+                    "text-justify": "auto",
+                    "text-variable-anchor": [
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ],
+                    "text-offset": [
+                        0.9,
+                        0.9
+                    ],
+                    "icon-image": "metro_station",
+                    "icon-size": [
+                        "interpolate",
+                        [
+                            "linear"
+                        ],
+                        [
+                            "zoom"
+                        ],
+                        10,
+                        0.45,
+                        11,
+                        0.72
+                    ],
+                    "text-line-height": [
+                        "step",
+                        [
+                            "zoom"
+                        ],
+                        0.95,
+                        21,
+                        1.2
+                    ],
+                    "visibility": "visible",
+                    "text-optional": false,
+                    "icon-optional": false,
+                    "text-font": [
+                        "Gentona_Medium"
+                    ]
+                },
+                "paint": {
+                    "text-color": "rgba(71, 145, 255, 1)",
+                    "text-halo-color": "rgba(255, 255, 255, 1)",
+                    "text-halo-width": 1,
+                    "text-opacity": 1
+                }
+            },
+            {
+                "id": "building_name",
+                "type": "symbol",
+                "source": "openmaptiles",
+                "source-layer": "building",
+                "minzoom": 16,
+                "maxzoom": 24,
+                "filter": [
+                    "has",
+                    "name"
+                ],
+                "layout": {
+                    "text-field": {
+                        "type": "identity",
+                        "property": "name"
+                    },
+                    "text-size": 13,
+                    "text-padding": 2,
+                    "icon-size": 0.72,
+                    "text-variable-anchor": [
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ],
+                    "text-offset": [
+                        0.9,
+                        1.2
+                    ],
+                    "text-line-height": [
+                        "step",
+                        [
+                            "zoom"
+                        ],
+                        0.95,
+                        21,
+                        1.2
+                    ],
+                    "visibility": "visible",
+                    "icon-image": "general",
+                    "text-font": [
+                        "Gentona_Medium"
+                    ]
+                },
+                "paint": {
+                    "text-color": "rgba(100, 127, 168, 1)",
+                    "text-halo-color": "rgba(255, 255, 255, 1)",
+                    "text-halo-width": 1
+                }
+            },
+            {
                 "id": "poi",
                 "type": "symbol",
                 "source": "openmaptiles",
                 "source-layer": "poi",
-                "minzoom": 11,
+                "minzoom": 8,
                 "filter": [
                     "all",
                     [
@@ -5741,8 +5946,10 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         "Gentona_Medium"
                     ],
                     "symbol-sort-key": [
-                        "get",
-                        "pop"
+                        "-",
+                        [
+                            "get",
+                            "pop"]
                     ]
                 },
                 "paint": {
@@ -5759,6 +5966,8 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             "general",
                             "police",
                             "shop",
+                            "jewellery_shop",
+                            "atm",
                             "office",
                             "it"
                         ],
@@ -5774,22 +5983,31 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         ],
                         "#5274EF",
                         [
-                            "food"
+                            "food",
+                            "ice_cream",
+                            "bar",
+                            "bakery",
+                            "cafe",              
+                            "coffee"
                         ],
                         "#F57E27",
                         [
                             "mall",
                             "grocery",
-                            "supermarket"
+                            "supermarket",
+                            "salon"
                         ],
                         "#F1AE00",
                         [
-                            "nature"
+                            "nature",
+                            "sport",
+                            "stadium"
                         ],
                         "#00B172",
                         [
                             "medical",
-                            "hospitals"
+                            "hospitals",
+                            "pharmacy"
                         ],
                         "#FF5252",
                         [
@@ -5800,7 +6018,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             "tourism",
                             "historic",
                             "theatre",
-                            "sport"
+                            "film"
                         ],
                         "#9D58F5",
                         [
@@ -5818,7 +6036,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "type": "symbol",
                 "source": "openmaptiles",
                 "source-layer": "poi",
-                "minzoom": 15,
+                "minzoom": 16,
                 "filter": [
                     "all",
                     [
@@ -5880,7 +6098,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         [
                             "==",
                             "class",
-                            "office"
+                            "it"
                         ]
                     ]
                 ],
@@ -6109,33 +6327,21 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "layout": {
                     "symbol-placement": "line",
                     "text-anchor": "center",
-                    "text-field": "{name}\n{name:regional}",
+                    "text-field": "{name}     {name:regional}",
                     "text-font": [
-                        "Gentona_Book",
-                        "Noto_Sans_Regular"
+                        "Gentona_Semi_Bold",
+                        "Noto_Sans_Bold"
                     ],
-                    "text-size": {
-                        "base": 1,
-                        "stops": [
-                            [
-                                13,
-                                13
-                            ],
-                            [
-                                14,
-                                13
-                            ]
-                        ]
-                    },
+                    "text-size": 13,
                     "visibility": "visible",
-                    "text-transform": "none",
+                    "text-transform": "uppercase",
                     "text-justify": "center",
                     "text-offset": [
                         0,
                         0
                     ],
                     "icon-text-fit": "none",
-                    "text-line-height": 1.3,
+                    "text-line-height": 1,
                     "symbol-spacing": {
                         "stops": [
                             [
@@ -6156,12 +6362,14 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ]
                         ]
                     },
-                    "text-pitch-alignment": "viewport"
+                    "text-pitch-alignment": "viewport",
+                    "text-rotation-alignment": "auto",
+                    "text-letter-spacing": 0.06
                 },
                 "paint": {
-                    "text-color": "rgba(90, 104, 115, 1)",
-                    "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "text-halo-width": 2,
+                    "text-color": "rgba(255, 255, 255, 1)",
+                    "text-halo-color": "rgba(90, 104, 115, 1)",
+                    "text-halo-width": 1,
                     "text-opacity": 1
                 }
             },
@@ -6182,31 +6390,19 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "layout": {
                     "symbol-placement": "line",
                     "text-anchor": "center",
-                    "text-field": "{name}\n{name:regional}",
+                    "text-field": "{name}     {name:regional}",
                     "text-font": [
-                        "Gentona_Book",
-                        "Noto_Sans_Regular"
+                        "Gentona_Semi_Bold",
+                        "Noto_Sans_Bold"
                     ],
                     "text-offset": [
                         0,
                         0
                     ],
-                    "text-size": {
-                        "base": 1,
-                        "stops": [
-                            [
-                                13,
-                                13
-                            ],
-                            [
-                                14,
-                                13
-                            ]
-                        ]
-                    },
+                    "text-size": 13,
                     "visibility": "visible",
-                    "text-transform": "none",
-                    "text-line-height": 1.3,
+                    "text-transform": "uppercase",
+                    "text-line-height": 1,
                     "symbol-spacing": {
                         "stops": [
                             [
@@ -6227,12 +6423,13 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ]
                         ]
                     },
-                    "text-pitch-alignment": "viewport"
+                    "text-pitch-alignment": "viewport",
+                    "text-letter-spacing": 0.06
                 },
                 "paint": {
-                    "text-color": "rgba(90, 104, 115, 1)",
-                    "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "text-halo-width": 2,
+                    "text-color": "rgba(255, 255, 255, 1)",
+                    "text-halo-color": "rgba(90, 104, 115, 1)",
+                    "text-halo-width": 1,
                     "text-opacity": 1
                 }
             },
@@ -6253,30 +6450,18 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "layout": {
                     "symbol-placement": "line",
                     "text-anchor": "center",
-                    "text-field": "{name}\n{name:regional}",
+                    "text-field": "{name}     {name:regional}",
                     "text-font": [
-                        "Gentona_Book",
-                        "Noto_Sans_Regular"
+                        "Gentona_Semi_Bold",
+                        "Noto_Sans_Bold"
                     ],
                     "text-offset": [
                         0,
                         0
                     ],
-                    "text-size": {
-                        "base": 1,
-                        "stops": [
-                            [
-                                13,
-                                13
-                            ],
-                            [
-                                14,
-                                14
-                            ]
-                        ]
-                    },
+                    "text-size": 13,
                     "visibility": "visible",
-                    "text-line-height": 1.3,
+                    "text-line-height": 1,
                     "symbol-spacing": {
                         "stops": [
                             [
@@ -6297,12 +6482,14 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             ]
                         ]
                     },
-                    "text-pitch-alignment": "viewport"
+                    "text-pitch-alignment": "viewport",
+                    "text-letter-spacing": 0.06,
+                    "text-transform": "uppercase"
                 },
                 "paint": {
-                    "text-color": "rgba(90, 104, 115, 1)",
-                    "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "text-halo-width": 2,
+                    "text-color": "rgba(255, 255, 255, 1)",
+                    "text-halo-color": "rgba(90, 104, 115, 1)",
+                    "text-halo-width": 1,
                     "text-opacity": 1
                 }
             },
@@ -6362,15 +6549,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         0.9,
                         1.2
                     ],
-                    "text-line-height": [
-                        "step",
-                        [
-                            "zoom"
-                        ],
-                        0.95,
-                        21,
-                        1.2
-                    ],
+                    "text-line-height": 1.2,
                     "icon-image": "{types}",
                     "icon-size": 0.72,
                     "visibility": "visible",
@@ -6432,7 +6611,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                         0.9,
                         1.2
                     ],
-                    "icon-image": "{subclass}",
+                    "icon-image": "{class}",
                     "icon-size": 0.72,
                     "text-line-height": [
                         "step",
@@ -6455,7 +6634,32 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                             "get",
                             "popScore"
                         ]
-                    ]
+                    },
+                    "symbol-spacing": 500,
+                    "text-field": "{ref}",
+                    "text-font": [
+                        "Gentona_Medium"
+                    ],
+                    "text-offset": [
+                        0,
+                        0
+                    ],
+                    "text-rotation-alignment": "viewport",
+                    "text-size": 10,
+                    "text-line-height": 0.95,
+                    "icon-size": 0.7,
+                    "icon-text-fit": "both",
+                    "icon-text-fit-padding": [
+                        7,
+                        14,
+                        9,
+                        14
+                    ],
+                    "visibility": "visible",
+                    "text-pitch-alignment": "auto",
+                    "icon-pitch-alignment": "auto",
+                    "icon-padding": 2,
+                    "icon-anchor": "center"
                 },
                 "paint": {
                     "text-color": [
@@ -6533,6 +6737,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "source": "openmaptiles",
                 "source-layer": "transportation_name",
                 "minzoom": 10,
+                "maxzoom": 24,
                 "filter": [
                     "all",
                     [
@@ -6590,7 +6795,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "icon-size": 0.7,
                     "icon-text-fit": "both",
                     "icon-text-fit-padding": [
-                        7,
+                        6.5,
                         14,
                         9,
                         14
@@ -6599,7 +6804,12 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "text-pitch-alignment": "auto",
                     "icon-pitch-alignment": "auto",
                     "icon-padding": 2,
-                    "icon-anchor": "center"
+                    "icon-anchor": "center",
+                    "text-transform": "uppercase",
+                    "text-letter-spacing": 0.02,
+                    "text-padding": 2,
+                    "text-allow-overlap": false,
+                    "text-keep-upright": true
                 },
                 "paint": {
                     "text-color": "rgba(72, 49, 5, 1)",
@@ -6607,136 +6817,6 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "icon-color": "rgba(0, 0, 0, 0)",
                     "icon-halo-width": 0,
                     "icon-halo-color": "rgba(0, 0, 0, 0)"
-                }
-            },
-            {
-                "id": "poi_metro",
-                "type": "symbol",
-                "source": "openmaptiles",
-                "source-layer": "transit",
-                "filter": [
-                    "all",
-                    [
-                        "==",
-                        "class",
-                        "metro"
-                    ],
-                    [
-                        "==",
-                        "status",
-                        "Operational"
-                    ]
-                ],
-                "minzoom": 11,
-                "layout": {
-                    "text-field": [
-                        "step",
-                        [
-                            "zoom"
-                        ],
-                        "",
-                        10,
-                        "",
-                        11,
-                        [
-                            "get",
-                            "name"
-                        ]
-                    ],
-                    "text-size": 13,
-                    "text-padding": 2,
-                    "text-justify": "auto",
-                    "text-variable-anchor": [
-                        "top",
-                        "bottom",
-                        "left",
-                        "right"
-                    ],
-                    "text-offset": [
-                        0.9,
-                        0.9
-                    ],
-                    "icon-image": "metro_station",
-                    "icon-size": [
-                        "interpolate",
-                        [
-                            "linear"
-                        ],
-                        [
-                            "zoom"
-                        ],
-                        10,
-                        0.45,
-                        11,
-                        0.72
-                    ],
-                    "text-line-height": [
-                        "step",
-                        [
-                            "zoom"
-                        ],
-                        0.95,
-                        21,
-                        1.2
-                    ],
-                    "visibility": "visible",
-                    "text-optional": false,
-                    "icon-optional": false,
-                    "text-font": [
-                        "Gentona_Medium"
-                    ]
-                },
-                "paint": {
-                    "text-color": "rgba(71, 145, 255, 1)",
-                    "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "text-halo-width": 1
-                }
-            },
-            {
-                "id": "poi_airport",
-                "type": "symbol",
-                "source": "openmaptiles",
-                "source-layer": "aerodrome_label",
-                "minzoom": 10,
-                "layout": {
-                    "icon-image": "airport",
-                    "icon-size": 0.72,
-                    "text-radial-offset": 1,
-                    "text-justify": "auto",
-                    "text-variable-anchor": [
-                        "top",
-                        "bottom",
-                        "left",
-                        "right"
-                    ],
-                    "text-field": "{name}",
-                    "text-font": [
-                        "Gentona_Medium"
-                    ],
-                    "text-max-width": 9,
-                    "text-optional": false,
-                    "icon-optional": false,
-                    "text-padding": 2,
-                    "text-size": 13,
-                    "visibility": "visible",
-                    "text-offset": [
-                        0.9,
-                        0.9
-                    ],
-                    "text-line-height": [
-                        "step",
-                        [
-                            "zoom"
-                        ],
-                        0.95,
-                        21,
-                        1.2
-                    ]
-                },
-                "paint": {
-                    "text-color": "rgba(71, 145, 255, 1)",
-                    "text-halo-color": "rgba(255, 255, 255, 1)",
-                    "text-halo-width": 1
                 }
             },
             {
@@ -6986,6 +7066,46 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                     "text-halo-color": "rgba(255, 255, 255, 1)",
                     "text-halo-width": 1,
                     "text-halo-blur": 1
+                }
+            },
+            {
+                "id": "poi_airport",
+                "type": "symbol",
+                "source": "openmaptiles",
+                "source-layer": "aerodrome_label",
+                "minzoom": 8,
+                "maxzoom": 24,
+                "layout": {
+                    "icon-image": "airport",
+                    "icon-size": 0.72,
+                    "text-radial-offset": 1,
+                    "text-justify": "auto",
+                    "text-variable-anchor": [
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ],
+                    "text-field": "{name}",
+                    "text-font": [
+                        "Gentona_Medium"
+                    ],
+                    "text-max-width": 9,
+                    "text-optional": false,
+                    "icon-optional": false,
+                    "text-padding": 4,
+                    "text-size": 13,
+                    "visibility": "visible",
+                    "text-offset": [
+                        0.9,
+                        0.9
+                    ],
+                    "text-line-height": 1
+                },
+                "paint": {
+                    "text-color": "rgba(71, 145, 255, 1)",
+                    "text-halo-color": "rgba(255, 255, 255, 1)",
+                    "text-halo-width": 1
                 }
             },
             {
@@ -7423,7 +7543,7 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
                 "type": "symbol",
                 "source": "openmaptiles",
                 "source-layer": "place",
-                "minzoom": 2,
+                "minzoom": 0,
                 "maxzoom": 6,
                 "filter": [
                     "==",
@@ -7465,8 +7585,16 @@ export const styleFactory = ({ sources, inclusion?, exclusion?}) => {
     const conditionalStyles = {
         ...style,
         layers: style.layers
-            .filter(layer => !"symbol".includes(layer["type"]))
+            // .filter(layer => !"symbol".includes(layer["type"]))
             .filter(layer => layer.source === "openmaptiles")
+            .map(layer => {
+                if (layer.layout?.["text-font"]) {
+                    layer.layout["text-font"] = [
+                        "Gentona_Medium"
+                    ]
+                }
+                return layer
+            })
     }
 
     return conditionalStyles

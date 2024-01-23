@@ -1,10 +1,10 @@
-# django-deployment.yaml
+# martin-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vector-tiler
 spec:
-  replicas: 1
+  replicas: 10  
   selector:
     matchLabels:
       app: vector-tiler
@@ -18,17 +18,14 @@ spec:
         image: ghcr.io/maplibre/martin:latest 
         ports:
         - containerPort: 3000
-        env:
-        - name: DATABASE_POOL_SIZE
-          value: "100"
-        - name: KEEP_ALIVE
-          value: "100"
-        - name: WORKER_PROCESSES
-          value: "10"
-        - name: DANGER_ACCEPT_INVALID_CERTS
-          value: "FALSE"
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: db-secrets
-              key: DB_URL
+        args:
+          - "/files"
+        volumeMounts:
+        - name: tile-storage
+          mountPath: /files
+      volumes:
+      - name: tile-storage
+        hostPath:
+          path: /hosthome/tiles  # Replace with your actual path
+          type: Directory
+        
