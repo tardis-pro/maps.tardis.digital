@@ -4,6 +4,7 @@ kind: Service
 metadata:
   name: vector-tiler-service
 spec:
+  sessionAffinity: None
   selector:
     app: vector-tiler
   ports:
