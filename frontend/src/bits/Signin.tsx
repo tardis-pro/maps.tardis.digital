@@ -1,162 +1,130 @@
-import {
-    makeStyles,
-    Container,
-    Typography,
-    TextField,
-    Button,
-    Link,
-    Box,
-    InputAdornment,
-    IconButton
-} from "@material-ui/core";
-import Visibility from "@material-ui/icons/Visibility";
-import VisibilityOff from "@material-ui/icons/VisibilityOff";
-import { useForm } from "react-hook-form";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useState } from "react";
-import { RestAuthService } from "../services/akgda";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useDispatch } from 'react-redux';
+import { login } from '../redux/slices/authSlice';
 
-interface IFormInput {
-    username: string;
-    password: string;
-}
+const Signin: React.FC = () => {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-const schema = yup.object().shape({
-    username: yup.string().required("Username is required"),
-    password: yup.string().required("Password is required")});
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-const useStyles = makeStyles((theme) => ({
-    heading: {
-        textAlign: "center",
-        margin: theme.spacing(0, 0, 4),
-    },
-    submitButton: {
-        marginTop: theme.spacing(4),
-        height: 50
-    }
-}));
+        if (!username || !password) {
+            setError('Please enter both username and password');
+            return;
+        }
 
+        setIsLoading(true);
+        setError('');
 
-export const Signin = () => {
+        try {
+            // For demo purposes, we'll just simulate a successful login
+            // In a real app, you would dispatch the login action
+            // await dispatch(login({ username, password }));
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-        setError
-    } = useForm<IFormInput>({
-        resolver: yupResolver(schema),
-    });
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const [showPassword, setShowPassword] = useState(false);
+            // Store a demo token
+            localStorage.setItem('token', 'demo-token');
 
-    const handleClickShowPassword = () => setShowPassword((show) => !show);
-    const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-    };
-
-    const { heading, submitButton } = useStyles();
-
-    const onSubmit = async (data: IFormInput) => {
-        console.log(data)
-        RestAuthService.restAuthLoginCreate(data)
-        .then((response) => {
-            console.log(response)
-        })
-        .catch((error) => {
-            console.log(error)  
-        });
+            // Navigate to home page
+            navigate('/');
+        } catch (err: any) {
+            setError(err.message || 'Failed to sign in');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
-        <Container maxWidth="xs">
-            <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                minHeight="100vh"
-                flexDirection="column"
+        <div className="min-h-screen flex items-center justify-center bg-gray-900">
+            <motion.div
+                className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
             >
-                <Typography className={heading} variant="h3">
-                    Sign In
-                </Typography>
-                <form onSubmit={handleSubmit(onSubmit)} noValidate>
-                    <TextField
-                        {...register("username")}
-                        id="standard-error-helper-text"
-                        margin="normal"
-                        label="Username"
-                        helperText={errors.username?.message}
-                        error={!!errors.username?.message}
-                        fullWidth
-                        required
-                    />
-                    <TextField
-                        {...register("password")}
-                        id="standard-error-helper-text"
-                        margin="normal"
-                        label="Password"
-                        helperText={errors.password?.message}
-                        error={!!errors.password?.message}
-                        type={showPassword ? "text" : "password"}
-                        fullWidth
-                        required
-                        InputProps={{
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton
-                                  aria-label="toggle password visibility"
-                                  onClick={handleClickShowPassword}
-                                  onMouseDown={handleMouseDownPassword}
-                                >
-                                  {showPassword ? <Visibility /> : <VisibilityOff />}
-                                </IconButton>
-                              </InputAdornment>
-                            )
-                          }}
-                    />
-                    <Button
+                <h2 className="text-2xl font-bold text-white mb-6 text-center">Sign In</h2>
+
+                {error && (
+                    <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-4 py-3 rounded mb-4">
+                        {error}
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-4">
+                        <label className="block text-gray-300 mb-2" htmlFor="username">
+                            Username
+                        </label>
+                        <input
+                            id="username"
+                            type="text"
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="Enter your username"
+                        />
+                    </div>
+
+                    <div className="mb-6">
+                        <label className="block text-gray-300 mb-2" htmlFor="password">
+                            Password
+                        </label>
+                        <input
+                            id="password"
+                            type="password"
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter your password"
+                        />
+                    </div>
+
+                    <button
                         type="submit"
-                        fullWidth
-                        variant="contained"
-                        color="primary"
-                        className={submitButton}
+                        disabled={isLoading}
+                        className={`w-full font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors ${isLoading
+                                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
                     >
-                        Sign In
-                    </Button>
-                    <Box display="flex" justifyContent="space-between">
-                        <Typography
-                            style={{
-                                marginTop: 30
+                        {isLoading ? 'Signing in...' : 'Sign In'}
+                    </button>
+
+                    <div className="mt-4 flex justify-between text-sm">
+                        <a
+                            href="#"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                navigate('/resetpassword');
                             }}
-                            variant="h6"
+                            className="text-blue-400 hover:text-blue-300"
                         >
-                            <Link
-                                href="resetpassword"
-                                underline="hover"
-                            >
-                                Forgot Password
-                            </Link>
-                        </Typography>
-                        <Typography
-                            style={{
-                                marginTop: 30
+                            Forgot Password?
+                        </a>
+                        <a
+                            href="#"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                navigate('/signup');
                             }}
-                            variant="h6"
+                            className="text-blue-400 hover:text-blue-300"
                         >
-                            <Link
-                                href="/signup"
-                                underline="hover"
-                            >
-                                Don't have an account?
-                            </Link>
-                        </Typography>
-                    </Box>
+                            Create Account
+                        </a>
+                    </div>
                 </form>
-            </Box>
-        </Container>
+            </motion.div>
+        </div>
     );
-}
+};
 
 export default Signin;

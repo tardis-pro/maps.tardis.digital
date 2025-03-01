@@ -1,128 +1,53 @@
-import { motion } from "framer-motion";
 import React from 'react';
-import { useState } from 'react'
-import Stores from '../effects/Stores.svg';
-import Sales from '../effects/Sales.svg';
-import Competitors from '../effects/Competitors.svg'
-import Graph from '../effects/Graph.svg'
-import eventBus from "utils/eventBus";
+import { motion } from 'framer-motion';
+import { useDispatch } from 'react-redux';
+import { toggleLayerVisibility } from '../redux/slices/layerSlice';
 
-interface Item {
-    text: string;
-    icon: string;
-    value?: string;
-}
-
-const items: Item[] = [
-    { text: "Stores", icon: Stores },
-    { text: "Sales", icon: Sales },
-    { text: "Competitors", icon: Competitors },
-    { text: "Maturity", icon: Graph },
-    { text: "Seasonality", icon: Graph },
-    { text: "Marketshare", icon: Graph }
+// Define navigation items
+const items = [
+    { id: 'buildings', text: 'Buildings', icon: '🏢' },
+    { id: 'roads', text: 'Roads', icon: '🛣️' },
+    { id: 'water', text: 'Water', icon: '💧' },
+    { id: 'parks', text: 'Parks', icon: '🌳' },
+    { id: 'poi', text: 'Points of Interest', icon: '📍' },
+    { id: 'boundaries', text: 'Boundaries', icon: '🗺️' }
 ];
 
-const variant1 = {
-    open: {
-        fontSize: 10,
-        y: -120,
-        opacity: 0.5,
-        transition: { y: { stiffness: 1000, velocity: -100 } }
-    },
-    closed: {
-        fontSize: 3,
-        y: 0,
-        opacity: 0,
-        transition: { y: { stiffness: 1000, duration: 0.5 } }
-    },
-};
-
-const variant2 = {
-    open: {
-        fontSize: 10,
-        y: -120,
-        opacity: 1,
-        transition: { y: { stiffness: 1000, velocity: -100 } }
-    },
-    closed: {
-        fontSize: 3,
-        y: 0,
-        opacity: 0,
-        transition: { y: { stiffness: 1000, duration: 0.5 } }
-    },
-};
-
-const staggering = {
-    open: {
-        transition: { staggerChildren: 0.07, delayChildren: 0.2 },
-    },
-    closed: {
-        pointerEvents: 'none'
-    }
-};
-
-export const Navigation: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
-    const [activeStates, setActiveStates] = useState<boolean[]>(
-        Array(items.length).fill(true)
-    )
-
-    const handleTap = (index: number, checked: boolean) => {
-        const newActiveStates = [...activeStates]
-        newActiveStates[index] = checked;        
-        eventBus.emit('widget.map.layer.add', { layer: items[index].text, checked: !checked })
-        setActiveStates(newActiveStates)
-    }
-    return (
-        <motion.div variants={staggering} style={{ zIndex: 2 }} >
-
-            <motion.div style={{ padding: '0.86rem', opacity: 1 }} className='text-placeholder2' initial={{ opacity: 0 }} variants={variant2}>Management</motion.div>
-            {
-                items.map((item, index) => (
-                    <motion.li
-                        className='text-placeholder'
-                        id={item.text}
-                        style={{
-                            padding: '1.5em 0.7em',
-                            fontWeight: 'normal',
-                        }}
-                        animate={{ opacity: isOpen && activeStates[index] ? 0.5 : 1 }}
-                        variants={variant1}
-                        key={index}
-                    >
-                        <span
-                            style={{ width: 170, display: 'flex', justifyContent: 'space-between' }}
-                        >
-                            <img
-                                src={item.icon}
-                                alt={item.text}
-                                style={{ width: 25, height: 25 }}
-                            />
-                            <div style={{ width: 100 }}>{item.text}</div>
-                            <motion.input
-                                type='checkbox'
-                                className={item.text}
-                                style={{ y: 6 }}
-                                whileTap={{ scale: 0.7 }}
-                                onChange={(event) => handleTap(index, !event.target.checked)}
-                                transition={{
-                                    duration: 0.2,
-                                    ease: [0, 0.71, 0.2, 1.01],
-                                    scale: {
-                                        type: 'spring',
-                                        damping: 5,
-                                        stiffness: 100,
-                                        restDelta: 0.001
-                                    }
-                                }}
-                            />
-                        </span>
-                    </motion.li>
-                ))
-            }
-            <motion.hr initial={{ opacity: 0 }} variants={variant1} style={{ marginTop: 35 }} />
-
-        </motion.div>
-    )
+interface NavigationProps {
+    isOpen: boolean;
 }
+
+const Navigation: React.FC<NavigationProps> = ({ isOpen }) => {
+    const dispatch = useDispatch();
+
+    // Handle layer toggle
+    const handleLayerToggle = (layerId: string) => {
+        dispatch(toggleLayerVisibility(layerId));
+    };
+
+    return (
+        <div className="mt-4">
+            <h3 className={`px-3 text-xs uppercase text-gray-500 font-semibold ${!isOpen && 'text-center'}`}>
+                {isOpen ? 'Map Layers' : 'Layers'}
+            </h3>
+            <div className="mt-2 space-y-1">
+                {items.map((item) => (
+                    <motion.div
+                        key={item.id}
+                        className="flex items-center p-3 hover:bg-gray-700 rounded-md cursor-pointer"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleLayerToggle(item.id)}
+                    >
+                        <span className="text-xl">{item.icon}</span>
+                        {isOpen && (
+                            <span className="ml-3 text-gray-300">{item.text}</span>
+                        )}
+                    </motion.div>
+                ))}
+            </div>
+        </div>
+    );
+};
 
 export default Navigation;

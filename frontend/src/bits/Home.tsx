@@ -1,123 +1,247 @@
 import { useState, useRef, useEffect } from "react";
-import { motion, useCycle, Reorder } from "framer-motion";
-// import { Responsive, WidthProvider } from "react-grid-layout";
+import { motion } from "framer-motion";
+import { useSelector, useDispatch } from 'react-redux';
 import GridLayout from "react-grid-layout";
-import "/node_modules/react-grid-layout/css/styles.css";
-import "/node_modules/react-resizable/css/styles.css";
-import BaseMap from './BaseMap'
-import Sidebar from './Sidebar'
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+import BaseMap from './BaseMap';
+import Sidebar from './Sidebar';
 import Uploader from "./Uploader";
-import search from '../effects/Search.svg'
-import '../effects/Home.css';
 import CatalogDial from "./Sources";
+import { RootState } from '../redux/store';
+import { updateGridLayout } from '../redux/slices/uiSlice';
+import { toggleSidebar } from '../redux/slices/uiSlice';
+import { fetchLayers } from '../redux/slices/layerSlice';
+import { setViewState } from '../redux/slices/mapSlice';
+import '../effects/Home.css';
 
-// const ResponsiveGridLayout = WidthProvider(Responsive);
+// Import SVG icons
+import searchIcon from '../effects/Search.svg';
 
-export const Home = () => {
-    const [isOpen, toggleOpen] = useCycle(false, true);
-    const constraintsRef = useRef(null);
-    const [mounted, setmounted] = useState(false);
-    const [newUserInfo, setNewUserInfo] = useState({
-        profileImages: []
-    });
-    const [layout, setLayout] = useState([
-        { i: "0", x: 0, y: 0, w: 2, h: 2, isResizable: false, },
-        { i: "1", x: 2, y: 0, w: 1, h: 1, isResizable: false, },
-        { i: "2", x: 3, y: 0, w: 2, h: 1, isResizable: false, },
-        { i: "3", x: 5, y: 0, w: 1, h: 2, isResizable: false, },
-        { i: "4", x: 2, y: 1, w: 1, h: 1, isResizable: false, },
-        { i: "5", x: 3, y: 1, w: 2, h: 1, isResizable: false, },
-    ]);
-    const updateUploadedFiles = (files) =>
-        setNewUserInfo({ ...newUserInfo, profileImages: files });
+const Home: React.FC = () => {
+    const dispatch = useDispatch();
+    const { isSidebarOpen } = useSelector((state: RootState) => state.ui);
+    const { gridLayout } = useSelector((state: RootState) => state.ui);
+    const { viewState } = useSelector((state: RootState) => state.map);
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        //logic to create new user...
+    // Local state
+    const [mounted, setMounted] = useState(false);
+    const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+    // Initialize component
+    useEffect(() => {
+        setMounted(true);
+
+        // Fetch layers from the API
+        dispatch(fetchLayers());
+
+        // Handle window resize
+        const handleResize = () => {
+            setWindowWidth(window.innerWidth);
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            setMounted(false);
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [dispatch]);
+
+    // Handle file uploads
+    const updateUploadedFiles = (files: File[]) => {
+        setUploadedFiles(files);
     };
 
-    // const onLayoutChange = (layout: any) => {
-    //     const fixedLayout = fixLayout(layout)
-    //     setlayout(fixedLayout)
-    // }
+    // Handle layout changes
+    const onLayoutChange = (newLayout: any) => {
+        const fixedLayout = fixLayout(newLayout);
+        dispatch(updateGridLayout(fixedLayout));
+    };
+
+    // Toggle sidebar
+    const handleToggleSidebar = () => {
+        dispatch(toggleSidebar());
+    };
+
+    // Fix layout to maintain grid structure
+    const fixLayout = (layout: any[]) => {
+        const maxY = 1;
+        const xs = [0, 1, 2, 3, 4, 5];
+
+        // Find which columns exist in the max row
+        const maxRowXs = layout
+            .flatMap(item => {
+                if (item.y === maxY || (item.y === maxY - 1 && item.h === 2)) {
+                    return item.w === 2 ? [item.x, item.x + 1] : [item.x];
+                }
+                return [];
+            })
+            .filter(Boolean);
+
+        // Find the missing column
+        const missingX = xs.find(value => !maxRowXs.includes(value));
+
+        // Fix layout by placing items from new rows into the max row
+        return layout.map(item => {
+            if (item.y > maxY && missingX !== undefined) {
+                return {
+                    ...item,
+                    y: maxY,
+                    x: missingX
+                };
+            }
+            return item;
+        });
+    };
+
+    // Define dashboard widgets
+    const renderWidgetContent = (itemId: string) => {
+        switch (itemId) {
+            case "0":
+                return <CatalogDial />;
+            case "1":
+                return <Uploader updateUploadedFiles={updateUploadedFiles} />;
+            case "2":
+                return (
+                    <div className="p-4 bg-gray-800 bg-opacity-80 rounded-lg shadow-lg text-white h-full">
+                        <h2 className="text-xl font-bold mb-4">Map Controls</h2>
+                        <div className="space-y-2">
+                            <button
+                                className="w-full py-2 px-4 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors"
+                                onClick={() => dispatch(setViewState({ pitch: viewState.pitch === 0 ? 45 : 0 }))}
+                            >
+                                Toggle 3D View
+                            </button>
+                            <button
+                                className="w-full py-2 px-4 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors"
+                                onClick={() => dispatch(setViewState({
+                                    longitude: 77.58548,
+                                    latitude: 12.94401,
+                                    zoom: 12,
+                                    pitch: 0,
+                                    bearing: 0
+                                }))}
+                            >
+                                Reset View
+                            </button>
+                        </div>
+                    </div>
+                );
+            case "3":
+                return (
+                    <div className="p-4 bg-gray-800 bg-opacity-80 rounded-lg shadow-lg text-white h-full">
+                        <h2 className="text-xl font-bold mb-4">Statistics</h2>
+                        <div className="space-y-2">
+                            <div className="flex justify-between">
+                                <span>Layers:</span>
+                                <span className="font-bold">5</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Features:</span>
+                                <span className="font-bold">1,245</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Data Sources:</span>
+                                <span className="font-bold">3</span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case "4":
+                return (
+                    <div className="p-4 bg-gray-800 bg-opacity-80 rounded-lg shadow-lg text-white h-full">
+                        <h2 className="text-xl font-bold mb-4">Legend</h2>
+                        <div className="space-y-2">
+                            <div className="flex items-center">
+                                <div className="w-4 h-4 bg-red-500 mr-2"></div>
+                                <span>Points of Interest</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-4 h-4 bg-blue-500 mr-2"></div>
+                                <span>Water Bodies</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-4 h-4 bg-green-500 mr-2"></div>
+                                <span>Parks</span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case "5":
+                return (
+                    <div className="p-4 bg-gray-800 bg-opacity-80 rounded-lg shadow-lg text-white h-full">
+                        <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button className="py-2 px-3 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors text-sm">
+                                Export Map
+                            </button>
+                            <button className="py-2 px-3 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors text-sm">
+                                Share View
+                            </button>
+                            <button className="py-2 px-3 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors text-sm">
+                                Print
+                            </button>
+                            <button className="py-2 px-3 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors text-sm">
+                                Measure
+                            </button>
+                        </div>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
 
     return (
-        <motion.div>
-            <div style={{ width: "100%", height: "100%", position: "absolute", right: 0 }} onContextMenu={(e) => e.preventDefault()} >
-                <BaseMap initialViewState={{
-                    longitude: 77.58548,
-                    latitude: 12.94401,
-                    zoom: 12,
-                    maxZoom: 24,
-                    minZoom: 1.5,
-                    pitch: 0,
-                    bearing: 0
-                }}
-                    className="map"
-                />
+        <div className="home-container">
+            {/* Map container */}
+            <div
+                className="map-container"
+                onContextMenu={(e) => e.preventDefault()}
+            >
+                <BaseMap className="map" />
             </div>
-            {/* <div style={{ width: "50%", height: "100%", position: "absolute" ,left: 0 }} onContextMenu={(e) => e.preventDefault()} >
-                <BaseMap initialViewState={{
-                    longitude: 77.8365181,
-                    latitude: 13.2308261,
-                    zoom: 12,
-                    maxZoom: 20,
-                    minZoom: 1.5,
-                    pitch: 0,
-                    bearing: 0
-                }}
-                    mapStyle="http://192.168.1.14:8080/styles/default-light-standard/style.json"
-                    className="scndmap"
-                />
-            </div> */}
-        </motion.div>
-    )
-}
 
-const fixLayout = (layout) => {
-    // `y` is calculated by `h` in the layout object, since `h` is 20
-    // first row will be 0, second 20, third 40
-    const maxY = 1
+            {/* Sidebar */}
+            <Sidebar isOpen={isSidebarOpen} />
 
-    // xs or cols, we only have 3 cols
-    const xs = [0, 1, 2, 3, 4, 5]
+            {/* Dashboard grid */}
+            {mounted && (
+                <div className="grid-container">
+                    <GridLayout
+                        className="layout"
+                        layout={gridLayout}
+                        cols={6}
+                        rowHeight={100}
+                        width={windowWidth}
+                        onLayoutChange={onLayoutChange}
+                        isDraggable={true}
+                        isResizable={false}
+                        margin={[10, 10]}
+                    >
+                        {gridLayout.map(item => (
+                            <div key={item.i} className="grid-item">
+                                {renderWidgetContent(item.i)}
+                            </div>
+                        ))}
+                    </GridLayout>
+                </div>
+            )}
 
-    // when an item goes to a new row, there is an empty column in the maxY row
-    // so here we find which columns exist
-    // tslint:disable-next-line:max-line-length
-    const maxRowXs = layout.map((item) => {
-        if (item.y === maxY || (item.y === maxY - 1 && item.h === 2)) {
-            if (item.w === 2) {
-                return [item.x, item.x + 1]; // Append item.x + 1 for items with item.w equal to 2
-            } else {
-                return item.x; // Keep the original x value for other items in the same row
-            }
-        } else {
-            return null; // For items in other rows, keep them as null
-        }
-    }).flat().filter((value) => value !== null);
-    console.log(maxRowXs)
-
-
-    // find the missing col
-    // tslint:disable-next-line:max-line-length
-    const missingX = xs.find((value) => maxRowXs.every((maxRowX) => maxRowX !== value))
-    console.log(missingX)
-
-    // bring the item from the new row into maxY row
-    // and place it in the missing column
-    const fixedLayout = layout.map((item) => {
-        if (item.y > maxY) {
-            const fixedItem = {
-                ...item,
-                y: maxY,
-                x: missingX
-            }
-            return fixedItem
-        }
-        return item
-    })
-    return fixedLayout
-}
+            {/* Sidebar toggle button */}
+            <motion.button
+                className="toggle-sidebar-btn"
+                onClick={handleToggleSidebar}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="Toggle sidebar"
+            >
+                <img src={searchIcon} alt="Toggle sidebar" />
+            </motion.button>
+        </div>
+    );
+};
 
 export default Home;
