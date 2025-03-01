@@ -1,41 +1,99 @@
-name: Build React App
+name: Frontend CI/CD
 
 on:
   push:
     paths:
-      - frontend/**
+      - 'frontend/**'
     branches:
       - main
-jobs:
-  build:
-    strategy:
-      matrix:
-        node-version: [16, 18]
+  pull_request:
+    paths:
+      - 'frontend/**'
+    branches:
+      - main
 
+jobs:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     defaults:
-       run:
-         working-directory: ./frontend/
+      run:
+        working-directory: ./frontend/
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'yarn'
-        cache-dependency-path: './frontend/yarn.lock'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: './frontend/package.json'
 
-    
-    - name: Install Yarn
-      run: npm install -g yarn
-    - name: Install dependencies
-      run: yarn install
-    - name: Build the app
-      run: yarn build
-    - name: Archive artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: build
-        path: ./frontend/build/
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Check types
+        run: npm run type-check
+
+      - name: Check formatting
+        run: npm run prettier:check
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend/
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: './frontend/package.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    defaults:
+      run:
+        working-directory: ./frontend/
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: './frontend/package.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the app
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend/dist/
+          retention-days: 7

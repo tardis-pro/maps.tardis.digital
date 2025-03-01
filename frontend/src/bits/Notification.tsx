@@ -1,37 +1,30 @@
-import { motion } from "framer-motion";
+import React from 'react';
+import { motion } from 'framer-motion';
 
-export const Notification = () => {
+const Notification: React.FC = () => {
     return (
-        <button style={{zIndex:2}}>
-            <motion.svg
-                initial={{ opacity: 0.5 }}
-                whileHover={{
-                    opacity: 1
-                }}
-                variants={{
-                    open: {
-                        x: 105,
-                        y: -60
-                    }
-                }}
-                transition={{
-                    duration: 0.5
-                }}
+        <motion.div
+            className="flex items-center p-3 hover:bg-gray-700 rounded-md cursor-pointer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+        >
+            <svg
+                className="w-6 h-6 text-gray-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 31.51 35.49"
             >
-                <g id="Layer_2" data-name="Layer 2">
-                    <g id="Laag_1" data-name="Laag 1">
-                        <g className="cls-1">
-                            <path
-                                d="M15.75,35.49a6.58,6.58,0,0,1-4.68-2A6.65,6.65,0,0,1,9.23,30H5a5,5,0,0,1-3.56-1.48A5.18,5.18,0,0,1,0,24.9,5.08,5.08,0,0,1,.38,23a5.21,5.21,0,0,1,1.08-1.63l2.19-2.21V12.21a12.11,12.11,0,1,1,24.21,0v6.91l2.19,2.21h0A5.21,5.21,0,0,1,31.13,23a5.08,5.08,0,0,1,.38,1.94,5.14,5.14,0,0,1-1.46,3.57A5,5,0,0,1,26.49,30H22.28a6.63,6.63,0,0,1-6.53,5.53ZM11.58,30a4.32,4.32,0,0,0,1.11,2,4.31,4.31,0,0,0,6.13,0,4.32,4.32,0,0,0,1.11-2Zm9.65-2.29h5.26a2.71,2.71,0,0,0,1.93-.81,2.82,2.82,0,0,0,.6-3,2.88,2.88,0,0,0-.6-.91L25.9,20.4a1.18,1.18,0,0,1-.33-.81V12.21a9.92,9.92,0,0,0-2.89-7,9.72,9.72,0,0,0-13.85,0,9.92,9.92,0,0,0-2.89,7v7.38a1.18,1.18,0,0,1-.33.81L3.09,22.94a2.88,2.88,0,0,0-.6.91,2.8,2.8,0,0,0-.2,1,2.84,2.84,0,0,0,.8,2,2.74,2.74,0,0,0,1.93.8Z"
-                            />
-                        </g>
-                    </g>
-                </g>
-            </motion.svg>
-        </button>
-    )
-}
+                <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+            </svg>
+            <span className="ml-3 text-gray-300">Notifications</span>
+        </motion.div>
+    );
+};
 
 export default Notification;

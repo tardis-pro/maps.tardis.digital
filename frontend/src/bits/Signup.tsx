@@ -1,147 +1,169 @@
-import {
-  makeStyles,
-  Container,
-  Typography,
-  TextField,
-  Button,
-  Link,
-  Box
-} from "@material-ui/core";
-import { useForm } from "react-hook-form";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useState } from "react";
-import { RestAuthService } from "../services/akgda";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
-interface IFormInput {
-  username: string;
-  email: string;
-  password1: string;
-  password2: string;
-}
-
-const schema = yup.object().shape({
-  username: yup.string().required("Username is required!").min(2, "Username must be at least 2 characters").max(25),
-  email: yup.string().required("Email is required!").email(),
-  password1: yup.string().required("Password is required!").min(8, "Password must be at least 8 characters").max(120),
-  password2: yup.string()
-    .oneOf([yup.ref('password1'), null], 'Passwords must match')
-});
-
-const useStyles = makeStyles((theme) => ({
-  heading: {
-    textAlign: "center",
-    margin: theme.spacing(1, 0, 4),
-  },
-  submitButton: {
-    marginTop: theme.spacing(4),
-    height: 50
-  },
-}));
-
-export const Signup = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setError
-  } = useForm<IFormInput>({
-    resolver: yupResolver(schema),
+const Signup: React.FC = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
   });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { heading, submitButton } = useStyles();
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-  const onSubmit = async (data: IFormInput) => {
-    RestAuthService.restAuthRegistrationCreate(data)
-        .then((response) => {
-            console.log(response)
-        })
-        .catch((error) => {
-            console.log(error)  
-        });
-    
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
+    // Validate form
+    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('All fields are required');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Store a demo token
+      localStorage.setItem('token', 'demo-token');
+
+      // Navigate to home page
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message || 'Failed to create account');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Container maxWidth="xs">
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
-        flexDirection="column"
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <motion.div
+        className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
       >
-        <Typography className={heading} variant="h3">
-          Sign Up Form
-        </Typography>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <TextField
-            {...register("username")}
-            variant="outlined"
-            margin="normal"
-            label="Username"
-            helperText={errors.username?.message}
-            error={!!errors.username?.message}
-            fullWidth
-            required
-          />
-          <TextField
-            {...register("email")}
-            variant="outlined"
-            margin="normal"
-            label="Email"
-            helperText={errors.email?.message}
-            error={!!errors.email?.message}
-            fullWidth
-            required
-          />
-          <TextField
-            {...register("password1")}
-            variant="outlined"
-            margin="normal"
-            label="Password"
-            helperText={errors.password1?.message}
-            error={!!errors.password1?.message}
-            type="password"
-            fullWidth
-            required
-          />
-          <TextField
-            {...register("password2")}
-            variant="outlined"
-            margin="normal"
-            label="Retype Password"
-            helperText={errors.password2?.message}
-            error={!!errors.password2?.message}
-            type="password"
-            fullWidth
-            required
-          />
-          <Button
+        <h2 className="text-2xl font-bold text-white mb-6 text-center">Create Account</h2>
+
+        {error && (
+          <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-300 mb-2" htmlFor="username">
+              Username
+            </label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="Choose a username"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-300 mb-2" htmlFor="email">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-300 mb-2" htmlFor="password">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Create a password"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-gray-300 mb-2" htmlFor="confirmPassword">
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm your password"
+            />
+          </div>
+
+          <button
             type="submit"
-            fullWidth
-            variant="contained"
-            color="primary"
-            className={submitButton}
+            disabled={isLoading}
+            className={`w-full font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors ${isLoading
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
           >
-            Sign Up
-          </Button>
-          <Typography
-            className={heading}
-            variant="h6"
-          >
-            <Link
-              href="/"
-              underline="hover"
+            {isLoading ? 'Creating Account...' : 'Create Account'}
+          </button>
+
+          <div className="mt-4 text-center">
+            <span className="text-gray-400">Already have an account? </span>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate('/signin');
+              }}
+              className="text-blue-400 hover:text-blue-300"
             >
-              Already have an account?
-            </Link>
-          </Typography>
+              Sign In
+            </a>
+          </div>
         </form>
-      </Box>
-    </Container>
+      </motion.div>
+    </div>
   );
-}
+};
 
 export default Signup;

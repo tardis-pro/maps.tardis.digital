@@ -1,93 +1,171 @@
-import {
-    makeStyles,
-    Container,
-    Typography,
-    TextField,
-    Button,
-    Box
-} from "@material-ui/core";
-import { useForm } from "react-hook-form";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useState } from "react";
-import { RestAuthService } from "../services/akgda";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
-interface IFormInput {
-    email: string;
-}
+const PasswordChange: React.FC = () => {
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [code, setCode] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [step, setStep] = useState(1);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
-const schema = yup.object().shape({
-    email: yup.string().required().email()
-});
+    const handleRequestReset = (e: React.FormEvent) => {
+        e.preventDefault();
 
-const useStyles = makeStyles((theme) => ({
-    heading: {
-        textAlign: "center",
-        margin: theme.spacing(0, 0, 2),
-    },
-    submitButton: {
-        marginTop: theme.spacing(4),
-    }
-}));
+        if (!email) {
+            setError('Please enter your email address');
+            return;
+        }
 
-export const Signup = () => {
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm<IFormInput>({
-        resolver: yupResolver(schema),
-    });
+        // Simulate API call
+        setTimeout(() => {
+            setSuccess('Reset code sent to your email');
+            setStep(2);
+        }, 1000);
+    };
 
-    const { heading, submitButton } = useStyles();
+    const handleResetPassword = (e: React.FormEvent) => {
+        e.preventDefault();
 
-    const onSubmit = async (data: IFormInput) => {
-        RestAuthService.restAuthPasswordResetCreate(data)
-        .then((response) => {
-            console.log(response)
-        })
-        .catch((error) => {
-            console.log(error)  
-        });
+        if (!code) {
+            setError('Please enter the reset code');
+            return;
+        }
+
+        if (!newPassword) {
+            setError('Please enter a new password');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        // Simulate API call
+        setTimeout(() => {
+            setSuccess('Password reset successfully');
+            setTimeout(() => {
+                navigate('/signin');
+            }, 2000);
+        }, 1000);
     };
 
     return (
-        <Container maxWidth="xs">
-            <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                minHeight="100vh"
-                flexDirection="column"
+        <div className="min-h-screen flex items-center justify-center bg-gray-900">
+            <motion.div
+                className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
             >
-                <Typography className={heading} variant="h6">
-                    We will mail you the Reset Link
-                </Typography>
-                <form onSubmit={handleSubmit(onSubmit)} noValidate>
-                    <TextField
-                        {...register("email")}
-                        variant="outlined"
-                        margin="normal"
-                        label="Email"
-                        helperText={errors.email?.message}
-                        error={!!errors.email?.message}
-                        type="email"
-                        fullWidth
-                        required
-                    />
-                    <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        color="primary"
-                        className={submitButton}
-                    >
-                        Send Mail
-                    </Button>
-                </form>
-            </Box>
-        </Container>
-    );
-}
+                <h2 className="text-2xl font-bold text-white mb-6 text-center">
+                    {step === 1 ? 'Reset Password' : 'Enter New Password'}
+                </h2>
 
-export default Signup;
+                {error && (
+                    <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-4 py-3 rounded mb-4">
+                        {error}
+                    </div>
+                )}
+
+                {success && (
+                    <div className="bg-green-500 bg-opacity-20 border border-green-500 text-green-300 px-4 py-3 rounded mb-4">
+                        {success}
+                    </div>
+                )}
+
+                {step === 1 ? (
+                    <form onSubmit={handleRequestReset}>
+                        <div className="mb-4">
+                            <label className="block text-gray-300 mb-2" htmlFor="email">
+                                Email Address
+                            </label>
+                            <input
+                                id="email"
+                                type="email"
+                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter your email"
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors"
+                        >
+                            Send Reset Code
+                        </button>
+
+                        <div className="mt-4 text-center">
+                            <a
+                                href="#"
+                                onClick={() => navigate('/signin')}
+                                className="text-blue-400 hover:text-blue-300 text-sm"
+                            >
+                                Back to Sign In
+                            </a>
+                        </div>
+                    </form>
+                ) : (
+                    <form onSubmit={handleResetPassword}>
+                        <div className="mb-4">
+                            <label className="block text-gray-300 mb-2" htmlFor="code">
+                                Reset Code
+                            </label>
+                            <input
+                                id="code"
+                                type="text"
+                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                                value={code}
+                                onChange={(e) => setCode(e.target.value)}
+                                placeholder="Enter reset code"
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-gray-300 mb-2" htmlFor="newPassword">
+                                New Password
+                            </label>
+                            <input
+                                id="newPassword"
+                                type="password"
+                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="Enter new password"
+                            />
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-gray-300 mb-2" htmlFor="confirmPassword">
+                                Confirm Password
+                            </label>
+                            <input
+                                id="confirmPassword"
+                                type="password"
+                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="Confirm new password"
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors"
+                        >
+                            Reset Password
+                        </button>
+                    </form>
+                )}
+            </motion.div>
+        </div>
+    );
+};
+
+export default PasswordChange;
