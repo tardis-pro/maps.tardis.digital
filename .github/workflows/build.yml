@@ -1,35 +1,99 @@
-name: Docker Build
+name: Backend CI/CD
 
 on:
   push:
     paths:
-      - backend/**
+      - 'backend/**'
     branches:
       - main
-jobs:
-  build:
-    runs-on: ubuntu-latest
+  pull_request:
+    paths:
+      - 'backend/**'
+    branches:
+      - main
 
+jobs:
+  test:
+    name: Test Backend
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/core-monolith/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          cd backend/core-monolith
+          pip install -r requirements.txt
+          pip install pytest pytest-cov flake8
+
+      - name: Run linting
+        run: |
+          cd backend/core-monolith
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run tests
+        run: |
+          cd backend/core-monolith
+          pytest --cov=. --cov-report=xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: backend/core-monolith/coverage.xml
+          retention-days: 7
+
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          # list of Docker images to use as base name for tags
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
           images: |
             pronittardis/core-app
-          # generate Docker tags based on the following events/attributes
+            ghcr.io/${{ github.repository }}/core-app
           tags: |
+            type=sha,format=short
             type=ref,event=branch
-      - name: Build Docker image
-        run: docker build -t ${{ steps.meta.outputs.tags }} ./backend/core-monolith/
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
-      - name: Push Docker image
-        run: docker push ${{ steps.meta.outputs.tags }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/core-monolith/
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,0 +1,93 @@
+name: Deploy to Kubernetes
+
+on:
+  workflow_run:
+    workflows: [Frontend CI/CD, Backend CI/CD]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  prepare-deployment:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download frontend artifacts
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: Frontend CI/CD
+          name: frontend-build
+          path: ./frontend-build
+          
+      - name: Check artifact download
+        run: |
+          if [ -d "./frontend-build" ]; then
+            echo "Frontend artifacts downloaded successfully"
+            ls -la ./frontend-build
+          else 
+            echo "Frontend artifacts not found"
+          fi
+          
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-artifacts
+          path: |
+            ./frontend-build
+            ./infra
+          retention-days: 1
+          
+  deploy:
+    needs: prepare-deployment
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Download deployment artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-artifacts
+          
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+          
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
+      
+      - name: Verify kubectl configuration
+        run: kubectl get nodes
+        
+      - name: Deploy to Kubernetes
+        run: |
+          # Apply infrastructure changes
+          kubectl apply -f infra/base/namespace.yaml
+          
+          # Update image tags in deployment files
+          cd infra
+          
+          # Apply all Kubernetes resources
+          kubectl apply -f core/ -n maps
+          kubectl apply -f tiler/ -n maps
+          
+          # Verify deployment
+          kubectl get pods -n maps
+          
+      - name: Verify deployment
+        run: |
+          # Wait for deployments to be ready
+          kubectl wait --for=condition=available --timeout=300s deployment/core-app -n maps
+          kubectl wait --for=condition=available --timeout=300s deployment/vector-tiler -n maps
+          
+          echo "Deployment completed successfully" 

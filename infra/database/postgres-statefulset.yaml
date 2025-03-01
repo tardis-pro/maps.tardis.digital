@@ -15,12 +15,19 @@ spec:
       labels:
         app: postgres
     spec:
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 30
       containers:
       - name: postgres
-        image: kartoza/postgis
+        image: kartoza/postgis:15-3.3
         ports:
         - containerPort: 5432
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
         env:
         - name: POSTGRES_USER
           valueFrom:
@@ -39,10 +46,28 @@ spec:
               key: POSTGRES_DBNAME 
         - name: POSTGRES_MULTIPLE_EXTENSIONS
           value: postgis,hstore,postgis_topology,postgis_raster,pgrouting
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_SHARED_BUFFERS
+          value: "512MB"
+        - name: POSTGRES_EFFECTIVE_CACHE_SIZE
+          value: "1536MB"
+        - name: POSTGRES_WORK_MEM
+          value: "16MB"
         volumeMounts:
-          - name: pps
+          - name: postgres-data
             mountPath: /var/lib/postgresql/data
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "$(POSTGRES_USER)"]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command: ["pg_isready", "-U", "$(POSTGRES_USER)"]
+          initialDelaySeconds: 30
+          periodSeconds: 15
       volumes:
-        - name: pps
+        - name: postgres-data
           persistentVolumeClaim:
-            claimName: my-pvc
+            claimName: postgres-pvc

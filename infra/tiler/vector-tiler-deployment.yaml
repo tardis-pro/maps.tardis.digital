@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: vector-tiler
 spec:
-  replicas: 10  
+  replicas: 3
   selector:
     matchLabels:
       app: vector-tiler
@@ -18,14 +18,34 @@ spec:
         image: ghcr.io/maplibre/martin:latest 
         ports:
         - containerPort: 3000
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
         args:
           - "/files"
         volumeMounts:
         - name: tile-storage
           mountPath: /files
+          readOnly: true
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 20
       volumes:
       - name: tile-storage
-        hostPath:
-          path: /hosthome/tiles  # Replace with your actual path
-          type: Directory
+        persistentVolumeClaim:
+          claimName: tile-pvc
+          readOnly: true
         

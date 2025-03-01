@@ -7,10 +7,13 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/use-regex: "true"
     cert-manager.io/cluster-issuer: "letsencrypt-pp"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
 spec:
   rules:
-  - host: 
-    - geo-api.tardis.digital
+  - host: geo-api.tardis.digital
     http:
       paths:
       - pathType: Prefix
@@ -20,3 +23,7 @@ spec:
             name: core-service
             port:
               number: 8000
+  tls:
+  - hosts:
+    - geo-api.tardis.digital
+    secretName: geo-api-tls
