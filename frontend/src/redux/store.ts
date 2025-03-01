@@ -1,27 +1,34 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { combineReducers } from 'redux';
 import mapReducer from './slices/mapSlice';
 import uiReducer from './slices/uiSlice';
 import authReducer from './slices/authSlice';
 import layerReducer from './slices/layerSlice';
+import analyticsReducer from './slices/analyticsSlice';
+import visualizationReducer from './slices/visualizationSlice';
+import dataReducer from './slices/dataSlice';
+import analysisReducer from './slices/analysisSlice';
+import { RootState } from './types';
 
-const rootReducer = combineReducers({
-    map: mapReducer,
-    ui: uiReducer,
-    auth: authReducer,
-    layers: layerReducer
-});
-
-export type RootState = ReturnType<typeof rootReducer>;
-
-const store = configureStore({
-    reducer: rootReducer,
+// Create the store
+const rootStore = configureStore({
+    reducer: {
+        map: mapReducer,
+        ui: uiReducer,
+        auth: authReducer,
+        layers: layerReducer,
+        analytics: analyticsReducer,
+        visualization: visualizationReducer,
+        data: dataReducer,
+        analysis: analysisReducer
+    },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: false,
         }),
 });
 
-export type AppDispatch = typeof store.dispatch;
+// Export types
+export type { RootState } from './types';
+export type AppDispatch = typeof rootStore.dispatch;
 
-export default store;
+export default rootStore;

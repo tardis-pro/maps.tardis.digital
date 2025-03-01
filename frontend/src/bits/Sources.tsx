@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../redux/store';
+import { RootState } from '../redux/types';
 import { fetchLayers, toggleLayerVisibility } from '../redux/slices/layerSlice';
 import { V1Service } from '../services/akgda/services/V1Service';
 import { addNotification } from '../redux/slices/uiSlice';

@@ -2,7 +2,7 @@ import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { V1Service } from '../../services/akgda/services/V1Service';
 import { Layer } from '../../services/akgda/models/Layer';
 
-interface LayerState {
+export interface LayerState {
     layers: Layer[];
     activeLayers: string[];
     selectedLayer: Layer | null;

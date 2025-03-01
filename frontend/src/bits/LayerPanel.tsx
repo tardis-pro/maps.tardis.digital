@@ -12,20 +12,22 @@ interface Layer {
 
 interface LayerPanelProps {
   layers: Layer[];
-  visibleLayers: string[];
-  onToggleLayer: (layerId: string, checked: boolean) => void;
-  onStyleChange: (layerId: string, property: string, value: any) => void;
+  activeLayers: string[];
+  onToggleLayer: (layerId: string) => void;
+  onStyleChange: (layerId: string, style: any) => void;
   onAddLayer: (layer: any) => void;
   onRemoveLayer: (layerId: string) => void;
+  onLayerOrderChange: (newOrder: string[]) => void;
 }
 
 const LayerPanel: React.FC<LayerPanelProps> = ({
   layers,
-  visibleLayers,
+  activeLayers,
   onToggleLayer,
   onStyleChange,
   onAddLayer,
-  onRemoveLayer
+  onRemoveLayer,
+  onLayerOrderChange
 }) => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showAddLayerModal, setShowAddLayerModal] = useState(false);
@@ -34,8 +36,8 @@ const LayerPanel: React.FC<LayerPanelProps> = ({
   const [newLayerUrl, setNewLayerUrl] = useState('');
 
   const handleLayerToggle = (layerId: string) => {
-    const isVisible = visibleLayers.includes(layerId);
-    onToggleLayer(layerId, !isVisible);
+    const isVisible = activeLayers.includes(layerId);
+    onToggleLayer(layerId);
   };
 
   const handleLayerExpand = (layerId: string) => {
@@ -99,7 +101,7 @@ const LayerPanel: React.FC<LayerPanelProps> = ({
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-        {layers.map(layer => (
+        {layers && layers.map(layer => (
           <div 
             key={layer.id} 
             style={{ 
@@ -114,7 +116,7 @@ const LayerPanel: React.FC<LayerPanelProps> = ({
                 justifyContent: 'space-between', 
                 alignItems: 'center',
                 padding: '8px',
-                backgroundColor: visibleLayers.includes(layer.id) ? '#f0f9ff' : 'white',
+                backgroundColor: activeLayers.includes(layer.id) ? '#f0f9ff' : 'white',
                 cursor: 'pointer'
               }}
               onClick={() => handleLayerExpand(layer.id)}
@@ -130,10 +132,10 @@ const LayerPanel: React.FC<LayerPanelProps> = ({
                     background: 'none', 
                     border: 'none', 
                     cursor: 'pointer',
-                    color: visibleLayers.includes(layer.id) ? '#4CAF50' : '#aaa'
+                    color: activeLayers.includes(layer.id) ? '#4CAF50' : '#aaa'
                   }}
                 >
-                  {visibleLayers.includes(layer.id) ? <FaEye /> : <FaEyeSlash />}
+                  {activeLayers.includes(layer.id) ? <FaEye /> : <FaEyeSlash />}
                 </button>
                 <button
                   onClick={(e) => {
@@ -172,7 +174,7 @@ const LayerPanel: React.FC<LayerPanelProps> = ({
                     max="1"
                     step="0.1"
                     value={layer.style?.opacity || 0.8}
-                    onChange={(e) => onStyleChange(layer.id, 'opacity', parseFloat(e.target.value))}
+                    onChange={(e) => onStyleChange(layer.id, { opacity: parseFloat(e.target.value) })}
                     style={{ width: '100%' }}
                   />
                 </div>
@@ -185,7 +187,7 @@ const LayerPanel: React.FC<LayerPanelProps> = ({
                     max="5"
                     step="0.5"
                     value={layer.style?.lineWidth || 1}
-                    onChange={(e) => onStyleChange(layer.id, 'lineWidth', parseFloat(e.target.value))}
+                    onChange={(e) => onStyleChange(layer.id, { lineWidth: parseFloat(e.target.value) })}
                     style={{ width: '100%' }}
                   />
                 </div>
@@ -196,7 +198,7 @@ const LayerPanel: React.FC<LayerPanelProps> = ({
                       <input
                         type="checkbox"
                         checked={layer.style?.extruded || false}
-                        onChange={(e) => onStyleChange(layer.id, 'extruded', e.target.checked)}
+                        onChange={(e) => onStyleChange(layer.id, { extruded: e.target.checked })}
                         style={{ marginRight: '4px' }}
                       />
                       3D Extrusion

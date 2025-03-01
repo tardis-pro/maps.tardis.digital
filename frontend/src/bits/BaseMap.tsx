@@ -7,7 +7,7 @@ import { MVTLayer } from '@deck.gl/geo-layers';
 import { HexagonLayer, HeatmapLayer, ScatterplotLayer } from '@deck.gl/aggregation-layers';
 import { Protocol } from 'pmtiles';
 import { styleFactory } from './tile';
-import { RootState } from '../redux/store';
+import { RootState } from '../redux/types';
 
 import {
     setViewState,
@@ -18,7 +18,7 @@ import {
 import {
     toggleLayerVisibility,
     updateLayer,
-    removeLayer
+    deleteLayer
 } from '../redux/slices/layerSlice';
 import {
     performSpatialJoin,
@@ -70,7 +70,7 @@ const BaseMap: React.FC<BaseMapProps> = ({
 }) => {
     const dispatch = useDispatch();
     const { viewState: reduxViewState, isMapLoaded } = useSelector((state: RootState) => state.map);
-    const { layers, visibleLayers } = useSelector((state: RootState) => state.layer);
+    const { layers, activeLayers } = useSelector((state: RootState) => state.layers);
     const { selectedAnalyticsMode } = useSelector((state: RootState) => state.analytics);
 
     const deck = useRef<any>(null);
@@ -106,7 +106,7 @@ const BaseMap: React.FC<BaseMapProps> = ({
     // Create deck.gl layers based on redux state
     const deckLayers = useMemo(() => {
         return layers
-            .filter(layer => visibleLayers.includes(layer.id))
+            .filter(layer => activeLayers.includes(layer.id.toString()))
             .map(layer => {
                 switch (layer.type) {
                     case 'mvt':
@@ -130,7 +130,7 @@ const BaseMap: React.FC<BaseMapProps> = ({
                 }
             })
             .filter(Boolean);
-    }, [layers, visibleLayers, colorRamp, opacity, filterRange, selectedProperty]);
+    }, [layers, activeLayers, colorRamp, opacity, filterRange, selectedProperty]);
 
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -153,7 +153,17 @@ const BaseMap: React.FC<BaseMapProps> = ({
             {/* Visualization Controls */}
             {showControls && <MapControls />}
             {/* Layer Panel */}
-            {showLayerPanel && <LayerPanel />}
+            {showLayerPanel && (
+                <LayerPanel
+                    layers={layers}
+                    activeLayers={activeLayers}
+                    onToggleLayer={(layerId) => dispatch(toggleLayerVisibility(layerId))}
+                    onStyleChange={(layerId, style) => dispatch(updateLayer({ id: layerId, style }))}
+                    onRemoveLayer={(layerId) => dispatch(deleteLayer(layerId))}
+                    onLayerOrderChange={(newOrder) => {/* implement layer order change */}}
+                    onAddLayer={(layer) => {/* implement add layer */}}
+                />
+            )}
             {/* Analytics Panel */}
             {showAnalyticsPanel && <AnalyticsPanel />}
             {/* Loading Indicator */}

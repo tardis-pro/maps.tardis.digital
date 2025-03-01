@@ -8,26 +8,33 @@ import BaseMap from './BaseMap';
 import Sidebar from './Sidebar';
 import Uploader from "./Uploader";
 import CatalogDial from "./Sources";
-import { RootState } from '../redux/store';
+import DataManager from "./DataManager";
+import AnalyticsPanel from "./AnalyticsPanel";
+import VisualizationControls from "./VisualizationControls";
+import { RootState } from '../redux/types';
 import { updateGridLayout } from '../redux/slices/uiSlice';
 import { toggleSidebar } from '../redux/slices/uiSlice';
 import { fetchLayers } from '../redux/slices/layerSlice';
 import { setViewState } from '../redux/slices/mapSlice';
+import { AppDispatch } from '../redux/store';
 import '../effects/Home.css';
 
 // Import SVG icons
 import searchIcon from '../effects/Search.svg';
 
 const Home: React.FC = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const { isSidebarOpen } = useSelector((state: RootState) => state.ui);
     const { gridLayout } = useSelector((state: RootState) => state.ui);
     const { viewState } = useSelector((state: RootState) => state.map);
+    const { selectedAnalyticsMode } = useSelector((state: RootState) => state.analytics);
 
     // Local state
     const [mounted, setMounted] = useState(false);
     const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    const [showAnalyticsPanel, setShowAnalyticsPanel] = useState(false);
+    const [showVisualizationControls, setShowVisualizationControls] = useState(false);
 
     // Initialize component
     useEffect(() => {
@@ -63,6 +70,16 @@ const Home: React.FC = () => {
     // Toggle sidebar
     const handleToggleSidebar = () => {
         dispatch(toggleSidebar());
+    };
+
+    // Toggle analytics panel
+    const handleToggleAnalyticsPanel = () => {
+        setShowAnalyticsPanel(!showAnalyticsPanel);
+    };
+
+    // Toggle visualization controls
+    const handleToggleVisualizationControls = () => {
+        setShowVisualizationControls(!showVisualizationControls);
     };
 
     // Fix layout to maintain grid structure
@@ -126,6 +143,18 @@ const Home: React.FC = () => {
                             >
                                 Reset View
                             </button>
+                            <button
+                                className="w-full py-2 px-4 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors"
+                                onClick={handleToggleAnalyticsPanel}
+                            >
+                                {showAnalyticsPanel ? 'Hide Analytics' : 'Show Analytics'}
+                            </button>
+                            <button
+                                className="w-full py-2 px-4 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors"
+                                onClick={handleToggleVisualizationControls}
+                            >
+                                {showVisualizationControls ? 'Hide Styling' : 'Style Data'}
+                            </button>
                         </div>
                     </div>
                 );
@@ -143,32 +172,14 @@ const Home: React.FC = () => {
                                 <span className="font-bold">1,245</span>
                             </div>
                             <div className="flex justify-between">
-                                <span>Data Sources:</span>
-                                <span className="font-bold">3</span>
+                                <span>Analysis:</span>
+                                <span className="font-bold">{selectedAnalyticsMode || 'None'}</span>
                             </div>
                         </div>
                     </div>
                 );
             case "4":
-                return (
-                    <div className="p-4 bg-gray-800 bg-opacity-80 rounded-lg shadow-lg text-white h-full">
-                        <h2 className="text-xl font-bold mb-4">Legend</h2>
-                        <div className="space-y-2">
-                            <div className="flex items-center">
-                                <div className="w-4 h-4 bg-red-500 mr-2"></div>
-                                <span>Points of Interest</span>
-                            </div>
-                            <div className="flex items-center">
-                                <div className="w-4 h-4 bg-blue-500 mr-2"></div>
-                                <span>Water Bodies</span>
-                            </div>
-                            <div className="flex items-center">
-                                <div className="w-4 h-4 bg-green-500 mr-2"></div>
-                                <span>Parks</span>
-                            </div>
-                        </div>
-                    </div>
-                );
+                return <DataManager />;
             case "5":
                 return (
                     <div className="p-4 bg-gray-800 bg-opacity-80 rounded-lg shadow-lg text-white h-full">
@@ -181,7 +192,7 @@ const Home: React.FC = () => {
                                 Share View
                             </button>
                             <button className="py-2 px-3 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors text-sm">
-                                Print
+                                Save Analysis
                             </button>
                             <button className="py-2 px-3 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors text-sm">
                                 Measure
@@ -206,6 +217,16 @@ const Home: React.FC = () => {
 
             {/* Sidebar */}
             <Sidebar isOpen={isSidebarOpen} />
+
+            {/* Analytics Panel */}
+            {showAnalyticsPanel && <AnalyticsPanel />}
+            
+            {/* Visualization Controls */}
+            {showVisualizationControls && (
+                <VisualizationControls 
+                    onClose={handleToggleVisualizationControls} 
+                />
+            )}
 
             {/* Dashboard grid */}
             {mounted && (

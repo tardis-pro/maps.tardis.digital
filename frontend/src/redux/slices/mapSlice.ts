@@ -10,7 +10,7 @@ export interface ViewState {
     minZoom?: number;
 }
 
-interface MapState {
+export interface MapState {
     viewState: ViewState;
     baseMapStyle: string;
     isMapLoaded: boolean;

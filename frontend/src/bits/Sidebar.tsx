@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion } from "framer-motion";
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../redux/store';
+import { RootState } from '../redux/types';
 import { toggleSidebar, setSidebarOpen } from '../redux/slices/uiSlice';
 import { fetchUserProfile } from '../redux/slices/authSlice';
 import Dashboard from './Dashboard';

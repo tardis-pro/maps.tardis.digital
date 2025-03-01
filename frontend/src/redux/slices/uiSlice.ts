@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface UiState {
+export interface UiState {
     isSidebarOpen: boolean;
     activeTab: string;
     isDarkMode: boolean;
