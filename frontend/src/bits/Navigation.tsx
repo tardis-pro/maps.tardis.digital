@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { toggleLayerVisibility } from '../redux/slices/layerSlice';
 
 // Define navigation items
-const items = [
+export const items = [
     { id: 'buildings', text: 'Buildings', icon: '🏢' },
     { id: 'roads', text: 'Roads', icon: '🛣️' },
     { id: 'water', text: 'Water', icon: '💧' },

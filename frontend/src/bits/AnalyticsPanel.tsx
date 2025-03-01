@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FaChartBar, FaLayerGroup, FaDotCircle, FaRuler } from 'react-icons/fa';
-import { ANALYTICS_MODES, AGGREGATION_TYPES } from '../../config/mapConfig';
+import { ANALYTICS_MODES, AGGREGATION_TYPES } from '../config/config';
 
 interface AnalyticsPanelProps {
   layers: any[];

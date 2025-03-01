@@ -1,10 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import tailwindcss from "@tailwindcss/vite";
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(async () => ({
+  plugins: [react(),        
+     tailwindcss(),
+  ],
   resolve: {
     alias: {
       // Define aliases if needed
@@ -17,13 +20,8 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    port: 3000,
+    strictPort: true,
+    open: true,
   },
-  css: {
-    postcss: {
-      plugins: [
-        require('tailwindcss'),
-        require('autoprefixer'),
-      ],
-    },
-  },
-});
+}));
