@@ -73,7 +73,7 @@
     "three": "^0.173.0",
     "utils": "^0.3.1",
     "uuid": "^11.1.0",
-    "vite": "^6.2.0",
+    "vite": "^6.2.4",
     "yup": "^1.6.1"
   },
   "browserslist": "> 1.0%, last 5 versions",
