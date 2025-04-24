@@ -24,7 +24,7 @@ djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
 drf-spectacular==0.26.2
 drf-yasg==1.21.5
-h11==0.14.0
+h11==0.16.0
 httpcore==0.16.3
 httpx==0.23.3
 idna==3.4
