@@ -71,4 +71,4 @@ sqlparse==0.4.3
 supermercado==0.2.0
 typing_extensions==4.5.0
 uritemplate==4.1.1
-urllib3==1.26.18
+urllib3==2.5.0
