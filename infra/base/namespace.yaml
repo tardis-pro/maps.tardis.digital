@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: geo-dashboard
+  labels:
+    name: geo-dashboard
+    app.kubernetes.io/name: geo-dashboard
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/component: namespace 

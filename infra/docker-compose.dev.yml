@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with PostGIS
+  postgres:
+    image: kartoza/postgis:14-3.2
+    container_name: geo-postgres
+    environment:
+      POSTGRES_USER: geouser
+      POSTGRES_PASSWORD: geopassword123
+      POSTGRES_DBNAME: geodashboard
+      POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore,postgis_topology,postgis_raster,pgrouting
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geouser -d geodashboard"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - geo-network
+
+  # Django Backend with Hot Reload
+  backend:
+    build:
+      context: ../backend/core-monolith
+      dockerfile: Dockerfile.dev
+    container_name: geo-backend
+    environment:
+      - DJANGO_DEBUG=True
+      - DJANGO_SECRET_KEY=dev-secret-key-12345
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=geodashboard
+      - DB_USER=geouser
+      - POSTGRESQL_PASS=geopassword123
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend/core-monolith/dashboard:/app
+      - backend_media:/app/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+        pip install -r requirements.txt &&
+        python manage.py migrate --noinput &&
+        python manage.py shell -c \"
+        from django.contrib.auth import get_user_model;
+        User = get_user_model();
+        User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+        \" &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+    networks:
+      - geo-network
+
+  # React Frontend with Hot Reload
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    container_name: geo-frontend
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_TILES_URL=http://localhost:3001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true
+    networks:
+      - geo-network
+
+  # Martin Vector Tiler
+  martin:
+    image: ghcr.io/maplibre/martin:latest
+    container_name: geo-martin
+    environment:
+      - DATABASE_URL=postgresql://geouser:geopassword123@postgres:5432/geodashboard
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./martin-config.yaml:/config/config.yaml:ro
+      - tiles_data:/tiles
+    command: ["--config", "/config/config.yaml"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - geo-network
+
+  # NGINX Reverse Proxy (Optional - for production-like setup)
+  nginx:
+    image: nginx:alpine
+    container_name: geo-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+      - martin
+    networks:
+      - geo-network
+
+volumes:
+  postgres_data:
+  backend_media:
+  tiles_data:
+
+networks:
+  geo-network:
+    driver: bridge 

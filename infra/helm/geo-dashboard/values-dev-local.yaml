@@ -1,0 +1,199 @@
+# Auto-generated development values with hot reload
+# Generated on: Fri Jun 20 11:15:29 UTC 2025
+
+# Enable development mode
+development:
+  enabled: true
+  hotReload: true
+  debugMode: true
+  
+  # Hot reload configuration
+  hotReloadConfig:
+    watchFiles: true
+    pollInterval: 1
+    watchPaths:
+      - "/app/src"
+      - "/app/frontend/src" 
+      - "/app/backend"
+      - "/app/templates"
+      - "/app/static"
+    watchExtensions:
+      - ".py"
+      - ".js"
+      - ".jsx"
+      - ".ts"
+      - ".tsx"
+      - ".css"
+      - ".scss"
+      - ".html"
+      - ".json"
+      - ".yaml"
+      - ".yml"
+    
+  # Development tools
+  devTools:
+    djangoDebugToolbar: true
+    reactDevTools: true
+    hmr: true
+    sourceMaps: true
+    verboseLogging: true
+
+# Core application overrides for development
+core:
+  image:
+    repository: pronittardis/core-app
+    tag: "dev"
+    pullPolicy: Always
+  
+  replicaCount: 1
+  
+  env:
+    DJANGO_DEBUG: "True"
+    DJANGO_ALLOWED_HOSTS: "*"
+    DJANGO_SETTINGS_MODULE: "core.settings.development"
+    PYTHONUNBUFFERED: "1"
+    WATCHDOG_ENABLED: "1"
+    HOT_RELOAD: "1"
+  
+  # Development command override
+  command:
+    - "/bin/bash"
+    - "-c"
+    - |
+      echo "🔥 Starting Django development server with hot reload..."
+      pip install watchdog django-extensions
+      python manage.py collectstatic --noinput
+      python manage.py migrate
+      python manage.py runserver_plus 0.0.0.0:8000 --reloader-type watchdog
+  
+  # Volume mounts for live code editing
+  volumeMounts:
+    - name: backend-source
+      mountPath: /app
+      readOnly: false
+  
+  volumes:
+    - name: backend-source
+      hostPath:
+        path: /home/pronit/workspace/maps.tardis.digital/backend
+        type: Directory
+
+# Frontend overrides for development
+frontend:
+  image:
+    repository: pronittardis/frontend-app
+    tag: "dev"
+    pullPolicy: Always
+  
+  replicaCount: 1
+  
+  env:
+    NODE_ENV: "development"
+    REACT_APP_API_URL: "http://geo-dashboard.local/api"
+    FAST_REFRESH: "true"
+    WDS_SOCKET_HOST: "geo-dashboard.local"
+    WDS_SOCKET_PORT: "3000"
+    CHOKIDAR_USEPOLLING: "true"
+    WATCHPACK_POLLING: "true"
+    GENERATE_SOURCEMAP: "true"
+  
+  # Development command override
+  command:
+    - "/bin/bash"
+    - "-c"
+    - |
+      echo "🔥 Starting React development server with hot reload..."
+      npm install
+      npm run start
+  
+  # Volume mounts for live code editing
+  volumeMounts:
+    - name: frontend-source
+      mountPath: /app
+      readOnly: false
+    - name: node-modules
+      mountPath: /app/node_modules
+  
+  volumes:
+    - name: frontend-source
+      hostPath:
+        path: /home/pronit/workspace/maps.tardis.digital/frontend
+        type: Directory
+    - name: node-modules
+      emptyDir: {}
+
+# PostgreSQL for development
+postgresql:
+  auth:
+    postgresPassword: "devpassword123"
+    username: "devuser"
+    password: "devpassword123"
+    database: "geodashboard_dev"
+  
+  primary:
+    persistence:
+      enabled: false
+
+# Redis for development
+redis:
+  auth:
+    enabled: false
+  
+  master:
+    persistence:
+      enabled: false
+
+# Ingress for development with WebSocket support
+ingress:
+  enabled: true
+  hosts:
+    - host: geo-dashboard.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api
+          pathType: Prefix
+          service: core
+        - path: /admin
+          pathType: Prefix
+          service: core
+        - path: /tiles
+          pathType: Prefix
+          service: tiler
+        - path: /sockjs-node
+          pathType: Prefix
+          service: frontend
+        - path: /ws
+          pathType: Prefix
+          service: frontend
+  
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    # Enable WebSocket support for hot reload
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+
+# Disable autoscaling and monitoring in development
+autoscaling:
+  enabled: false
+
+monitoring:
+  enabled: false
+
+# More permissive security for development
+securityContext:
+  capabilities:
+    drop: []
+  readOnlyRootFilesystem: false
+  runAsNonRoot: false
+  runAsUser: 0

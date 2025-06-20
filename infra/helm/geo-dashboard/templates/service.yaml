@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "geo-dashboard.fullname" . }}-core
+  labels:
+    {{- include "geo-dashboard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+spec:
+  type: {{ .Values.core.service.type }}
+  ports:
+    - port: {{ .Values.core.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "geo-dashboard.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+---
+{{- if .Values.frontend.enabled | default true }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "geo-dashboard.fullname" . }}-frontend
+  labels:
+    {{- include "geo-dashboard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  type: {{ .Values.frontend.service.type }}
+  ports:
+    - port: {{ .Values.frontend.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "geo-dashboard.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+{{- end }}
+---
+{{- if .Values.tiler.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "geo-dashboard.fullname" . }}-tiler
+  labels:
+    {{- include "geo-dashboard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: tiler
+spec:
+  type: {{ .Values.tiler.service.type }}
+  ports:
+    - port: {{ .Values.tiler.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "geo-dashboard.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: tiler
+{{- end }} 

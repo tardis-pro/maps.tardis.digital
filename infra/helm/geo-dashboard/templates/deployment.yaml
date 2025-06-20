@@ -1,0 +1,264 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "geo-dashboard.fullname" . }}-core
+  labels:
+    {{- include "geo-dashboard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.core.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "geo-dashboard.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: core
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "geo-dashboard.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: core
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "geo-dashboard.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: core
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.core.image.registry }}/{{ .Values.core.image.repository }}:{{ .Values.core.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.core.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.core.service.targetPort }}
+              protocol: TCP
+          {{- if .Values.development.enabled }}
+          {{- if .Values.core.command }}
+          command:
+            {{- toYaml .Values.core.command | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          env:
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "geo-dashboard.fullname" . }}-secrets
+                  key: django-secret-key
+            - name: DJANGO_DEBUG
+              value: {{ .Values.core.env.DJANGO_DEBUG | quote }}
+            - name: DJANGO_ALLOWED_HOSTS
+              value: {{ .Values.core.env.DJANGO_ALLOWED_HOSTS | quote }}
+            - name: DB_HOST
+              value: {{ include "geo-dashboard.postgresql.fullname" . }}
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_DATABASE
+              value: {{ .Values.postgresql.auth.database | quote }}
+            - name: DB_USER
+              value: {{ .Values.postgresql.auth.username | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "geo-dashboard.postgresql.secretName" . }}
+                  key: password
+            {{- if .Values.redis.enabled }}
+            - name: REDIS_HOST
+              value: {{ include "geo-dashboard.redis.fullname" . }}-master
+            - name: REDIS_PORT
+              value: "6379"
+            {{- end }}
+          {{- if .Values.core.healthCheck.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.core.healthCheck.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.core.healthCheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.core.healthCheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.core.healthCheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.core.healthCheck.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.core.healthCheck.path }}
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: {{ .Values.core.healthCheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.core.healthCheck.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.core.resources | nindent 12 }}
+          {{- if .Values.development.enabled }}
+          {{- if .Values.core.volumeMounts }}
+          volumeMounts:
+            {{- toYaml .Values.core.volumeMounts | nindent 12 }}
+          {{- end }}
+          {{- end }}
+      {{- if .Values.development.enabled }}
+      {{- if .Values.core.volumes }}
+      volumes:
+        {{- toYaml .Values.core.volumes | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+{{- if .Values.frontend.enabled | default true }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "geo-dashboard.fullname" . }}-frontend
+  labels:
+    {{- include "geo-dashboard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.frontend.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "geo-dashboard.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        {{- include "geo-dashboard.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "geo-dashboard.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: frontend
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.frontend.image.registry }}/{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.frontend.service.targetPort }}
+              protocol: TCP
+          {{- if .Values.development.enabled }}
+          {{- if .Values.frontend.command }}
+          command:
+            {{- toYaml .Values.frontend.command | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          env:
+            - name: REACT_APP_API_URL
+              value: "http://{{ include "geo-dashboard.fullname" . }}-core:{{ .Values.core.service.port }}"
+            - name: REACT_APP_TILES_URL
+              value: "http://{{ include "geo-dashboard.fullname" . }}-tiler:{{ .Values.tiler.service.port }}"
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          {{- if .Values.development.enabled }}
+          {{- if .Values.frontend.volumeMounts }}
+          volumeMounts:
+            {{- toYaml .Values.frontend.volumeMounts | nindent 12 }}
+          {{- end }}
+          {{- end }}
+      {{- if .Values.development.enabled }}
+      {{- if .Values.frontend.volumes }}
+      volumes:
+        {{- toYaml .Values.frontend.volumes | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+---
+{{- if .Values.tiler.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "geo-dashboard.fullname" . }}-tiler
+  labels:
+    {{- include "geo-dashboard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: tiler
+spec:
+  replicas: {{ .Values.tiler.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "geo-dashboard.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: tiler
+  template:
+    metadata:
+      labels:
+        {{- include "geo-dashboard.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: tiler
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "geo-dashboard.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: tiler
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.tiler.image.registry }}/{{ .Values.tiler.image.repository }}:{{ .Values.tiler.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.tiler.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.tiler.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: DB_HOST
+              value: {{ include "geo-dashboard.postgresql.fullname" . }}
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_DATABASE
+              value: {{ .Values.postgresql.auth.database | quote }}
+            - name: DB_USER
+              value: {{ .Values.postgresql.auth.username | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "geo-dashboard.postgresql.secretName" . }}
+                  key: password
+          resources:
+            {{- toYaml .Values.tiler.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }} 

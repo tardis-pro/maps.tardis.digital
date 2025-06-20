@@ -1,0 +1,306 @@
+# Default values for geo-dashboard
+# This is a YAML-formatted file
+
+# Global configuration
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Application configuration
+app:
+  name: geo-dashboard
+  version: "1.0.0"
+
+# Core application settings
+core:
+  image:
+    registry: docker.io
+    repository: pronittardis/core-app
+    tag: "v1"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  
+  env:
+    DJANGO_DEBUG: "False"
+    DJANGO_ALLOWED_HOSTS: "*"
+    
+  # Health checks
+  healthCheck:
+    enabled: true
+    path: "/health/"
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Frontend configuration
+frontend:
+  image:
+    registry: docker.io
+    repository: pronittardis/frontend-app
+    tag: "v1"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "250m"
+  
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+
+# Tiler service configuration
+tiler:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: pronittardis/tiler-app
+    tag: "v1"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 1
+  
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  
+  service:
+    type: ClusterIP
+    port: 3001
+    targetPort: 3001
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "admin123"
+    username: "geouser"
+    password: "geopassword123"
+    database: "geodashboard"
+  
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ""
+    
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+  
+  # PostGIS extension
+  postgresqlExtendedConf:
+    shared_preload_libraries: "pg_stat_statements"
+  
+  initdbScripts:
+    init.sql: |
+      CREATE EXTENSION IF NOT EXISTS postgis;
+      CREATE EXTENSION IF NOT EXISTS hstore;
+      CREATE EXTENSION IF NOT EXISTS postgis_topology;
+      CREATE EXTENSION IF NOT EXISTS postgis_raster;
+      CREATE EXTENSION IF NOT EXISTS pgrouting;
+
+# Redis configuration (for caching)
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  
+  master:
+    persistence:
+      enabled: true
+      size: 1Gi
+    
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "250m"
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+  
+  hosts:
+    - host: geo-dashboard.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: core
+        - path: /tiles
+          pathType: Prefix
+          service: tiler
+        - path: /static
+          pathType: Prefix
+          service: frontend
+  
+  tls: []
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod Security Context
+podSecurityContext:
+  fsGroup: 2000
+
+# Security Context
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Persistence
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+# Monitoring
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    namespace: ""
+    labels: {}
+
+# Backup configuration
+backup:
+  enabled: false
+  schedule: "0 2 * * *"
+  retention: "7d"
+
+# Development mode with hot reload
+development:
+  enabled: false
+  hotReload: false
+  debugMode: false
+  
+  # Hot reload configuration
+  hotReloadConfig:
+    # Enable file watching
+    watchFiles: true
+    # Poll interval for file changes (in seconds)
+    pollInterval: 1
+    # Directories to watch for changes
+    watchPaths:
+      - "/app/src"
+      - "/app/frontend/src"
+      - "/app/backend"
+    # File extensions to watch
+    watchExtensions:
+      - ".py"
+      - ".js"
+      - ".jsx"
+      - ".ts"
+      - ".tsx"
+      - ".css"
+      - ".scss"
+      - ".html"
+      - ".json"
+    
+  # Development tools
+  devTools:
+    # Enable Django debug toolbar
+    djangoDebugToolbar: true
+    # Enable React DevTools
+    reactDevTools: true
+    # Enable hot module replacement
+    hmr: true
+    # Enable source maps
+    sourceMaps: true
+    # Enable verbose logging
+    verboseLogging: true
+  
+  # Volume mounts for source code
+  volumeMounts:
+    # Backend source code
+    backend:
+      enabled: false
+      hostPath: ""
+      mountPath: "/app"
+    # Frontend source code  
+    frontend:
+      enabled: false
+      hostPath: ""
+      mountPath: "/app"
+  
+  # Development services
+  services:
+    # Enable webpack dev server
+    webpackDevServer: true
+    # Enable Django runserver
+    djangoRunserver: true
+    # Port forwarding for development
+    portForward:
+      enabled: true
+      ports:
+        - name: "frontend-dev"
+          port: 3000
+          targetPort: 3000
+        - name: "backend-dev"
+          port: 8000
+          targetPort: 8000
+        - name: "webpack-hmr"
+          port: 3001
+          targetPort: 3001 

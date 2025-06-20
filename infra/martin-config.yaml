@@ -1,0 +1,29 @@
+listen_addresses: "0.0.0.0:3000"
+pool_size: 20
+keep_alive: 75
+worker_processes: 4
+
+# PostgreSQL connection
+postgres:
+  connection_string: "postgresql://geouser:geopassword123@postgres:5432/geodashboard"
+  auto_publish:
+    tables: true
+    functions: true
+  pool_size: 20
+  
+# Optional: Sprite and font configuration
+sprites:
+  # Add sprite configurations here if needed
+  
+fonts:
+  # Add font configurations here if needed
+
+# CORS settings for development
+cors:
+  allowed_origins: 
+    - "http://localhost:3000"
+    - "http://localhost"
+    - "http://dev.geo-dashboard.local"
+
+# Health check endpoint
+health_check: true 

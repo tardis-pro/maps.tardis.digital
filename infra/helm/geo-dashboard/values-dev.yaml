@@ -1,0 +1,246 @@
+# Development values for geo-dashboard with hot reload enabled
+# This file overrides the default values.yaml for development mode
+
+# Enable development mode
+development:
+  enabled: true
+  hotReload: true
+  debugMode: true
+  
+  # Hot reload configuration
+  hotReloadConfig:
+    watchFiles: true
+    pollInterval: 1
+    watchPaths:
+      - "/app/src"
+      - "/app/frontend/src" 
+      - "/app/backend"
+      - "/app/templates"
+      - "/app/static"
+    watchExtensions:
+      - ".py"
+      - ".js"
+      - ".jsx"
+      - ".ts"
+      - ".tsx"
+      - ".css"
+      - ".scss"
+      - ".html"
+      - ".json"
+      - ".yaml"
+      - ".yml"
+    
+  # Development tools
+  devTools:
+    djangoDebugToolbar: true
+    reactDevTools: true
+    hmr: true
+    sourceMaps: true
+    verboseLogging: true
+  
+  # Volume mounts for source code (configure these paths)
+  volumeMounts:
+    backend:
+      enabled: true
+      hostPath: "/path/to/your/backend"  # Update this path
+      mountPath: "/app"
+    frontend:
+      enabled: true
+      hostPath: "/path/to/your/frontend"  # Update this path
+      mountPath: "/app"
+  
+  # Development services
+  services:
+    webpackDevServer: true
+    djangoRunserver: true
+    portForward:
+      enabled: true
+      ports:
+        - name: "frontend-dev"
+          port: 3000
+          targetPort: 3000
+        - name: "backend-dev"
+          port: 8000
+          targetPort: 8000
+        - name: "webpack-hmr"
+          port: 3001
+          targetPort: 3001
+
+# Core application overrides for development
+core:
+  image:
+    repository: pronittardis/core-app
+    tag: "dev"
+    pullPolicy: Always  # Always pull latest dev image
+  
+  replicaCount: 1  # Single replica for development
+  
+  env:
+    DJANGO_DEBUG: "True"
+    DJANGO_ALLOWED_HOSTS: "*"
+    DJANGO_SETTINGS_MODULE: "core.settings.development"
+    PYTHONUNBUFFERED: "1"
+    WATCHDOG_ENABLED: "1"
+    HOT_RELOAD: "1"
+  
+  # Development command override
+  command:
+    - "/bin/bash"
+    - "-c"
+    - |
+      echo "Starting Django development server with hot reload..."
+      pip install watchdog
+      python manage.py collectstatic --noinput
+      python manage.py migrate
+      python manage.py runserver 0.0.0.0:8000 --reload
+  
+  # Volume mounts for live code editing
+  volumeMounts:
+    - name: backend-source
+      mountPath: /app
+      readOnly: false
+  
+  volumes:
+    - name: backend-source
+      hostPath:
+        path: /path/to/your/backend  # Update this path
+        type: Directory
+
+# Frontend overrides for development
+frontend:
+  image:
+    repository: pronittardis/frontend-app
+    tag: "dev"
+    pullPolicy: Always
+  
+  replicaCount: 1
+  
+  env:
+    NODE_ENV: "development"
+    REACT_APP_API_URL: "http://localhost:8000"
+    FAST_REFRESH: "true"
+    WDS_SOCKET_HOST: "localhost"
+    WDS_SOCKET_PORT: "3000"
+    CHOKIDAR_USEPOLLING: "true"
+    WATCHPACK_POLLING: "true"
+  
+  # Development command override
+  command:
+    - "/bin/bash"
+    - "-c"
+    - |
+      echo "Starting React development server with hot reload..."
+      npm install
+      npm start
+  
+  # Volume mounts for live code editing
+  volumeMounts:
+    - name: frontend-source
+      mountPath: /app
+      readOnly: false
+    - name: node-modules
+      mountPath: /app/node_modules
+  
+  volumes:
+    - name: frontend-source
+      hostPath:
+        path: /path/to/your/frontend  # Update this path
+        type: Directory
+    - name: node-modules
+      emptyDir: {}
+
+# Tiler development configuration
+tiler:
+  enabled: true
+  image:
+    tag: "dev"
+    pullPolicy: Always
+  
+  env:
+    NODE_ENV: "development"
+    DEBUG: "true"
+
+# PostgreSQL for development
+postgresql:
+  auth:
+    postgresPassword: "devpassword123"
+    username: "devuser"
+    password: "devpassword123"
+    database: "geodashboard_dev"
+  
+  primary:
+    persistence:
+      enabled: false  # Use ephemeral storage for development
+    
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+
+# Redis for development
+redis:
+  auth:
+    enabled: false
+  
+  master:
+    persistence:
+      enabled: false  # Use ephemeral storage for development
+    
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+
+# Ingress for development
+ingress:
+  enabled: true
+  hosts:
+    - host: geo-dashboard.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend  # Route to frontend for dev
+        - path: /api
+          pathType: Prefix
+          service: core
+        - path: /admin
+          pathType: Prefix
+          service: core
+        - path: /tiles
+          pathType: Prefix
+          service: tiler
+  
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    # Enable WebSocket support for hot reload
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/server-snippets: |
+      location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+      }
+
+# Disable autoscaling in development
+autoscaling:
+  enabled: false
+
+# Disable monitoring in development
+monitoring:
+  enabled: false
+
+# Security context for development (more permissive)
+securityContext:
+  capabilities:
+    drop: []
+  readOnlyRootFilesystem: false
+  runAsNonRoot: false
+  runAsUser: 0  # Run as root for development convenience 

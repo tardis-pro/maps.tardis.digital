@@ -1,0 +1,27 @@
+apiVersion: v2
+name: geo-dashboard
+description: A comprehensive geospatial dashboard with mapping, analytics, and data visualization capabilities
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - geospatial
+  - mapping
+  - dashboard
+  - analytics
+  - gis
+home: https://github.com/your-repo/geo-dashboard
+sources:
+  - https://github.com/your-repo/geo-dashboard
+maintainers:
+  - name: Geo Dashboard Team
+    email: team@geo-dashboard.com
+dependencies:
+  - name: postgresql
+    version: "12.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "17.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled 

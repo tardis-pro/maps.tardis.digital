@@ -1,0 +1,22 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: geo-storage
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: rancher.io/local-path  # Works with k3s
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+---
+# Fallback storage class for other distributions
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: geo-storage-fallback
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: k8s.io/minikube-hostpath  # Works with minikube
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+volumeBindingMode: Immediate 
