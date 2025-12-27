@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
@@ -7,19 +6,9 @@ import { MVTLayer } from '@deck.gl/geo-layers';
 import { HexagonLayer, HeatmapLayer, ScatterplotLayer } from '@deck.gl/aggregation-layers';
 import { Protocol } from 'pmtiles';
 import { styleFactory } from './tile';
-import { RootState } from '../redux/types';
-
-import {
-    setViewState,
-    setMapLoaded,
-    ViewState,
-    setSelectedFeature
-} from '../redux/slices/mapSlice';
-import {
-    toggleLayerVisibility,
-    updateLayer,
-    deleteLayer
-} from '../redux/slices/layerSlice';
+import { useMap } from '../context/MapContext';
+import { useLayerUI } from '../context/LayerUIContext';
+import { useLayers, useUpdateLayer, useDeleteLayer } from '../api/queries/layers';
 import {
     performSpatialJoin,
     calculateClusterStats,
@@ -47,6 +36,16 @@ import LoadingIndicator from './LoadingIndicator';
 import Legend from './Legend';
 import { GeoJsonLayer } from 'deck.gl';
 
+interface ViewState {
+    longitude: number;
+    latitude: number;
+    zoom: number;
+    pitch?: number;
+    bearing?: number;
+    maxZoom?: number;
+    minZoom?: number;
+}
+
 interface BaseMapProps {
     initialViewState?: ViewState;
     className?: string;
@@ -68,10 +67,17 @@ const BaseMap: React.FC<BaseMapProps> = ({
     showLayerPanel = true,
     showAnalyticsPanel = true
 }) => {
-    const dispatch = useDispatch();
-    const { viewState: reduxViewState, isMapLoaded } = useSelector((state: RootState) => state.map);
-    const { layers, activeLayers } = useSelector((state: RootState) => state.layers);
-    const { selectedAnalyticsMode } = useSelector((state: RootState) => state.analytics);
+    // Use context hooks instead of Redux
+    const { viewState, isMapLoaded, setMapLoaded } = useMap();
+    const { activeLayers, toggleLayerVisibility } = useLayerUI();
+
+    // Use React Query for layers data
+    const { data: layers = [] } = useLayers();
+    const updateLayerMutation = useUpdateLayer();
+    const deleteLayerMutation = useDeleteLayer();
+
+    // Analytics mode - keeping local state for now (can be moved to context later)
+    const [selectedAnalyticsMode, setSelectedAnalyticsMode] = useState<string | null>(null);
 
     const deck = useRef<any>(null);
     const mapRef = useRef<any>(null);
@@ -103,10 +109,10 @@ const BaseMap: React.FC<BaseMapProps> = ({
         }
     }, [selectedAnalyticsMode, isMapLoaded]);
 
-    // Create deck.gl layers based on redux state
+    // Create deck.gl layers based on context state
     const deckLayers = useMemo(() => {
         return layers
-            .filter(layer => activeLayers.includes(layer.id.toString()))
+            .filter(layer => activeLayers.has(layer.id.toString()))
             .map(layer => {
                 switch (layer.type) {
                     case 'mvt':
@@ -137,8 +143,8 @@ const BaseMap: React.FC<BaseMapProps> = ({
             <DeckGL
                 ref={deck}
                 controller={DECK_CONTROLLER_OPTIONS}
-                initialViewState={initialViewState || reduxViewState}
-                viewState={reduxViewState}
+                initialViewState={initialViewState || viewState}
+                viewState={viewState}
                 layers={deckLayers}
                 style={{ zIndex: 1 }}
             >
@@ -156,10 +162,10 @@ const BaseMap: React.FC<BaseMapProps> = ({
             {showLayerPanel && (
                 <LayerPanel
                     layers={layers}
-                    activeLayers={activeLayers}
-                    onToggleLayer={(layerId) => dispatch(toggleLayerVisibility(layerId))}
-                    onStyleChange={(layerId, style) => dispatch(updateLayer({ id: layerId, style }))}
-                    onRemoveLayer={(layerId) => dispatch(deleteLayer(layerId))}
+                    activeLayers={Array.from(activeLayers)}
+                    onToggleLayer={(layerId) => toggleLayerVisibility(layerId)}
+                    onStyleChange={(layerId, style) => updateLayerMutation.mutate({ id: Number(layerId), data: { style } as any })}
+                    onRemoveLayer={(layerId) => deleteLayerMutation.mutate(Number(layerId))}
                     onLayerOrderChange={(newOrder) => {/* implement layer order change */}}
                     onAddLayer={(layer) => {/* implement add layer */}}
                 />

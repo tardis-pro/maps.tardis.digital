@@ -1,18 +1,27 @@
 import { useEffect, RefObject } from 'react';
-import { useDispatch } from 'react-redux';
-import { ViewState, setViewState, setMapLoaded } from '../redux/slices/mapSlice';
-import { toggleLayerVisibility } from '../redux/slices/layerSlice';
+import { useMap } from '../context/MapContext';
+import { useLayerUI } from '../context/LayerUIContext';
 import eventBus from '../utils/eventBus';
 import { MapEvents } from '../config/mapConfig';
 import maplibregl from 'maplibre-gl';
 // Import Protocol directly as it's imported in the original file
 import { Protocol } from 'pmtiles';
 
+interface ViewState {
+    longitude: number;
+    latitude: number;
+    zoom: number;
+    pitch?: number;
+    bearing?: number;
+}
+
 /**
  * Custom hook to handle map-related side effects and event listeners
  */
 export const useMapHandlers = (mapRef: RefObject<any>) => {
-    const dispatch = useDispatch();
+    // Use context hooks instead of Redux
+    const { setViewState, setMapLoaded } = useMap();
+    const { toggleLayerVisibility } = useLayerUI();
 
     // Initialize PMTiles protocol
     useEffect(() => {
@@ -21,11 +30,11 @@ export const useMapHandlers = (mapRef: RefObject<any>) => {
 
         // Listen for map view state changes from other components
         const handleMapViewChange = ({ zxy }: { zxy: [number, number, number] }) => {
-            dispatch(setViewState({
+            setViewState({
                 zoom: zxy[0],
                 latitude: zxy[1],
                 longitude: zxy[2]
-            }));
+            });
         };
 
         eventBus.on(MapEvents.VIEW_CHANGE, handleMapViewChange);
@@ -34,12 +43,12 @@ export const useMapHandlers = (mapRef: RefObject<any>) => {
             maplibregl.removeProtocol("pmtiles");
             eventBus.off(MapEvents.VIEW_CHANGE, handleMapViewChange);
         };
-    }, [dispatch]);
+    }, [setViewState]);
 
     // Handle layer visibility changes
     useEffect(() => {
         const handleLayerToggle = ({ layer, checked }: { layer: string; checked: boolean }) => {
-            dispatch(toggleLayerVisibility(layer));
+            toggleLayerVisibility(layer);
         };
 
         eventBus.on(MapEvents.LAYER_TOGGLE, handleLayerToggle);
@@ -47,18 +56,18 @@ export const useMapHandlers = (mapRef: RefObject<any>) => {
         return () => {
             eventBus.off(MapEvents.LAYER_TOGGLE, handleLayerToggle);
         };
-    }, [dispatch]);
+    }, [toggleLayerVisibility]);
 
     // Store map reference when available
     useEffect(() => {
         if (mapRef.current) {
-            dispatch(setMapLoaded(true));
+            setMapLoaded(true);
         }
-    }, [mapRef.current, dispatch]);
+    }, [mapRef.current, setMapLoaded]);
 
     // Handle view state changes
     const onViewStateChange = ({ viewState }: { viewState: ViewState }) => {
-        dispatch(setViewState(viewState));
+        setViewState(viewState);
         eventBus.emit(MapEvents.VIEW_CHANGE, {
             zxy: [viewState.zoom, viewState.latitude, viewState.longitude]
         });

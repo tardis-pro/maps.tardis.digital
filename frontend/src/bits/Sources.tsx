@@ -1,10 +1,8 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from "react";
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../redux/types';
-import { fetchLayers, toggleLayerVisibility } from '../redux/slices/layerSlice';
+import { useLayers } from '../api/queries/layers';
+import { useLayerUI } from '../context/LayerUIContext';
 import { V1Service } from '../services/akgda/services/V1Service';
-import { addNotification } from '../redux/slices/uiSlice';
 
 interface CatalogItem {
   id: string;
@@ -15,18 +13,16 @@ interface CatalogItem {
 
 // Component to display the catalog of available data sources
 const CatalogDial: React.FC = () => {
-  const dispatch = useDispatch();
-  const { layers, activeLayers, isLoading, error } = useSelector((state: RootState) => state.layers);
+  // Use React Query for layers data
+  const { data: layers = [], isLoading, error } = useLayers();
+  // Use LayerUI context for active layers
+  const { activeLayers, toggleLayerVisibility } = useLayerUI();
 
   const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
   const [isLoadingCatalog, setIsLoadingCatalog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  // Fetch layers from the API
-  useEffect(() => {
-    dispatch(fetchLayers());
-  }, [dispatch]);
+  const [notification, setNotification] = useState<{ message: string; type: 'info' | 'error' } | null>(null);
 
   // Fetch catalog data
   useEffect(() => {
@@ -47,12 +43,12 @@ const CatalogDial: React.FC = () => {
 
           setCatalogItems(items);
         }
-      } catch (error) {
-        console.error("Error fetching catalog data:", error);
-        dispatch(addNotification({
+      } catch (err) {
+        console.error("Error fetching catalog data:", err);
+        setNotification({
           message: 'Failed to load catalog data',
           type: 'error'
-        }));
+        });
 
         // Fallback to using the layers from the API
         if (layers.length > 0) {
@@ -71,7 +67,7 @@ const CatalogDial: React.FC = () => {
     };
 
     fetchCatalog();
-  }, [dispatch, layers]);
+  }, [layers]);
 
   // Filter items based on search term and category
   const filteredItems = catalogItems.filter(item => {
@@ -90,13 +86,13 @@ const CatalogDial: React.FC = () => {
   // Handle item selection
   const handleItemClick = (item: CatalogItem) => {
     if (item.type === 'layer') {
-      dispatch(toggleLayerVisibility(item.id));
+      toggleLayerVisibility(item.id);
     } else {
       // For tile sources, we might want to add them as a new layer
-      dispatch(addNotification({
+      setNotification({
         message: `Selected ${item.name}`,
         type: 'info'
-      }));
+      });
     }
   };
 
@@ -120,7 +116,7 @@ const CatalogDial: React.FC = () => {
     return (
       <div className="p-4 bg-red-900 bg-opacity-50 rounded-lg shadow-lg text-white">
         <h3 className="text-lg font-semibold mb-2">Error</h3>
-        <p>{error}</p>
+        <p>{error instanceof Error ? error.message : 'An error occurred'}</p>
       </div>
     );
   }
@@ -165,7 +161,7 @@ const CatalogDial: React.FC = () => {
           filteredItems.map((item) => (
             <motion.div
               key={item.id}
-              className={`p-3 rounded cursor-pointer ${activeLayers.includes(item.id) ? 'bg-blue-700' : 'bg-gray-700'
+              className={`p-3 rounded cursor-pointer ${activeLayers.has(item.id) ? 'bg-blue-700' : 'bg-gray-700'
                 }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
