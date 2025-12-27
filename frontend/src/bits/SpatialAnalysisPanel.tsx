@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../redux/types';
 import { useAnalysis, AnalysisType, AnalysisResult } from '../context/AnalysisContext';
 import SpatialAnalysis from '../utils/spatialAnalysis';
 import { FeatureCollection } from 'geojson';
-import './SpatialAnalysisPanel.css';
+
+// Dataset type for local state
+interface DatasetEntry {
+  name: string;
+  data: FeatureCollection;
+}
 
 // Props for the component
 interface SpatialAnalysisPanelProps {
@@ -22,8 +25,8 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
     setAnalysisError
   } = useAnalysis();
 
-  // Get datasets from Redux store (data management stays in Redux for now)
-  const datasets = useSelector((state: RootState) => state.data.datasets);
+  // Local state for datasets (previously from Redux)
+  const [datasets] = useState<Record<string, DatasetEntry>>({});
 
   // Local state
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisType>(AnalysisType.BUFFER);

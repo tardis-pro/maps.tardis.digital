@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { RootState } from '../redux/types';
 import {
   useVisualization,
   ColorRamp,
   AggregationType,
   COLOR_RAMPS
 } from '../context/VisualizationContext';
-import '../effects/VisualizationControls.css';
+
+// Dataset type for local state
+interface Dataset {
+  id: string;
+  name: string;
+  type: string;
+  properties: Record<string, { type: string }>;
+}
 
 interface VisualizationControlsProps {
   onClose?: () => void;
@@ -20,8 +25,9 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
     updateVisualizationSettings
   } = useVisualization();
 
-  // Still get datasets from Redux for now (data management stays in Redux)
-  const { datasets, selectedDatasetIds } = useSelector((state: RootState) => state.analytics);
+  // Local state for datasets (previously from Redux)
+  const [datasets] = useState<Dataset[]>([]);
+  const [selectedDatasetIds] = useState<string[]>([]);
 
   const selectedDatasets = datasets.filter(d => selectedDatasetIds.includes(d.id));
   const [activeDatasetId, setActiveDatasetId] = useState<string | null>(null);

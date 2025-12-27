@@ -1,10 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { addDataset, removeDataset } from '../redux/slices/analyticsSlice';
-import { RootState } from '../redux/types';
-import { Dataset } from '../redux/slices/analyticsSlice';
-import '../effects/DataManager.css';
+
+// Dataset type definition (previously from Redux)
+export interface Dataset {
+  id: string;
+  name: string;
+  type: 'geojson' | 'csv' | 'raster' | 'vector';
+  properties: Record<string, { type: string }>;
+  data?: any;
+  sourceUrl?: string;
+}
 
 // File type helpers
 const isGeoJSON = (file: File) => file.name.endsWith('.geojson') || file.name.endsWith('.json');
@@ -18,8 +23,8 @@ const isRaster = (file: File) =>
   file.name.endsWith('.png');
 
 const DataManager: React.FC = () => {
-  const dispatch = useDispatch();
-  const { datasets } = useSelector((state: RootState) => state.analytics);
+  // Local state for datasets (previously from Redux)
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
   
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
@@ -125,8 +130,8 @@ const DataManager: React.FC = () => {
           data
         };
         
-        // Add to Redux store
-        dispatch(addDataset(dataset));
+        // Add to local state
+        setDatasets(prev => [...prev, dataset]);
         
         // Clear progress after a delay
         setTimeout(() => {
@@ -258,8 +263,8 @@ const DataManager: React.FC = () => {
         data
       };
       
-      // Add to Redux store
-      dispatch(addDataset(dataset));
+      // Add to local state
+      setDatasets(prev => [...prev, dataset]);
       
       // Reset form
       setApiUrl('');
@@ -287,7 +292,7 @@ const DataManager: React.FC = () => {
   
   // Handle dataset removal
   const handleRemoveDataset = (id: string) => {
-    dispatch(removeDataset(id));
+    setDatasets(prev => prev.filter(d => d.id !== id));
   };
   
   return (

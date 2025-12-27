@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../redux/types';
 import Map from '../components/Map';
 import Sidebar from '../components/Sidebar';
 import LayerPanel from '../bits/LayerPanel';
@@ -8,20 +6,22 @@ import AnalyticsPanel from '../bits/AnalyticsPanel';
 import DataManager from '../bits/DataManager';
 import VisualizationControls from '../bits/VisualizationControls';
 import SpatialAnalysisPanel from '../bits/SpatialAnalysisPanel';
-import { fetchLayers, toggleLayerVisibility, updateLayer, deleteLayer } from '../redux/slices/layerSlice';
 import { useUI } from '../context/UIContext';
-import './Home.css';
+import { useLayerUI } from '../context/LayerUIContext';
+import { useLayers, useUpdateLayer, useDeleteLayer } from '../api/queries/layers';
 
 const Home: React.FC = () => {
-  const dispatch = useDispatch();
   const { isSidebarOpen, activeTab, toggleSidebar } = useUI();
+  const { activeLayers, toggleLayerVisibility } = useLayerUI();
+  const { data: layers = [], refetch: refetchLayers } = useLayers();
+  const updateLayerMutation = useUpdateLayer();
+  const deleteLayerMutation = useDeleteLayer();
   const [mapLoaded, setMapLoaded] = useState(false);
-  const { layers, activeLayers } = useSelector((state: RootState) => state.layers);
 
   useEffect(() => {
     // Fetch layers when component mounts
-    dispatch(fetchLayers());
-  }, [dispatch]);
+    refetchLayers();
+  }, [refetchLayers]);
 
   const handleMapLoad = () => {
     setMapLoaded(true);
@@ -33,10 +33,10 @@ const Home: React.FC = () => {
         return (
           <LayerPanel
             layers={layers}
-            activeLayers={activeLayers}
-            onToggleLayer={(layerId) => dispatch(toggleLayerVisibility(layerId))}
-            onStyleChange={(layerId, style) => dispatch(updateLayer({ id: layerId, style }))}
-            onRemoveLayer={(layerId) => dispatch(deleteLayer(layerId))}
+            activeLayers={Array.from(activeLayers)}
+            onToggleLayer={(layerId) => toggleLayerVisibility(layerId)}
+            onStyleChange={(layerId, style) => updateLayerMutation.mutate({ id: Number(layerId), data: { style } as any })}
+            onRemoveLayer={(layerId) => deleteLayerMutation.mutate(Number(layerId))}
             onLayerOrderChange={(newOrder) => {/* implement layer order change */}}
             onAddLayer={(layer) => {/* implement add layer */}}
           />

@@ -1,14 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from "framer-motion";
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../redux/types';
-import { fetchUserProfile } from '../redux/slices/authSlice';
 import { useUI } from '../context/UIContext';
+import { useAuth } from '../context/AuthContext';
 import Dashboard from './Dashboard';
 import Notification from './Notification';
 import Settings from './Settings';
 import Navigation from './Navigation';
-import '../effects/Sidebar.css';
 
 // Define variants outside the component to avoid re-definition on each render
 const overlayVariants = {
@@ -62,16 +59,8 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
-    const dispatch = useDispatch();
-    const { user } = useSelector((state: RootState) => state.auth);
+    const { user } = useAuth();
     const { toggleSidebar, setSidebarOpen } = useUI();
-
-    // Fetch user profile when sidebar opens
-    useEffect(() => {
-        if (isOpen && !user) {
-            dispatch(fetchUserProfile() as any);
-        }
-    }, [isOpen, user, dispatch]);
 
     // Handle sidebar toggle
     const handleToggle = () => {

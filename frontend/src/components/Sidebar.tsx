@@ -1,6 +1,5 @@
 import React from 'react';
 import { useUI } from '../context/UIContext';
-import './Sidebar.css';
 
 // Icons
 import { FaLayerGroup, FaChartBar, FaDatabase, FaPalette, FaMapMarkedAlt } from 'react-icons/fa';

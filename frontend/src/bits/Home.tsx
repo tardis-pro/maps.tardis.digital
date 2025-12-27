@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useSelector, useDispatch } from 'react-redux';
 import GridLayout from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -11,21 +10,20 @@ import CatalogDial from "./Sources";
 import DataManager from "./DataManager";
 import AnalyticsPanel from "./AnalyticsPanel";
 import VisualizationControls from "./VisualizationControls";
-import { RootState } from '../redux/types';
-import { fetchLayers } from '../redux/slices/layerSlice';
-import { setViewState } from '../redux/slices/mapSlice';
-import { AppDispatch } from '../redux/store';
 import { useUI } from '../context/UIContext';
-import '../effects/Home.css';
+import { useMap } from '../context/MapContext';
+import { useLayers } from '../api/queries/layers';
 
 // Import SVG icons
 import searchIcon from '../effects/Search.svg';
 
 const Home: React.FC = () => {
-    const dispatch = useDispatch<AppDispatch>();
     const { isSidebarOpen, gridLayout, updateGridLayout, toggleSidebar } = useUI();
-    const { viewState } = useSelector((state: RootState) => state.map);
-    const { selectedAnalyticsMode } = useSelector((state: RootState) => state.analytics);
+    const { viewState, setViewState } = useMap();
+    const { refetch: refetchLayers } = useLayers();
+
+    // Local state for analytics mode
+    const [selectedAnalyticsMode, setSelectedAnalyticsMode] = useState<string | null>(null);
 
     // Local state
     const [mounted, setMounted] = useState(false);
@@ -39,7 +37,7 @@ const Home: React.FC = () => {
         setMounted(true);
 
         // Fetch layers from the API
-        dispatch(fetchLayers());
+        refetchLayers();
 
         // Handle window resize
         const handleResize = () => {
@@ -52,7 +50,7 @@ const Home: React.FC = () => {
             setMounted(false);
             window.removeEventListener('resize', handleResize);
         };
-    }, [dispatch]);
+    }, [refetchLayers]);
 
     // Handle file uploads
     const updateUploadedFiles = (files: File[]) => {
@@ -125,19 +123,19 @@ const Home: React.FC = () => {
                         <div className="space-y-2">
                             <button
                                 className="w-full py-2 px-4 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors"
-                                onClick={() => dispatch(setViewState({ pitch: viewState.pitch === 0 ? 45 : 0 }))}
+                                onClick={() => setViewState({ ...viewState, pitch: viewState.pitch === 0 ? 45 : 0 })}
                             >
                                 Toggle 3D View
                             </button>
                             <button
                                 className="w-full py-2 px-4 bg-blue-600 rounded text-white hover:bg-blue-700 transition-colors"
-                                onClick={() => dispatch(setViewState({
+                                onClick={() => setViewState({
                                     longitude: 77.58548,
                                     latitude: 12.94401,
                                     zoom: 12,
                                     pitch: 0,
                                     bearing: 0
-                                }))}
+                                })}
                             >
                                 Reset View
                             </button>

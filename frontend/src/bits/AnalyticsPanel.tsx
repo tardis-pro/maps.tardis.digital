@@ -1,21 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import {
-  setAnalyticsMode,
-  updateSpatialOperations,
-  updateStatisticalOperations,
-  updateTemporalOperations,
-  AnalyticsMode
-} from '../redux/slices/analyticsSlice';
-import { RootState } from '../redux/types';
 import { useAnalysis, AnalysisResult, AnalysisType } from '../context/AnalysisContext';
 import { useVisualization } from '../context/VisualizationContext';
-import '../effects/AnalyticsPanel.css';
+
+// Analytics mode type
+type AnalyticsMode = 'spatial' | 'statistical' | 'temporal';
+
+// Dataset type for local state
+interface Dataset {
+  id: string;
+  name: string;
+  type: string;
+}
 
 const AnalyticsPanel: React.FC = () => {
-  const dispatch = useDispatch();
-
   // Use Analysis context for results management
   const {
     results: analysisResultsMap,
@@ -31,16 +29,27 @@ const AnalyticsPanel: React.FC = () => {
   // Convert results map to array for rendering
   const analysisResults = Object.values(analysisResultsMap);
 
-  // Get other analytics state from Redux (datasets, operations, mode)
-  const {
-    selectedAnalyticsMode,
-    datasets,
-    selectedDatasetIds,
-    spatialOperations,
-    statisticalOperations,
-    temporalOperations,
-    isLoading
-  } = useSelector((state: RootState) => state.analytics);
+  // Local state for analytics (previously from Redux)
+  const [selectedAnalyticsMode, setSelectedAnalyticsMode] = useState<AnalyticsMode>('spatial');
+  const [datasets] = useState<Dataset[]>([]);
+  const [selectedDatasetIds, setSelectedDatasetIds] = useState<string[]>([]);
+  const [spatialOperations, setSpatialOperations] = useState({
+    buffer: 100,
+    intersection: false,
+    union: false,
+    difference: false
+  });
+  const [statisticalOperations, setStatisticalOperations] = useState({
+    clustering: false,
+    outlierDetection: false,
+    hotspotAnalysis: false
+  });
+  const [temporalOperations, setTemporalOperations] = useState({
+    timeFilter: [0, 100] as [number, number],
+    animation: false,
+    timeStep: 1
+  });
+  const [isLoading] = useState(false);
 
   // Local state for form inputs
   const [bufferDistance, setBufferDistance] = useState<number>(spatialOperations.buffer);
@@ -49,14 +58,8 @@ const AnalyticsPanel: React.FC = () => {
   const [timeRange, setTimeRange] = useState<[number, number]>([0, 100]);
   const [timeStepValue, setTimeStepValue] = useState<number>(temporalOperations.timeStep);
 
-  // Update local state when redux state changes
-  useEffect(() => {
-    setBufferDistance(spatialOperations.buffer);
-    setTimeStepValue(temporalOperations.timeStep);
-  }, [spatialOperations.buffer, temporalOperations.timeStep]);
-
   const handleModeChange = (mode: AnalyticsMode) => {
-    dispatch(setAnalyticsMode(mode));
+    setSelectedAnalyticsMode(mode);
   };
 
   const handleSpatialAnalysis = () => {
@@ -175,9 +178,9 @@ const AnalyticsPanel: React.FC = () => {
                   checked={selectedDatasetIds.includes(dataset.id)}
                   onChange={() => {
                     if (selectedDatasetIds.includes(dataset.id)) {
-                      dispatch({ type: 'analytics/deselectDataset', payload: dataset.id });
+                      setSelectedDatasetIds(prev => prev.filter(id => id !== dataset.id));
                     } else {
-                      dispatch({ type: 'analytics/selectDataset', payload: dataset.id });
+                      setSelectedDatasetIds(prev => [...prev, dataset.id]);
                     }
                   }}
                 />
@@ -223,7 +226,7 @@ const AnalyticsPanel: React.FC = () => {
                   onChange={e => {
                     const value = parseInt(e.target.value);
                     setBufferDistance(value);
-                    dispatch(updateSpatialOperations({ buffer: value }));
+                    setSpatialOperations(prev => ({ ...prev, buffer: value }));
                   }}
                 />
                 <span>{bufferDistance}m</span>
@@ -268,7 +271,7 @@ const AnalyticsPanel: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={statisticalOperations.clustering}
-                    onChange={e => dispatch(updateStatisticalOperations({ clustering: e.target.checked }))}
+                    onChange={e => setStatisticalOperations(prev => ({ ...prev, clustering: e.target.checked }))}
                   />
                   Enable k-means clustering
                 </label>
@@ -281,7 +284,7 @@ const AnalyticsPanel: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={statisticalOperations.outlierDetection}
-                    onChange={e => dispatch(updateStatisticalOperations({ outlierDetection: e.target.checked }))}
+                    onChange={e => setStatisticalOperations(prev => ({ ...prev, outlierDetection: e.target.checked }))}
                   />
                   Detect statistical outliers
                 </label>
@@ -294,7 +297,7 @@ const AnalyticsPanel: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={statisticalOperations.hotspotAnalysis}
-                    onChange={e => dispatch(updateStatisticalOperations({ hotspotAnalysis: e.target.checked }))}
+                    onChange={e => setStatisticalOperations(prev => ({ ...prev, hotspotAnalysis: e.target.checked }))}
                   />
                   Identify geographic hotspots
                 </label>
@@ -326,7 +329,7 @@ const AnalyticsPanel: React.FC = () => {
                   onChange={e => {
                     const value = parseInt(e.target.value);
                     setTimeRange([value, timeRange[1]]);
-                    dispatch(updateTemporalOperations({ timeFilter: [value, timeRange[1]] }));
+                    setTemporalOperations(prev => ({ ...prev, timeFilter: [value, timeRange[1]] as [number, number] }));
                   }}
                 />
                 <input
@@ -338,7 +341,7 @@ const AnalyticsPanel: React.FC = () => {
                   onChange={e => {
                     const value = parseInt(e.target.value);
                     setTimeRange([timeRange[0], value]);
-                    dispatch(updateTemporalOperations({ timeFilter: [timeRange[0], value] }));
+                    setTemporalOperations(prev => ({ ...prev, timeFilter: [timeRange[0], value] as [number, number] }));
                   }}
                 />
               </div>
@@ -350,7 +353,7 @@ const AnalyticsPanel: React.FC = () => {
                 <input
                   type="checkbox"
                   checked={temporalOperations.animation}
-                  onChange={e => dispatch(updateTemporalOperations({ animation: e.target.checked }))}
+                  onChange={e => setTemporalOperations(prev => ({ ...prev, animation: e.target.checked }))}
                 />
                 Animate Time Series
               </label>
@@ -368,7 +371,7 @@ const AnalyticsPanel: React.FC = () => {
                   onChange={e => {
                     const value = parseInt(e.target.value);
                     setTimeStepValue(value);
-                    dispatch(updateTemporalOperations({ timeStep: value }));
+                    setTemporalOperations(prev => ({ ...prev, timeStep: value }));
                   }}
                 />
                 <span>{timeStepValue}x</span>
