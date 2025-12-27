@@ -1,21 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../redux/types';
+import { useAnalysis, AnalysisType, AnalysisResult } from '../context/AnalysisContext';
 import SpatialAnalysis from '../utils/spatialAnalysis';
 import { FeatureCollection } from 'geojson';
 import './SpatialAnalysisPanel.css';
-
-// Analysis types supported by the panel
-export enum AnalysisType {
-  BUFFER = 'buffer',
-  INTERSECTION = 'intersection',
-  UNION = 'union',
-  DIFFERENCE = 'difference',
-  POINTS_IN_POLYGON = 'pointsInPolygon',
-  CLUSTER = 'cluster',
-  ISOCHRONES = 'isochrones',
-  HOTSPOT = 'hotspot'
-}
 
 // Props for the component
 interface SpatialAnalysisPanelProps {
@@ -23,11 +12,19 @@ interface SpatialAnalysisPanelProps {
 }
 
 const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisComplete }) => {
-  const dispatch = useDispatch();
-  
-  // Get datasets from Redux store
+  // Use the Analysis context for results management
+  const {
+    results,
+    isLoading: contextLoading,
+    error: contextError,
+    startAnalysis,
+    addAnalysisResult,
+    setAnalysisError
+  } = useAnalysis();
+
+  // Get datasets from Redux store (data management stays in Redux for now)
   const datasets = useSelector((state: RootState) => state.data.datasets);
-  
+
   // Local state
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisType>(AnalysisType.BUFFER);
   const [primaryDataset, setPrimaryDataset] = useState<string>('');
@@ -42,7 +39,7 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
   const [analysisResult, setAnalysisResult] = useState<FeatureCollection | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Update available properties when primary dataset changes
   useEffect(() => {
     if (primaryDataset && datasets[primaryDataset]?.data) {
@@ -55,7 +52,7 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
       }
     }
   }, [primaryDataset, datasets]);
-  
+
   // Determine if the analysis requires a secondary dataset
   const needsSecondaryDataset = () => {
     return [
@@ -64,102 +61,127 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
       AnalysisType.POINTS_IN_POLYGON
     ].includes(selectedAnalysis);
   };
-  
+
   // Run the analysis
   const runAnalysis = () => {
     setIsLoading(true);
     setError(null);
-    
+    startAnalysis();
+
     try {
       if (!primaryDataset || !datasets[primaryDataset]?.data) {
         throw new Error('Primary dataset is required');
       }
-      
+
       const primaryData = datasets[primaryDataset].data;
-      
+
       if (needsSecondaryDataset() && (!secondaryDataset || !datasets[secondaryDataset]?.data)) {
         throw new Error('Secondary dataset is required for this analysis');
       }
-      
+
       let result: FeatureCollection;
-      
+
       switch (selectedAnalysis) {
         case AnalysisType.BUFFER:
           result = SpatialAnalysis.buffer(primaryData, bufferRadius);
           break;
-          
+
         case AnalysisType.INTERSECTION:
           result = SpatialAnalysis.intersection(
             primaryData,
             datasets[secondaryDataset].data
           );
           break;
-          
+
         case AnalysisType.UNION:
           result = SpatialAnalysis.union(primaryData);
           break;
-          
+
         case AnalysisType.DIFFERENCE:
           result = SpatialAnalysis.difference(
             primaryData,
             datasets[secondaryDataset].data
           );
           break;
-          
+
         case AnalysisType.POINTS_IN_POLYGON:
           result = SpatialAnalysis.pointsInPolygon(
             primaryData,
             datasets[secondaryDataset].data
           );
           break;
-          
+
         case AnalysisType.CLUSTER:
           result = SpatialAnalysis.cluster(primaryData, {
             radius: clusterRadius
           });
           break;
-          
+
         case AnalysisType.ISOCHRONES:
           result = SpatialAnalysis.isochrones(primaryData, {
             minutes: isochroneMinutes.split(',').map(m => parseInt(m.trim(), 10)),
             mode: travelMode
           });
           break;
-          
+
         case AnalysisType.HOTSPOT:
           result = SpatialAnalysis.hotspotAnalysis(primaryData, {
             cellSize,
             property: weightProperty || undefined
           });
           break;
-          
+
         default:
           throw new Error('Unknown analysis type');
       }
-      
+
       setAnalysisResult(result);
-      
+
+      // Add to the Analysis context
+      const analysisResultData: AnalysisResult = {
+        id: `analysis-${Date.now()}`,
+        name: `${selectedAnalysis} Analysis`,
+        type: selectedAnalysis,
+        data: result,
+        createdAt: new Date().toISOString(),
+        parameters: {
+          primaryDataset,
+          secondaryDataset: needsSecondaryDataset() ? secondaryDataset : undefined,
+          bufferRadius: selectedAnalysis === AnalysisType.BUFFER ? bufferRadius : undefined,
+          clusterRadius: selectedAnalysis === AnalysisType.CLUSTER ? clusterRadius : undefined,
+          isochroneMinutes: selectedAnalysis === AnalysisType.ISOCHRONES ? isochroneMinutes : undefined,
+          travelMode: selectedAnalysis === AnalysisType.ISOCHRONES ? travelMode : undefined,
+          cellSize: selectedAnalysis === AnalysisType.HOTSPOT ? cellSize : undefined,
+          weightProperty: selectedAnalysis === AnalysisType.HOTSPOT ? weightProperty : undefined,
+        },
+        sourceDatasets: needsSecondaryDataset() ? [primaryDataset, secondaryDataset] : [primaryDataset]
+      };
+
+      addAnalysisResult(analysisResultData);
+
       // Call the callback if provided
       if (onAnalysisComplete) {
         onAnalysisComplete(result);
       }
     } catch (err) {
       console.error('Analysis error:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
+      setAnalysisError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   // Get the count of features in the result
   const getResultCount = () => {
     return analysisResult?.features?.length || 0;
   };
-  
+
   return (
     <div className="spatial-analysis-panel">
       <h2>Spatial Analysis</h2>
-      
+
       <div className="analysis-form">
         <div className="form-group">
           <label htmlFor="analysis-type">Analysis Type</label>
@@ -178,7 +200,7 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
             <option value={AnalysisType.HOTSPOT}>Hotspot Analysis</option>
           </select>
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="primary-dataset">Primary Dataset</label>
           <select
@@ -192,7 +214,7 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
             ))}
           </select>
         </div>
-        
+
         {needsSecondaryDataset() && (
           <div className="form-group">
             <label htmlFor="secondary-dataset">Secondary Dataset</label>
@@ -208,7 +230,7 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
             </select>
           </div>
         )}
-        
+
         {selectedAnalysis === AnalysisType.BUFFER && (
           <div className="form-group">
             <label htmlFor="buffer-radius">Buffer Radius (km)</label>
@@ -222,7 +244,7 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
             />
           </div>
         )}
-        
+
         {selectedAnalysis === AnalysisType.CLUSTER && (
           <div className="form-group">
             <label htmlFor="cluster-radius">Cluster Radius (km)</label>
@@ -236,7 +258,7 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
             />
           </div>
         )}
-        
+
         {selectedAnalysis === AnalysisType.ISOCHRONES && (
           <>
             <div className="form-group">
@@ -263,7 +285,7 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
             </div>
           </>
         )}
-        
+
         {selectedAnalysis === AnalysisType.HOTSPOT && (
           <>
             <div className="form-group">
@@ -292,8 +314,8 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
             </div>
           </>
         )}
-        
-        <button 
+
+        <button
           className="run-analysis-btn"
           onClick={runAnalysis}
           disabled={isLoading || !primaryDataset || (needsSecondaryDataset() && !secondaryDataset)}
@@ -301,42 +323,41 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
           {isLoading ? 'Running...' : 'Run Analysis'}
         </button>
       </div>
-      
+
       {error && (
         <div className="error-message">
           <p>{error}</p>
         </div>
       )}
-      
+
       {analysisResult && (
         <div className="analysis-results">
           <h3>Analysis Results</h3>
           <p>Generated {getResultCount()} features</p>
-          
+
           <div className="result-actions">
-            <button 
+            <button
               className="add-to-map-btn"
               onClick={() => {
-                // Here you would dispatch an action to add the result to the map
-                // This would be implemented in your Redux layer
+                // The result is already added to the Analysis context
+                // Map integration would use the context to display the result
                 if (analysisResult) {
-                  // Example: dispatch(addLayerFromAnalysis(analysisResult));
-                  alert('Add to map functionality would be implemented here');
+                  alert('Result added to Analysis context. Map will display from context.');
                 }
               }}
             >
               Add to Map
             </button>
-            
+
             <button
               className="export-btn"
               onClick={() => {
                 if (analysisResult) {
                   const dataStr = JSON.stringify(analysisResult);
-                  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-                  
+                  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
                   const exportFileDefaultName = 'analysis-result.geojson';
-                  
+
                   const linkElement = document.createElement('a');
                   linkElement.setAttribute('href', dataUri);
                   linkElement.setAttribute('download', exportFileDefaultName);
@@ -353,4 +374,4 @@ const SpatialAnalysisPanel: React.FC<SpatialAnalysisPanelProps> = ({ onAnalysisC
   );
 };
 
-export default SpatialAnalysisPanel; 
+export default SpatialAnalysisPanel;

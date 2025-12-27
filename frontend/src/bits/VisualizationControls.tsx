@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { RootState } from '../redux/types';
-import { 
-  updateVisualizationSettings,
-  updateColorRamp,
-  updateOpacity,
-  updateRadius,
-  updateFilterRange,
-  updateAggregation,
-  updateAggregationResolution,
-  toggleLegend,
+import {
+  useVisualization,
   ColorRamp,
   AggregationType,
   COLOR_RAMPS
-} from '../redux/slices/visualizationSlice';
+} from '../context/VisualizationContext';
 import '../effects/VisualizationControls.css';
 
 interface VisualizationControlsProps {
@@ -22,13 +15,17 @@ interface VisualizationControlsProps {
 }
 
 const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }) => {
-  const dispatch = useDispatch();
+  const {
+    visualizationSettings,
+    updateVisualizationSettings
+  } = useVisualization();
+
+  // Still get datasets from Redux for now (data management stays in Redux)
   const { datasets, selectedDatasetIds } = useSelector((state: RootState) => state.analytics);
-  const { visualizationSettings } = useSelector((state: RootState) => state.visualization);
-  
+
   const selectedDatasets = datasets.filter(d => selectedDatasetIds.includes(d.id));
   const [activeDatasetId, setActiveDatasetId] = useState<string | null>(null);
-  
+
   // Local state for form values
   const [selectedProperty, setSelectedProperty] = useState('');
   const [colorRamp, setColorRamp] = useState<ColorRamp>('viridis');
@@ -38,13 +35,13 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
   const [aggregation, setAggregation] = useState<AggregationType>('none');
   const [aggregationResolution, setAggregationResolution] = useState(1);
   const [showLegend, setShowLegend] = useState(true);
-  
+
   // Set the first selected dataset as active when component mounts or selection changes
   useEffect(() => {
     if (selectedDatasetIds.length > 0) {
       const firstId = selectedDatasetIds[0];
       setActiveDatasetId(firstId);
-      
+
       // Load existing settings if available
       if (visualizationSettings[firstId]) {
         const settings = visualizationSettings[firstId];
@@ -61,23 +58,23 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
       setActiveDatasetId(null);
     }
   }, [selectedDatasetIds, visualizationSettings]);
-  
+
   // Get available properties from active dataset
   const availableProperties = React.useMemo(() => {
     if (!activeDatasetId) return [];
-    
+
     const dataset = datasets.find(d => d.id === activeDatasetId);
     if (!dataset) return [];
-    
+
     return Object.entries(dataset.properties)
       .filter(([_, prop]) => ['number', 'string'].includes(prop.type))
       .map(([key]) => key);
   }, [activeDatasetId, datasets]);
-  
+
   // Handle dataset change
   const handleDatasetChange = (id: string) => {
     setActiveDatasetId(id);
-    
+
     // Load settings for this dataset if available
     if (visualizationSettings[id]) {
       const settings = visualizationSettings[id];
@@ -101,12 +98,12 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
       setShowLegend(true);
     }
   };
-  
-  // Apply visualization settings
+
+  // Apply visualization settings using context
   const applyVisualization = () => {
     if (!activeDatasetId || !selectedProperty) return;
-    
-    dispatch(updateVisualizationSettings({
+
+    updateVisualizationSettings({
       datasetId: activeDatasetId,
       property: selectedProperty,
       colorRamp,
@@ -116,18 +113,18 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
       aggregation,
       aggregationResolution,
       showLegend
-    }));
+    });
   };
-  
+
   // Generate a legend scale based on the current color ramp
   const renderColorScale = () => {
     const colors = COLOR_RAMPS[colorRamp as keyof typeof COLOR_RAMPS];
-    
+
     return (
       <div className="color-scale">
-        <div 
-          className="gradient" 
-          style={{ 
+        <div
+          className="gradient"
+          style={{
             background: `linear-gradient(to right, ${colors.join(', ')})`,
             opacity
           }}
@@ -139,9 +136,9 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
       </div>
     );
   };
-  
+
   return (
-    <motion.div 
+    <motion.div
       className="visualization-controls"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -156,7 +153,7 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
           </button>
         )}
       </div>
-      
+
       <div className="controls-content">
         {selectedDatasets.length === 0 ? (
           <p className="empty-state">
@@ -168,7 +165,7 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
             {selectedDatasets.length > 1 && (
               <div className="control-group">
                 <label htmlFor="dataset-select">Active Dataset</label>
-                <select 
+                <select
                   id="dataset-select"
                   value={activeDatasetId || ''}
                   onChange={e => handleDatasetChange(e.target.value)}
@@ -179,11 +176,11 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
                 </select>
               </div>
             )}
-            
+
             {/* Property Selection */}
             <div className="control-group">
               <label htmlFor="property-select">Data Property</label>
-              <select 
+              <select
                 id="property-select"
                 value={selectedProperty}
                 onChange={e => setSelectedProperty(e.target.value)}
@@ -198,7 +195,7 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
                 )}
               </select>
             </div>
-            
+
             {/* Color Ramp Selection */}
             <div className="control-group">
               <label>Color Scheme</label>
@@ -216,7 +213,7 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
                 ))}
               </div>
             </div>
-            
+
             {/* Value Filter Range */}
             <div className="control-group">
               <label>
@@ -239,7 +236,7 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
                 />
               </div>
             </div>
-            
+
             {/* Opacity Control */}
             <div className="control-group">
               <label>
@@ -254,7 +251,7 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
                 onChange={e => setOpacity(parseFloat(e.target.value))}
               />
             </div>
-            
+
             {/* Point Radius (for point data) */}
             <div className="control-group">
               <label>
@@ -268,11 +265,11 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
                 onChange={e => setRadius(parseInt(e.target.value))}
               />
             </div>
-            
+
             {/* Aggregation Options */}
             <div className="control-group">
               <label htmlFor="aggregation-select">Aggregation</label>
-              <select 
+              <select
                 id="aggregation-select"
                 value={aggregation}
                 onChange={e => setAggregation(e.target.value as AggregationType)}
@@ -284,7 +281,7 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
                 <option value="heatmap">Heatmap</option>
               </select>
             </div>
-            
+
             {/* Aggregation Resolution (if aggregation is enabled) */}
             {aggregation !== 'none' && (
               <div className="control-group">
@@ -300,7 +297,7 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
                 />
               </div>
             )}
-            
+
             {/* Legend Toggle */}
             <div className="control-group">
               <label className="checkbox-label">
@@ -312,7 +309,7 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
                 Show Legend
               </label>
             </div>
-            
+
             {/* Legend Preview */}
             {showLegend && (
               <div className="legend-preview">
@@ -321,9 +318,9 @@ const VisualizationControls: React.FC<VisualizationControlsProps> = ({ onClose }
                 {renderColorScale()}
               </div>
             )}
-            
+
             {/* Apply Button */}
-            <button 
+            <button
               className="apply-btn"
               onClick={applyVisualization}
               disabled={!activeDatasetId || !selectedProperty}

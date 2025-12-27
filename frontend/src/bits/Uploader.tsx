@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
-import { useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
-import { addNotification } from '../redux/slices/uiSlice';
+import { useToast } from '../context/ToastContext';
 import { V1Service } from '../services/akgda/services/V1Service';
 
 interface UploaderProps {
@@ -19,12 +18,30 @@ const Uploader: React.FC<UploaderProps> = ({
     maxFileSize = 50 * 1024 * 1024, // 50MB
     label = 'Upload Files'
 }) => {
-    const dispatch = useDispatch();
+    const { addToast } = useToast();
     const [files, setFiles] = useState<File[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const validateFiles = useCallback((filesToValidate: File[]): File[] => {
+        return filesToValidate.filter(file => {
+            // Check file type
+            if (acceptedFileTypes.length && !acceptedFileTypes.includes(file.type)) {
+                addToast(`File type not supported: ${file.type}`, 'error');
+                return false;
+            }
+
+            // Check file size
+            if (maxFileSize && file.size > maxFileSize) {
+                addToast(`File too large: ${file.name}`, 'error');
+                return false;
+            }
+
+            return true;
+        });
+    }, [acceptedFileTypes, maxFileSize, addToast]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
@@ -39,30 +56,6 @@ const Uploader: React.FC<UploaderProps> = ({
                 }
             }
         }
-    };
-
-    const validateFiles = (filesToValidate: File[]): File[] => {
-        return filesToValidate.filter(file => {
-            // Check file type
-            if (acceptedFileTypes.length && !acceptedFileTypes.includes(file.type)) {
-                dispatch(addNotification({
-                    message: `File type not supported: ${file.type}`,
-                    type: 'error'
-                }));
-                return false;
-            }
-
-            // Check file size
-            if (maxFileSize && file.size > maxFileSize) {
-                dispatch(addNotification({
-                    message: `File too large: ${file.name}`,
-                    type: 'error'
-                }));
-                return false;
-            }
-
-            return true;
-        });
     };
 
     const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
@@ -95,10 +88,7 @@ const Uploader: React.FC<UploaderProps> = ({
 
     const handleUpload = async () => {
         if (!files.length) {
-            dispatch(addNotification({
-                message: 'Please select files to upload',
-                type: 'warning'
-            }));
+            addToast('Please select files to upload', 'warning');
             return;
         }
 
@@ -135,15 +125,9 @@ const Uploader: React.FC<UploaderProps> = ({
                         // Upload to the API
                         await V1Service.v1SourcesCreate(source);
 
-                        dispatch(addNotification({
-                            message: `Successfully uploaded ${file.name} as a new source`,
-                            type: 'success'
-                        }));
+                        addToast(`Successfully uploaded ${file.name} as a new source`, 'success');
                     } catch (error) {
-                        dispatch(addNotification({
-                            message: `Error processing GeoJSON: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                            type: 'error'
-                        }));
+                        addToast(`Error processing GeoJSON: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
                     }
                 } else {
                     // For other file types, we could implement different upload strategies
@@ -152,10 +136,7 @@ const Uploader: React.FC<UploaderProps> = ({
                     // Simulate upload for now
                     await new Promise(resolve => setTimeout(resolve, 500));
 
-                    dispatch(addNotification({
-                        message: `Uploaded ${file.name}`,
-                        type: 'success'
-                    }));
+                    addToast(`Uploaded ${file.name}`, 'success');
                 }
             }
 
@@ -169,10 +150,7 @@ const Uploader: React.FC<UploaderProps> = ({
                 }
             }
         } catch (error) {
-            dispatch(addNotification({
-                message: `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                type: 'error'
-            }));
+            addToast(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
         } finally {
             setIsUploading(false);
         }
