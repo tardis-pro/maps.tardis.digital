@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useDispatch } from 'react-redux';
-import { login } from '../redux/slices/authSlice';
+import { useAuth } from '../context/AuthContext';
 
 const Signin: React.FC = () => {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
+    const { login, isLoading, error: authError } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+
+    // Sync authError from context to local error state
+    useEffect(() => {
+        if (authError) {
+            setError(authError);
+        }
+    }, [authError]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -20,26 +25,14 @@ const Signin: React.FC = () => {
             return;
         }
 
-        setIsLoading(true);
         setError('');
 
         try {
-            // For demo purposes, we'll just simulate a successful login
-            // In a real app, you would dispatch the login action
-            // await dispatch(login({ username, password }));
-
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Store a demo token
-            localStorage.setItem('token', 'demo-token');
-
-            // Navigate to home page
+            await login(username, password);
+            // Navigate to home page on success
             navigate('/');
         } catch (err: any) {
             setError(err.message || 'Failed to sign in');
-        } finally {
-            setIsLoading(false);
         }
     };
 
