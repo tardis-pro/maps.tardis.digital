@@ -89,6 +89,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.0.9
         version: 4.0.9(vite@6.2.0(@types/node@22.13.5)(jiti@2.4.2)(lightningcss@1.29.1))
+      '@tanstack/react-query':
+        specifier: ^5.90.12
+        version: 5.90.12(react@19.0.0)
       '@turf/helpers':
         specifier: ^7.2.0
         version: 7.2.0
@@ -233,6 +236,9 @@ importers:
       yup:
         specifier: ^1.6.1
         version: 1.6.1
+      zod:
+        specifier: ^4.2.1
+        version: 4.2.1
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.0
@@ -307,15 +313,18 @@ packages:
 
   '@arcgis/components-controllers@4.32.4':
     resolution: {integrity: sha512-jNHAJoLiNy0h4Z0Pfx4wOdZ4PxSSb+DoDv9LE2LSxZ/5Tpsyl6CIAa9zG63MbzSkEcDDf+nDc3mXAnR6ZW3FcA==}
+    deprecated: This version is no longer supported. Upgrade to @latest
 
   '@arcgis/components-utils@4.32.4':
     resolution: {integrity: sha512-C2cGoTkqSt1WMuFHs00xyGd+wCylFw7EPkX0eNFQYWv6Z/MIDw+rZ4VJipooKOl4uIzma7bzjWwZsIgnJikANQ==}
+    deprecated: This version is no longer supported. Upgrade to @latest
 
   '@arcgis/core@4.32.1':
     resolution: {integrity: sha512-pwBXUXiOAzjTP1OJmmi6VLSM1Ebzg4zELV3x1tpqdQef+sM8oL0CteMC4g/h8OTOX1eOKPeNQhqlHCvwGCvQeA==}
 
   '@arcgis/lumina@4.32.4':
     resolution: {integrity: sha512-r9o3TEcmzaIAlZUbcZlP5aP4St9lONOIOfQ4rP+6igsxpuT9wPGrTBdrnZW6N8ABXXheeWQ/8FVVKk5+xc8jJw==}
+    deprecated: This version is no longer supported. Upgrade to @latest
 
   '@babel/code-frame@7.26.2':
     resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
@@ -2356,6 +2365,14 @@ packages:
     resolution: {integrity: sha512-BIKJO+hwdIsN7V6I7SziMZIVHWWMsV/uCQKYEbeiGRDRld+TkqyRRl9+dQ0MCXbhcVr+D9T/qX2E84kT7V281g==}
     peerDependencies:
       vite: ^5.2.0 || ^6
+
+  '@tanstack/query-core@5.90.12':
+    resolution: {integrity: sha512-T1/8t5DhV/SisWjDnaiU2drl6ySvsHj1bHBCWNXd+/T+Hh1cf6JodyEYMd5sgwm+b/mETT4EV3H+zCVczCU5hg==}
+
+  '@tanstack/react-query@5.90.12':
+    resolution: {integrity: sha512-graRZspg7EoEaw0a8faiUASCyJrqjKPdqJ9EwuDRUF9mEYJ1YPczI9H+/agJ0mOJkPCJDk0lsz5QTrLZ/jQ2rg==}
+    peerDependencies:
+      react: ^18 || ^19
 
   '@turf/bbox-clip@7.2.0':
     resolution: {integrity: sha512-q6RXTpqeUQAYLAieUL1n3J6ukRGsNVDOqcYtfzaJbPW+0VsAf+1cI16sN700t0sekbeU1DH/RRVAHhpf8+36wA==}
@@ -4714,6 +4731,7 @@ packages:
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
+    deprecated: Use your platform's native DOMException instead
 
   node-fetch@3.3.2:
     resolution: {integrity: sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==}
@@ -5941,6 +5959,9 @@ packages:
 
   yup@1.6.1:
     resolution: {integrity: sha512-JED8pB50qbA4FOkDol0bYF/p60qSEDQqBD0/qeIrUCG1KbPBIQ776fCUNb9ldbPcSTxA69g/47XTo4TqWiuXOA==}
+
+  zod@4.2.1:
+    resolution: {integrity: sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw==}
 
   zstd-codec@0.1.5:
     resolution: {integrity: sha512-v3fyjpK8S/dpY/X5WxqTK3IoCnp/ZOLxn144GZVlNUjtwAchzrVo03h+oMATFhCIiJ5KTr4V3vDQQYz4RU684g==}
@@ -8641,6 +8662,13 @@ snapshots:
       lightningcss: 1.29.1
       tailwindcss: 4.0.9
       vite: 6.2.0(@types/node@22.13.5)(jiti@2.4.2)(lightningcss@1.29.1)
+
+  '@tanstack/query-core@5.90.12': {}
+
+  '@tanstack/react-query@5.90.12(react@19.0.0)':
+    dependencies:
+      '@tanstack/query-core': 5.90.12
+      react: 19.0.0
 
   '@turf/bbox-clip@7.2.0':
     dependencies:
@@ -12729,6 +12757,8 @@ snapshots:
       tiny-case: 1.0.3
       toposort: 2.0.2
       type-fest: 2.19.0
+
+  zod@4.2.1: {}
 
   zstd-codec@0.1.5:
     optional: true
