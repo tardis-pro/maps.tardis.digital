@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import { motion } from "framer-motion";
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../redux/types';
-import { toggleSidebar, setSidebarOpen } from '../redux/slices/uiSlice';
 import { fetchUserProfile } from '../redux/slices/authSlice';
+import { useUI } from '../context/UIContext';
 import Dashboard from './Dashboard';
 import Notification from './Notification';
 import Settings from './Settings';
@@ -64,6 +64,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     const dispatch = useDispatch();
     const { user } = useSelector((state: RootState) => state.auth);
+    const { toggleSidebar, setSidebarOpen } = useUI();
 
     // Fetch user profile when sidebar opens
     useEffect(() => {
@@ -74,12 +75,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 
     // Handle sidebar toggle
     const handleToggle = () => {
-        dispatch(toggleSidebar());
+        toggleSidebar();
     };
 
     // Handle sidebar close on overlay click
     const handleOverlayClick = () => {
-        dispatch(setSidebarOpen(false));
+        setSidebarOpen(false);
     };
 
     return (

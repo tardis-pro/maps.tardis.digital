@@ -9,12 +9,12 @@ import DataManager from '../bits/DataManager';
 import VisualizationControls from '../bits/VisualizationControls';
 import SpatialAnalysisPanel from '../bits/SpatialAnalysisPanel';
 import { fetchLayers, toggleLayerVisibility, updateLayer, deleteLayer } from '../redux/slices/layerSlice';
-import { toggleSidebar } from '../redux/slices/uiSlice';
+import { useUI } from '../context/UIContext';
 import './Home.css';
 
 const Home: React.FC = () => {
   const dispatch = useDispatch();
-  const { sidebarOpen, activePanel } = useSelector((state: RootState) => state.ui);
+  const { isSidebarOpen, activeTab, toggleSidebar } = useUI();
   const [mapLoaded, setMapLoaded] = useState(false);
   const { layers, activeLayers } = useSelector((state: RootState) => state.layers);
 
@@ -28,7 +28,7 @@ const Home: React.FC = () => {
   };
 
   const renderActivePanel = () => {
-    switch (activePanel) {
+    switch (activeTab) {
       case 'layers':
         return (
           <LayerPanel
@@ -56,11 +56,11 @@ const Home: React.FC = () => {
 
   return (
     <div className="home">
-      <div className={`map-container ${sidebarOpen ? 'with-sidebar' : ''}`}>
+      <div className={`map-container ${isSidebarOpen ? 'with-sidebar' : ''}`}>
         <Map onLoad={handleMapLoad} />
       </div>
-      
-      <Sidebar isOpen={sidebarOpen} onToggle={() => dispatch(toggleSidebar())}>
+
+      <Sidebar isOpen={isSidebarOpen} onToggle={() => toggleSidebar()}>
         {renderActivePanel()}
       </Sidebar>
     </div>

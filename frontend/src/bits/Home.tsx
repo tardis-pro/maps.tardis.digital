@@ -12,11 +12,10 @@ import DataManager from "./DataManager";
 import AnalyticsPanel from "./AnalyticsPanel";
 import VisualizationControls from "./VisualizationControls";
 import { RootState } from '../redux/types';
-import { updateGridLayout } from '../redux/slices/uiSlice';
-import { toggleSidebar } from '../redux/slices/uiSlice';
 import { fetchLayers } from '../redux/slices/layerSlice';
 import { setViewState } from '../redux/slices/mapSlice';
 import { AppDispatch } from '../redux/store';
+import { useUI } from '../context/UIContext';
 import '../effects/Home.css';
 
 // Import SVG icons
@@ -24,8 +23,7 @@ import searchIcon from '../effects/Search.svg';
 
 const Home: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { isSidebarOpen } = useSelector((state: RootState) => state.ui);
-    const { gridLayout } = useSelector((state: RootState) => state.ui);
+    const { isSidebarOpen, gridLayout, updateGridLayout, toggleSidebar } = useUI();
     const { viewState } = useSelector((state: RootState) => state.map);
     const { selectedAnalyticsMode } = useSelector((state: RootState) => state.analytics);
 
@@ -64,12 +62,12 @@ const Home: React.FC = () => {
     // Handle layout changes
     const onLayoutChange = (newLayout: any) => {
         const fixedLayout = fixLayout(newLayout);
-        dispatch(updateGridLayout(fixedLayout));
+        updateGridLayout(fixedLayout);
     };
 
     // Toggle sidebar
     const handleToggleSidebar = () => {
-        dispatch(toggleSidebar());
+        toggleSidebar();
     };
 
     // Toggle analytics panel

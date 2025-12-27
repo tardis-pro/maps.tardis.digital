@@ -1,11 +1,11 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../redux/types';
-import { setActivePanel, PanelType } from '../redux/slices/uiSlice';
+import { useUI } from '../context/UIContext';
 import './Sidebar.css';
 
 // Icons
 import { FaLayerGroup, FaChartBar, FaDatabase, FaPalette, FaMapMarkedAlt } from 'react-icons/fa';
+
+type PanelType = 'layers' | 'analytics' | 'data' | 'visualization' | 'spatial-analysis';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -14,11 +14,10 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, children }) => {
-  const dispatch = useDispatch();
-  const activePanel = useSelector((state: RootState) => state.ui.activePanel);
+  const { activeTab, setActiveTab } = useUI();
 
   const handlePanelChange = (panel: PanelType) => {
-    dispatch(setActivePanel(panel));
+    setActiveTab(panel);
   };
 
   return (
@@ -29,35 +28,35 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, children }) => {
       
       <div className="sidebar-tabs">
         <div 
-          className={`sidebar-tab ${activePanel === 'layers' ? 'active' : ''}`}
+          className={`sidebar-tab ${activeTab === 'layers' ? 'active' : ''}`}
           onClick={() => handlePanelChange('layers')}
           title="Layers"
         >
           <FaLayerGroup />
         </div>
         <div 
-          className={`sidebar-tab ${activePanel === 'analytics' ? 'active' : ''}`}
+          className={`sidebar-tab ${activeTab === 'analytics' ? 'active' : ''}`}
           onClick={() => handlePanelChange('analytics')}
           title="Analytics"
         >
           <FaChartBar />
         </div>
         <div 
-          className={`sidebar-tab ${activePanel === 'data' ? 'active' : ''}`}
+          className={`sidebar-tab ${activeTab === 'data' ? 'active' : ''}`}
           onClick={() => handlePanelChange('data')}
           title="Data"
         >
           <FaDatabase />
         </div>
         <div 
-          className={`sidebar-tab ${activePanel === 'visualization' ? 'active' : ''}`}
+          className={`sidebar-tab ${activeTab === 'visualization' ? 'active' : ''}`}
           onClick={() => handlePanelChange('visualization')}
           title="Visualization"
         >
           <FaPalette />
         </div>
         <div 
-          className={`sidebar-tab ${activePanel === 'spatial-analysis' ? 'active' : ''}`}
+          className={`sidebar-tab ${activeTab === 'spatial-analysis' ? 'active' : ''}`}
           onClick={() => handlePanelChange('spatial-analysis')}
           title="Spatial Analysis"
         >
