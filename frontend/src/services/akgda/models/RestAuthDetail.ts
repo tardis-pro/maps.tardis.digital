@@ -5,4 +5,3 @@
 export type RestAuthDetail = {
     readonly detail: string;
 };
-

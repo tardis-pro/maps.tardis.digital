@@ -12,4 +12,3 @@ export type PatchedProject = {
     description?: string;
     project_type?: string;
 };
-

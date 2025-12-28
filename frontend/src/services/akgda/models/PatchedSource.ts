@@ -10,4 +10,3 @@ export type PatchedSource = {
     source_type?: string;
     attritutes?: Record<string, any>;
 };
-

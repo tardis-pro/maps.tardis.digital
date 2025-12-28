@@ -11,4 +11,3 @@ export type Layer = {
     source: number;
     geometries?: Array<string>;
 };
-

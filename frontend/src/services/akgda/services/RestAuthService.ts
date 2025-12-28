@@ -18,7 +18,6 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 
 export class RestAuthService {
-
     /**
      * Check the credentials and return the REST Token
      * if the credentials are valid and authenticated.
@@ -32,7 +31,7 @@ export class RestAuthService {
      * @throws ApiError
      */
     public static restAuthLoginCreate(
-        requestBody: Login,
+        requestBody: Login
     ): CancelablePromise<Token> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -67,7 +66,7 @@ export class RestAuthService {
      * @throws ApiError
      */
     public static restAuthPasswordChangeCreate(
-        requestBody: PasswordChange,
+        requestBody: PasswordChange
     ): CancelablePromise<RestAuthDetail> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -87,7 +86,7 @@ export class RestAuthService {
      * @throws ApiError
      */
     public static restAuthPasswordResetCreate(
-        requestBody: PasswordReset,
+        requestBody: PasswordReset
     ): CancelablePromise<RestAuthDetail> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -109,7 +108,7 @@ export class RestAuthService {
      * @throws ApiError
      */
     public static restAuthPasswordResetConfirmCreate(
-        requestBody: PasswordResetConfirm,
+        requestBody: PasswordResetConfirm
     ): CancelablePromise<RestAuthDetail> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -125,7 +124,7 @@ export class RestAuthService {
      * @throws ApiError
      */
     public static restAuthRegistrationCreate(
-        requestBody: Register,
+        requestBody: Register
     ): CancelablePromise<Token> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -141,7 +140,7 @@ export class RestAuthService {
      * @throws ApiError
      */
     public static restAuthRegistrationResendEmailCreate(
-        requestBody?: ResendEmailVerification,
+        requestBody?: ResendEmailVerification
     ): CancelablePromise<RestAuthDetail> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -157,7 +156,7 @@ export class RestAuthService {
      * @throws ApiError
      */
     public static restAuthRegistrationVerifyEmailCreate(
-        requestBody: VerifyEmail,
+        requestBody: VerifyEmail
     ): CancelablePromise<RestAuthDetail> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -200,7 +199,7 @@ export class RestAuthService {
      * @throws ApiError
      */
     public static restAuthUserUpdate(
-        requestBody: UserDetails,
+        requestBody: UserDetails
     ): CancelablePromise<UserDetails> {
         return __request(OpenAPI, {
             method: 'PUT',
@@ -224,7 +223,7 @@ export class RestAuthService {
      * @throws ApiError
      */
     public static restAuthUserPartialUpdate(
-        requestBody?: PatchedUserDetails,
+        requestBody?: PatchedUserDetails
     ): CancelablePromise<UserDetails> {
         return __request(OpenAPI, {
             method: 'PATCH',
@@ -233,5 +232,4 @@ export class RestAuthService {
             mediaType: 'application/json',
         });
     }
-
 }

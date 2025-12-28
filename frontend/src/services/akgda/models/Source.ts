@@ -10,4 +10,3 @@ export type Source = {
     source_type: string;
     attritutes: Record<string, any>;
 };
-

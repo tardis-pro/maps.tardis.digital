@@ -5,4 +5,3 @@
 export type VerifyEmail = {
     key: string;
 };
-

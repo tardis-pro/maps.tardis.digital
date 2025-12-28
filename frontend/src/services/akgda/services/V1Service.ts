@@ -16,7 +16,6 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 
 export class V1Service {
-
     /**
      * @returns Layer
      * @throws ApiError
@@ -33,9 +32,7 @@ export class V1Service {
      * @returns Layer
      * @throws ApiError
      */
-    public static v1LayersCreate(
-        requestBody: Layer,
-    ): CancelablePromise<Layer> {
+    public static v1LayersCreate(requestBody: Layer): CancelablePromise<Layer> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/layers/',
@@ -49,14 +46,12 @@ export class V1Service {
      * @returns Layer
      * @throws ApiError
      */
-    public static v1LayersRetrieve(
-        id: number,
-    ): CancelablePromise<Layer> {
+    public static v1LayersRetrieve(id: number): CancelablePromise<Layer> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/layers/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
         });
     }
@@ -69,13 +64,13 @@ export class V1Service {
      */
     public static v1LayersUpdate(
         id: number,
-        requestBody: Layer,
+        requestBody: Layer
     ): CancelablePromise<Layer> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/layers/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
             body: requestBody,
             mediaType: 'application/json',
@@ -90,13 +85,13 @@ export class V1Service {
      */
     public static v1LayersPartialUpdate(
         id: number,
-        requestBody?: PatchedLayer,
+        requestBody?: PatchedLayer
     ): CancelablePromise<Layer> {
         return __request(OpenAPI, {
             method: 'PATCH',
             url: '/api/v1/layers/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
             body: requestBody,
             mediaType: 'application/json',
@@ -108,14 +103,12 @@ export class V1Service {
      * @returns void
      * @throws ApiError
      */
-    public static v1LayersDestroy(
-        id: number,
-    ): CancelablePromise<void> {
+    public static v1LayersDestroy(id: number): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/layers/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
         });
     }
@@ -137,7 +130,7 @@ export class V1Service {
      * @throws ApiError
      */
     public static v1ProjectsCreate(
-        requestBody: Project,
+        requestBody: Project
     ): CancelablePromise<Project> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -152,14 +145,12 @@ export class V1Service {
      * @returns Project
      * @throws ApiError
      */
-    public static v1ProjectsRetrieve(
-        id: number,
-    ): CancelablePromise<Project> {
+    public static v1ProjectsRetrieve(id: number): CancelablePromise<Project> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/projects/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
         });
     }
@@ -172,13 +163,13 @@ export class V1Service {
      */
     public static v1ProjectsUpdate(
         id: number,
-        requestBody: Project,
+        requestBody: Project
     ): CancelablePromise<Project> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/projects/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
             body: requestBody,
             mediaType: 'application/json',
@@ -193,13 +184,13 @@ export class V1Service {
      */
     public static v1ProjectsPartialUpdate(
         id: number,
-        requestBody?: PatchedProject,
+        requestBody?: PatchedProject
     ): CancelablePromise<Project> {
         return __request(OpenAPI, {
             method: 'PATCH',
             url: '/api/v1/projects/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
             body: requestBody,
             mediaType: 'application/json',
@@ -211,14 +202,12 @@ export class V1Service {
      * @returns void
      * @throws ApiError
      */
-    public static v1ProjectsDestroy(
-        id: number,
-    ): CancelablePromise<void> {
+    public static v1ProjectsDestroy(id: number): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/projects/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
         });
     }
@@ -233,7 +222,7 @@ export class V1Service {
      * @throws ApiError
      */
     public static v1RestAuthPasswordResetCreate(
-        requestBody: PasswordReset,
+        requestBody: PasswordReset
     ): CancelablePromise<PasswordReset> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -260,7 +249,7 @@ export class V1Service {
      * @throws ApiError
      */
     public static v1SourcesCreate(
-        requestBody: Source,
+        requestBody: Source
     ): CancelablePromise<Source> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -275,14 +264,12 @@ export class V1Service {
      * @returns Source
      * @throws ApiError
      */
-    public static v1SourcesRetrieve(
-        id: number,
-    ): CancelablePromise<Source> {
+    public static v1SourcesRetrieve(id: number): CancelablePromise<Source> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/sources/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
         });
     }
@@ -295,13 +282,13 @@ export class V1Service {
      */
     public static v1SourcesUpdate(
         id: number,
-        requestBody: Source,
+        requestBody: Source
     ): CancelablePromise<Source> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/sources/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
             body: requestBody,
             mediaType: 'application/json',
@@ -316,13 +303,13 @@ export class V1Service {
      */
     public static v1SourcesPartialUpdate(
         id: number,
-        requestBody?: PatchedSource,
+        requestBody?: PatchedSource
     ): CancelablePromise<Source> {
         return __request(OpenAPI, {
             method: 'PATCH',
             url: '/api/v1/sources/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
             body: requestBody,
             mediaType: 'application/json',
@@ -334,14 +321,12 @@ export class V1Service {
      * @returns void
      * @throws ApiError
      */
-    public static v1SourcesDestroy(
-        id: number,
-    ): CancelablePromise<void> {
+    public static v1SourcesDestroy(id: number): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/sources/{id}/',
             path: {
-                'id': id,
+                id: id,
             },
         });
     }
@@ -363,7 +348,7 @@ export class V1Service {
      * @throws ApiError
      */
     public static v1UserProfileUpdate(
-        requestBody: User,
+        requestBody: User
     ): CancelablePromise<User> {
         return __request(OpenAPI, {
             method: 'PUT',
@@ -379,7 +364,7 @@ export class V1Service {
      * @throws ApiError
      */
     public static v1UserProfilePartialUpdate(
-        requestBody?: PatchedUser,
+        requestBody?: PatchedUser
     ): CancelablePromise<User> {
         return __request(OpenAPI, {
             method: 'PATCH',
@@ -396,16 +381,13 @@ export class V1Service {
      * @returns any No response body
      * @throws ApiError
      */
-    public static v1WfsRetrieve(
-        sourceId?: string,
-    ): CancelablePromise<any> {
+    public static v1WfsRetrieve(sourceId?: string): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/wfs/',
             query: {
-                'source_id': sourceId,
+                source_id: sourceId,
             },
         });
     }
-
 }

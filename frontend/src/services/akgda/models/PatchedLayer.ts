@@ -11,4 +11,3 @@ export type PatchedLayer = {
     source?: number;
     geometries?: Array<string>;
 };
-
