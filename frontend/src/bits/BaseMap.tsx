@@ -9,12 +9,7 @@ import { styleFactory } from './tile';
 import { useMap } from '../context/MapContext';
 import { useLayerUI } from '../context/LayerUIContext';
 import { useLayers, useUpdateLayer, useDeleteLayer } from '../api/queries/layers';
-import {
-    performSpatialJoin,
-    calculateClusterStats,
-    runPointInPolygonAnalysis,
-    generateIsochronesForPoints
-} from '../redux/slices/analyticsSlice';
+// Analytics functions - now placeholders (can be moved to a utils file or context)
 import eventBus from '../utils/eventBus';
 import { initializeWebGL } from '../utils/webglUtils';
 import {

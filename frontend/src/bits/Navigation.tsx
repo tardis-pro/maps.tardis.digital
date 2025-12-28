@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useDispatch } from 'react-redux';
-import { toggleLayerVisibility } from '../redux/slices/layerSlice';
+import { useLayerUI } from '../context/LayerUIContext';
 
 // Define navigation items
 export const items = [
@@ -18,11 +17,11 @@ interface NavigationProps {
 }
 
 const Navigation: React.FC<NavigationProps> = ({ isOpen }) => {
-    const dispatch = useDispatch();
+    const { toggleLayerVisibility } = useLayerUI();
 
     // Handle layer toggle
     const handleLayerToggle = (layerId: string) => {
-        dispatch(toggleLayerVisibility(layerId));
+        toggleLayerVisibility(layerId);
     };
 
     return (
