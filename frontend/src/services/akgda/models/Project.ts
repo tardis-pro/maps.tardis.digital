@@ -12,4 +12,3 @@ export type Project = {
     description: string;
     project_type: string;
 };
-

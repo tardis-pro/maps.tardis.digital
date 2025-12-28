@@ -1,44 +1,44 @@
 :root {
-  /* Colors */
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f5f7fa;
-  --color-bg-tertiary: #edf2f7;
-  --color-border: #e2e8f0;
-  --color-border-light: #f0f4f8;
-  --color-text-primary: #1a202c;
-  --color-text-secondary: #718096;
-  --color-text-muted: #a0aec0;
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
-  --color-accent-light: #ebf5ff;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
+    /* Colors */
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f5f7fa;
+    --color-bg-tertiary: #edf2f7;
+    --color-border: #e2e8f0;
+    --color-border-light: #f0f4f8;
+    --color-text-primary: #1a202c;
+    --color-text-secondary: #718096;
+    --color-text-muted: #a0aec0;
+    --color-accent: #2563eb;
+    --color-accent-hover: #1d4ed8;
+    --color-accent-light: #ebf5ff;
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
 
-  /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
-  --spacing-lg: 16px;
-  --spacing-xl: 24px;
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
 
-  /* Sizing */
-  --topbar-height: 48px;
-  --sidebar-width: 280px;
-  --drawer-collapsed: 40px;
-  --drawer-expanded: 300px;
+    /* Sizing */
+    --topbar-height: 48px;
+    --sidebar-width: 280px;
+    --drawer-collapsed: 40px;
+    --drawer-expanded: 300px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.15);
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.15);
 
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-normal: 250ms ease;
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
 
-  /* Border radius */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+    /* Border radius */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
 }

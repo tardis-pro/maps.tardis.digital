@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+.worktrees/
+
+# Build output
+dist/
+build/
+
+# Binary/media files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# Other
+.env*
+*.lock
+.gitignore
+*.md

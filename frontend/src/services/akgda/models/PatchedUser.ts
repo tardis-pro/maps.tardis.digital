@@ -12,4 +12,3 @@ export type PatchedUser = {
     first_name?: string;
     last_name?: string;
 };
-
