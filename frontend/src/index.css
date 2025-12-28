@@ -8,3 +8,79 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
+/* Home page layout */
+.home-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #0f172a;
+}
+
+.map-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+.map-container .map {
+    width: 100%;
+    height: 100%;
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    background-color: #1e293b;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Grid container for bottom widgets */
+.grid-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding: 10px;
+    background: linear-gradient(to top, rgba(15, 23, 42, 0.95), transparent);
+}
+
+.grid-item {
+    background-color: transparent;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Toggle sidebar button */
+.toggle-sidebar-btn {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 30;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.toggle-sidebar-btn img {
+    width: 20px;
+    height: 20px;
+    filter: invert(1);
+}

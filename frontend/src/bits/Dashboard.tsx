@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 
 interface DashboardProps {
     toggle: () => void;
+    isOpen: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ toggle }) => {
+const Dashboard: React.FC<DashboardProps> = ({ toggle, isOpen }) => {
     return (
         <motion.div
             className="flex items-center p-3 hover:bg-gray-700 rounded-md cursor-pointer"
@@ -14,7 +15,7 @@ const Dashboard: React.FC<DashboardProps> = ({ toggle }) => {
             whileTap={{ scale: 0.95 }}
         >
             <svg
-                className="w-6 h-6 text-gray-300"
+                className="w-6 h-6 text-gray-300 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -27,7 +28,7 @@ const Dashboard: React.FC<DashboardProps> = ({ toggle }) => {
                     d="M4 6h16M4 12h16M4 18h16"
                 />
             </svg>
-            <span className="ml-3 text-gray-300">Dashboard</span>
+            {isOpen && <span className="ml-3 text-gray-300">Dashboard</span>}
         </motion.div>
     );
 };

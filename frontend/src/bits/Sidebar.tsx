@@ -114,9 +114,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 
                 {/* Navigation items */}
                 <div className="py-4">
-                    <Dashboard toggle={handleToggle} />
-                    <Notification />
-                    <Settings />
+                    <Dashboard toggle={handleToggle} isOpen={isOpen} />
+                    <Notification isOpen={isOpen} />
+                    <Settings isOpen={isOpen} />
                     <Navigation isOpen={isOpen} />
                 </div>
 

@@ -3,33 +3,20 @@ import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import { MVTLayer } from '@deck.gl/geo-layers';
-import { HexagonLayer, HeatmapLayer, ScatterplotLayer } from '@deck.gl/aggregation-layers';
+import { GeoJsonLayer } from 'deck.gl';
 import { Protocol } from 'pmtiles';
-import { styleFactory } from './tile';
 import { useMap } from '../context/MapContext';
 import { useLayerUI } from '../context/LayerUIContext';
 import { useLayers, useUpdateLayer, useDeleteLayer } from '../api/queries/layers';
-// Analytics functions - now placeholders (can be moved to a utils file or context)
-import eventBus from '../utils/eventBus';
-import { initializeWebGL } from '../utils/webglUtils';
-import {
-    colorRamps,
-    generateScaleFunction,
-    getColorForValue
-} from '../utils/color';
-import {
-    DECK_CONTROLLER_OPTIONS,
-    DEFAULT_STYLE_CONFIG,
-    MapEvents,
-    ANALYTICS_MODES
-} from '../config/config';
+import { getColorForValue } from '../utils/color';
+import { DECK_CONTROLLER_OPTIONS } from '../config/config';
 import MapControls from './MapControls';
 import LayerPanel from './LayerPanel';
 import AnalyticsPanel from './AnalyticsPanel';
-import VisualizationControls from './VisualizationControls';
 import LoadingIndicator from './LoadingIndicator';
-import Legend from './Legend';
-import { GeoJsonLayer } from 'deck.gl';
+
+// MapLibre Demo Tiles - free basemap for development
+const DEFAULT_MAP_STYLE = 'https://demotiles.maplibre.org/style.json';
 
 interface ViewState {
     longitude: number;
@@ -57,13 +44,13 @@ interface BaseMapProps {
 const BaseMap: React.FC<BaseMapProps> = ({
     initialViewState,
     className = 'map',
-    mapStyle,
+    mapStyle = DEFAULT_MAP_STYLE,
     showControls = true,
     showLayerPanel = true,
     showAnalyticsPanel = true
 }) => {
     // Use context hooks instead of Redux
-    const { viewState, isMapLoaded, setMapLoaded } = useMap();
+    const { viewState, setViewState, isMapLoaded, setMapLoaded } = useMap();
     const { activeLayers, toggleLayerVisibility } = useLayerUI();
 
     // Use React Query for layers data
@@ -138,8 +125,8 @@ const BaseMap: React.FC<BaseMapProps> = ({
             <DeckGL
                 ref={deck}
                 controller={DECK_CONTROLLER_OPTIONS}
-                initialViewState={initialViewState || viewState}
                 viewState={viewState}
+                onViewStateChange={({ viewState: newViewState }) => setViewState(newViewState as any)}
                 layers={deckLayers}
                 style={{ zIndex: 1 }}
             >

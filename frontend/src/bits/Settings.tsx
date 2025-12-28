@@ -1,7 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const Settings: React.FC = () => {
+interface SettingsProps {
+    isOpen: boolean;
+}
+
+const Settings: React.FC<SettingsProps> = ({ isOpen }) => {
     return (
         <motion.div
             className="flex items-center p-3 hover:bg-gray-700 rounded-md cursor-pointer"
@@ -9,7 +13,7 @@ const Settings: React.FC = () => {
             whileTap={{ scale: 0.95 }}
         >
             <svg
-                className="w-6 h-6 text-gray-300"
+                className="w-6 h-6 text-gray-300 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -28,7 +32,7 @@ const Settings: React.FC = () => {
                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                 />
             </svg>
-            <span className="ml-3 text-gray-300">Settings</span>
+            {isOpen && <span className="ml-3 text-gray-300">Settings</span>}
         </motion.div>
     );
 };
