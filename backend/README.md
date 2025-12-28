@@ -1,117 +1,107 @@
 # Maps Platform Backend
 
-The backend service for the Maps Platform, providing APIs for map data management and processing.
+FastAPI-based geospatial API with Rust-accelerated operations.
 
-## Features
+## Architecture
 
-- RESTful API endpoints
-- Geospatial data processing
-- User authentication and authorization
-- Database management
-- Tile serving capabilities
-
-## Tech Stack
-
-- Python 3.11+
-- FastAPI
-- SQLAlchemy
-- PostGIS
-- Pydantic
-- Alembic
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.11+
-- PostgreSQL 14+ with PostGIS
-- Redis (optional, for caching)
-
-### Installation
-
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
+```
+┌───────────────┐         ┌─────────────────┐         ┌─────────────────┐
+│   Main API    │         │  ETL Service    │         │   PostgreSQL    │
+│   (FastAPI)   │────────▶│  (FastAPI)      │────────▶│   + PostGIS     │
+│   Port 8000   │         │  Port 8001      │         │                 │
+└───────────────┘         └─────────────────┘         └─────────────────┘
+                                    │
+                                    ▼
+                          ┌─────────────────┐
+                          │   geo_engine    │
+                          │   (Rust/PyO3)   │
+                          └─────────────────┘
 ```
 
-### Environment Variables
+- **api/** - Main FastAPI REST API (port 8000)
+- **etl-service/** - Import/analysis microservice (port 8001)
+- **geo_engine/** - Rust library for compute-heavy operations
 
-Create a `.env` file with the following variables:
+## Quick Start
 
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/maps
-REDIS_URL=redis://localhost:6379
-SECRET_KEY=your_secret_key
+```bash
+# Start all services
+docker-compose up -d
+
+# API: http://localhost:8000
+# ETL: http://localhost:8001
+# Swagger: http://localhost:8000/api/swagger
 ```
 
 ## Development
 
-### Project Structure
-
-```
-backend/
-├── app/
-│   ├── api/           # API endpoints
-│   ├── core/          # Core functionality
-│   ├── db/            # Database models and migrations
-│   ├── services/      # Business logic
-│   └── utils/         # Utility functions
-├── tests/             # Test files
-├── alembic/           # Database migrations
-└── requirements/      # Dependency files
-```
-
-### Available Commands
+### API Service
 
 ```bash
-# Run development server
+cd api
+pip install -e ".[dev]"
 uvicorn app.main:app --reload
-
-# Run tests
-pytest
-
-# Run database migrations
-alembic upgrade head
-
-# Generate new migration
-alembic revision --autogenerate -m "description"
 ```
 
-## API Documentation
+### ETL Service
 
-Once the server is running, visit:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+```bash
+cd etl-service
+pip install -e ".[dev]"
+uvicorn app.main:app --port 8001 --reload
+```
+
+### Rust Library
+
+```bash
+cd geo_engine
+maturin develop
+```
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET/POST | /api/v1/sources/ | List/create sources |
+| GET/PUT/PATCH/DELETE | /api/v1/sources/{id}/ | Source detail |
+| GET/POST | /api/v1/layers/ | List/create layers |
+| GET/PUT/PATCH/DELETE | /api/v1/layers/{id}/ | Layer detail |
+| GET/POST | /api/v1/projects/ | List/create projects |
+| GET/PUT/PATCH/DELETE | /api/v1/projects/{id}/ | Project detail |
+| GET | /api/v1/wfs/ | GeoJSON geometries |
+| GET/PUT/PATCH | /api/v1/user-profile/ | User profile |
+| POST | /api/v1/auth/login | JWT login |
+| POST | /api/v1/auth/register | User registration |
+
+## ETL Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /tasks/import/shapefile | Import shapefile |
+| POST | /tasks/import/csv | Import CSV |
+| POST | /tasks/import/geojson | Import GeoJSON |
+| GET | /tasks/{task_id} | Get task status |
 
 ## Testing
 
 ```bash
-# Run all tests
+cd api
 pytest
-
-# Run tests with coverage
-pytest --cov=app tests/
-
-# Run specific test file
-pytest tests/test_api.py
 ```
 
-## Contributing
+## Services
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+| Service | Port | Description |
+|---------|------|-------------|
+| api | 8000 | Main REST API |
+| etl-service | 8001 | ETL microservice |
+| postgres | 5432 | PostGIS database |
+| redis | 6379 | Cache + queue |
+| martin | 3000 | MVT tile server |
+| titiler | 9000 | Raster tile server |
+| keycloak | 8080 | OAuth provider |
+| maptiler | 28080 | Static tiles |
 
 ## License
 
-This project is licensed under the BSD 3-Clause License - see the [LICENSE](../LICENSE) file for details. 
+This project is licensed under the BSD 3-Clause License - see the [LICENSE](../LICENSE) file for details.

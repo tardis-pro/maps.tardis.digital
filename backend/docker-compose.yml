@@ -1,59 +1,74 @@
-version: "3"
+version: "3.8"
+
 services:
-  # proxy:
-  #   image: nginx:latest
-  #   container_name: proxy-nginx
-  #   links:
-  #     - martin
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./nginx/default.conf/default.conf:/etc/nginx/conf.d/default.conf
-  #     - ./nginx/h5bp:/etc/nginx/h5bp/
-  #     - statictiles:/www/statictiles
-  #   restart: unless-stopped
-  core-app:
+  # FastAPI Main API
+  api:
     build:
-      context: ./core-monolith
-      dockerfile: ./core-monolith/Dockerfile
-    image: pronittardis/core-app:main
-    container_name: core-app
-    depends_on:
-      - postgres
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: maps-api
     ports:
       - "8000:8000"
-  postgres:
-      image: kartoza/postgis
-      container_name: postgres
-      environment:
-        POSTGRES_DBNAME: ${POSTGRESQL_DB}
-        POSTGRES_USER: ${POSTGRESQL_USER}
-        POSTGRES_PASSWORD: ${POSTGRESQL_PASS}
-        DATADIR: /var/lib/postgresql/data
-        ACCEPT_TIMESCALE_TUNING: TRUE
-        SCHEMA_NAME: public, keycloak, gis
-        POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore,postgis_topology,postgis_raster,pgrouting
-      volumes:
-        - layering:/var/lib/postgresql/data
-      ports:
-        - '5432:5432'
-      restart: unless-stopped
-  keycloak:
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRESQL_USER:-postgres}:${POSTGRESQL_PASS:-postgres}@postgres:5432/${POSTGRESQL_DB:-maps}
+      - REDIS_URL=redis://redis:6379/0
+      - ETL_SERVICE_URL=http://etl-service:8001
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
     depends_on:
       - postgres
-    container_name: local_keycloak
-    environment:
-      DB_VENDOR: postgres
-      DB_ADDR: postgres
-      DB_DATABASE: ${POSTGRESQL_DB}
-      DB_USER: ${POSTGRESQL_USER}
-      DB_PASSWORD: ${POSTGRESQL_PASS}
-    image: jboss/keycloak
-    ports:
-      - "8080:8080"
-      - "9990:9990"
+      - redis
+    volumes:
+      - ./api/app:/app/app:ro
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     restart: unless-stopped
+
+  # FastAPI ETL Microservice
+  etl-service:
+    build:
+      context: ./etl-service
+      dockerfile: Dockerfile
+    container_name: maps-etl
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRESQL_USER:-postgres}:${POSTGRESQL_PASS:-postgres}@postgres:5432/${POSTGRESQL_DB:-maps}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./etl-service/app:/app/app:ro
+      - upload-data:/app/uploads
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+    restart: unless-stopped
+
+  # PostgreSQL + PostGIS
+  postgres:
+    image: kartoza/postgis
+    container_name: postgres
+    environment:
+      POSTGRES_DBNAME: ${POSTGRESQL_DB:-maps}
+      POSTGRES_USER: ${POSTGRESQL_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRESQL_PASS:-postgres}
+      DATADIR: /var/lib/postgresql/data
+      ACCEPT_TIMESCALE_TUNING: "TRUE"
+      SCHEMA_NAME: public, keycloak, gis
+      POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore,postgis_topology,postgis_raster,pgrouting
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # Redis (cache + task queue)
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # Martin (MVT tiles)
   martin:
     image: ghcr.io/maplibre/martin
     container_name: martin
@@ -63,34 +78,57 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DANGER_ACCEPT_INVALID_CERTS: 'false'
-      WATCH_MODE: 'true'
+      DANGER_ACCEPT_INVALID_CERTS: "false"
+      WATCH_MODE: "true"
       DATABASE_POOL_SIZE: 100
       KEEP_ALIVE: 75
       WORKER_PROCESSES: 12
-      DATABASE_URL: "postgres://${POSTGRESQL_USER}:${POSTGRESQL_PASS}@postgres/${DB_DATABASE}"
+      DATABASE_URL: "postgres://${POSTGRESQL_USER:-postgres}:${POSTGRESQL_PASS:-postgres}@postgres/${POSTGRESQL_DB:-maps}"
+    restart: unless-stopped
+
+  # TiTiler (raster tiles)
   titiler:
     image: ghcr.io/developmentseed/titiler:latest
     container_name: titiler
     hostname: titiler
     volumes:
-      - rasterdata:/data/
+      - raster-data:/data/
     ports:
       - "9000:8000"
     environment:
       WORKERS_PER_CORE: 1
-      PORT: 8000 
+      PORT: 8000
       CPL_TMPDIR: /tmp
       GDAL_CACHEMAX: 25%
       GDAL_DATA: /opt/share/gdal
       GDAL_DISABLE_READDIR_ON_OPEN: EMPTY_DIR
-      GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: YES
-      GDAL_HTTP_MULTIPLEX: YES
+      GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: "YES"
+      GDAL_HTTP_MULTIPLEX: "YES"
       GDAL_HTTP_VERSION: 2
       MAX_THREADS: 50
       PYTHONWARNINGS: ignore
-      VSI_CACHE: TRUE
+      VSI_CACHE: "TRUE"
       VSI_CACHE_SIZE: 536870912
+    restart: unless-stopped
+
+  # Keycloak (optional - for OAuth)
+  keycloak:
+    depends_on:
+      - postgres
+    container_name: local_keycloak
+    environment:
+      DB_VENDOR: postgres
+      DB_ADDR: postgres
+      DB_DATABASE: ${POSTGRESQL_DB:-maps}
+      DB_USER: ${POSTGRESQL_USER:-postgres}
+      DB_PASSWORD: ${POSTGRESQL_PASS:-postgres}
+    image: jboss/keycloak
+    ports:
+      - "8080:8080"
+      - "9990:9990"
+    restart: unless-stopped
+
+  # MapTiler (static tiles)
   maptiler:
     image: maptiler/tileserver-gl
     container_name: maptiler
@@ -98,31 +136,13 @@ services:
     depends_on:
       - postgres
     volumes:
-        - statictiles:/data
-        
+      - static-tiles:/data
     ports:
-      - "28080:3001"  
-  # backend:
-  #   build:
-  #     context: ./
-  #   container_name: backend
-  #   hostname: app
-  #   # depends_on:
-  #   #   - postgres
-  #   volumes:
-  #     - .:/app
-  #     - node_modules:/app/node_modules/
-  #   ports:
-  #     - 8000:8000
-  #   networks:
-  #     - nest
-  #   env_file: .env
-  #   restart: unless-stopped
+      - "28080:3001"
+    restart: unless-stopped
+
 volumes:
-  layering:
-  node_modules:
-  statictiles:
-  rasterdata:
-networks:
-  nest:
-    driver: 'bridge'
+  postgres-data:
+  upload-data:
+  raster-data:
+  static-tiles:
