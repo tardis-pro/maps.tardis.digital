@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: maps-platform
+  labels:
+    app.kubernetes.io/name: maps-platform
+    app.kubernetes.io/part-of: maps-platform
+    app.kubernetes.io/managed-by: kustomize

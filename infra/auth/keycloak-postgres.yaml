@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: keycloak-postgres
+  labels:
+    app: keycloak-postgres
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/component: auth
+    app.kubernetes.io/part-of: maps-platform
+spec:
+  serviceName: "keycloak-postgres"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak-postgres
+  template:
+    metadata:
+      labels:
+        app: keycloak-postgres
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/component: auth
+        app.kubernetes.io/part-of: maps-platform
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:17-alpine
+        ports:
+        - containerPort: 5432
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+        env:
+        - name: POSTGRES_DB
+          value: keycloak
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-secrets
+              key: POSTGRES_PASSWORD
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: keycloak-postgres-data
+          mountPath: /var/lib/postgresql/data
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 30
+          periodSeconds: 15
+  volumeClaimTemplates:
+  - metadata:
+      name: keycloak-postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-postgres
+  labels:
+    app: keycloak-postgres
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/component: auth
+    app.kubernetes.io/part-of: maps-platform
+spec:
+  type: ClusterIP
+  selector:
+    app: keycloak-postgres
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: titiler
+  labels:
+    app: titiler
+    app.kubernetes.io/name: titiler
+    app.kubernetes.io/component: tiler
+    app.kubernetes.io/part-of: maps-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: titiler
+  template:
+    metadata:
+      labels:
+        app: titiler
+        app.kubernetes.io/name: titiler
+        app.kubernetes.io/component: tiler
+        app.kubernetes.io/part-of: maps-platform
+    spec:
+      containers:
+      - name: titiler
+        image: ghcr.io/developmentseed/titiler:0.18.0
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+        - name: raster-data
+          mountPath: /data
+          readOnly: true
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: raster-data
+        persistentVolumeClaim:
+          claimName: tile-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: titiler
+  labels:
+    app: titiler
+    app.kubernetes.io/name: titiler
+    app.kubernetes.io/component: tiler
+    app.kubernetes.io/part-of: maps-platform
+spec:
+  type: ClusterIP
+  selector:
+    app: titiler
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000

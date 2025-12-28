@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: alloy
+  labels:
+    app: alloy
+    app.kubernetes.io/name: alloy
+    app.kubernetes.io/component: observability
+    app.kubernetes.io/part-of: maps-platform
+spec:
+  selector:
+    matchLabels:
+      app: alloy
+  template:
+    metadata:
+      labels:
+        app: alloy
+        app.kubernetes.io/name: alloy
+        app.kubernetes.io/component: observability
+        app.kubernetes.io/part-of: maps-platform
+    spec:
+      serviceAccountName: alloy
+      containers:
+      - name: alloy
+        image: grafana/alloy:v1.0.0
+        args:
+        - run
+        - /etc/alloy/config.alloy
+        - --storage.path=/var/lib/alloy/data
+        ports:
+        - containerPort: 12345
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        volumeMounts:
+        - name: config
+          mountPath: /etc/alloy
+        - name: varlog
+          mountPath: /var/log
+          readOnly: true
+        - name: containers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        - name: data
+          mountPath: /var/lib/alloy/data
+      volumes:
+      - name: config
+        configMap:
+          name: alloy-config
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: containers
+        hostPath:
+          path: /var/lib/docker/containers
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alloy
+  labels:
+    app: alloy
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: alloy
+rules:
+- apiGroups: [""]
+  resources: [nodes, nodes/proxy, services, endpoints, pods]
+  verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: alloy
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: alloy
+subjects:
+- kind: ServiceAccount
+  name: alloy
+  namespace: maps-platform

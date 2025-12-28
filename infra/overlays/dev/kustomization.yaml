@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: maps-platform-dev
+
+resources:
+- ../../base/
+- ../../database/
+- ../../cache/
+- ../../auth/
+- ../../gateway/
+- ../../core/
+- ../../etl/
+- ../../tiler/
+- ../../observability/
+
+patches:
+- path: patches/replicas.yaml
+
+namePrefix: dev-
