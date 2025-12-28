@@ -79,6 +79,7 @@
     "eslint": "^9.21.0",
     "eslint-define-config": "^2.1.0",
     "events": "^3.3.0",
+    "msw": "^2.12.7",
     "openapi-typescript": "^7.6.1",
     "openapi-typescript-codegen": "^0.29.0",
     "os-browserify": "^0.3.0",
@@ -109,6 +110,11 @@
       "@vaadin/vaadin-usage-statistics",
       "aws-sdk",
       "esbuild"
+    ]
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
     ]
   }
 }
