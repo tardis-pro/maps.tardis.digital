@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: etcd
+  labels:
+    app: etcd
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/part-of: maps-platform
+spec:
+  serviceName: etcd
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etcd
+  template:
+    metadata:
+      labels:
+        app: etcd
+        app.kubernetes.io/name: etcd
+        app.kubernetes.io/component: gateway
+        app.kubernetes.io/part-of: maps-platform
+    spec:
+      containers:
+      - name: etcd
+        image: bitnami/etcd:3.5
+        ports:
+        - containerPort: 2379
+          name: client
+        - containerPort: 2380
+          name: peer
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+        env:
+        - name: ALLOW_NONE_AUTHENTICATION
+          value: "yes"
+        - name: ETCD_ADVERTISE_CLIENT_URLS
+          value: "http://etcd:2379"
+        - name: ETCD_LISTEN_CLIENT_URLS
+          value: "http://0.0.0.0:2379"
+        volumeMounts:
+        - name: etcd-data
+          mountPath: /bitnami/etcd
+        readinessProbe:
+          exec:
+            command: ["/opt/bitnami/scripts/etcd/healthcheck.sh"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command: ["/opt/bitnami/scripts/etcd/healthcheck.sh"]
+          initialDelaySeconds: 30
+          periodSeconds: 15
+  volumeClaimTemplates:
+  - metadata:
+      name: etcd-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: etcd
+  labels:
+    app: etcd
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/part-of: maps-platform
+spec:
+  clusterIP: None
+  selector:
+    app: etcd
+  ports:
+  - name: client
+    port: 2379
+    targetPort: 2379
+  - name: peer
+    port: 2380
+    targetPort: 2380

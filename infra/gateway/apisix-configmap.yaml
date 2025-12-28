@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apisix-config
+  labels:
+    app: apisix
+    app.kubernetes.io/name: apisix
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/part-of: maps-platform
+data:
+  config.yaml: |
+    apisix:
+      node_listen: 9080
+      enable_admin: true
+      enable_control: true
+    deployment:
+      role: traditional
+      role_traditional:
+        config_provider: etcd
+      admin:
+        admin_key:
+          - name: admin
+            key: edd1c9f034335f136f87ad84b625c8f1
+            role: admin
+    etcd:
+      host:
+        - "http://etcd:2379"
+      prefix: "/apisix"
+    plugins:
+      - prometheus
+      - openid-connect
+      - proxy-rewrite
+      - cors
+      - limit-req
+      - limit-count
+    plugin_attr:
+      prometheus:
+        export_uri: /apisix/prometheus/metrics
+        export_addr:
+          ip: "0.0.0.0"
+          port: 9091
+
+  routes.yaml: |
+    routes:
+      - uri: /api/*
+        upstream:
+          type: roundrobin
+          nodes:
+            "fastapi-api:8000": 1
+        plugins:
+          openid-connect:
+            discovery: "https://auth.tardis.digital/realms/maps/.well-known/openid-configuration"
+            client_id: "maps-api"
+            bearer_only: true
+
+      - uri: /tiles/*
+        upstream:
+          type: roundrobin
+          nodes:
+            "martin:3000": 1
+        plugins:
+          proxy-rewrite:
+            regex_uri: ["^/tiles/(.*)", "/$1"]
+
+      - uri: /raster/*
+        upstream:
+          type: roundrobin
+          nodes:
+            "titiler:8000": 1
+        plugins:
+          proxy-rewrite:
+            regex_uri: ["^/raster/(.*)", "/$1"]

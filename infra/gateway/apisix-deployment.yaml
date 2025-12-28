@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apisix
+  labels:
+    app: apisix
+    app.kubernetes.io/name: apisix
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/part-of: maps-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: apisix
+  template:
+    metadata:
+      labels:
+        app: apisix
+        app.kubernetes.io/name: apisix
+        app.kubernetes.io/component: gateway
+        app.kubernetes.io/part-of: maps-platform
+    spec:
+      containers:
+      - name: apisix
+        image: apache/apisix:3.8-debian
+        ports:
+        - containerPort: 9080
+          name: http
+        - containerPort: 9180
+          name: admin
+        - containerPort: 9091
+          name: metrics
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+        volumeMounts:
+        - name: config
+          mountPath: /usr/local/apisix/conf/config.yaml
+          subPath: config.yaml
+        readinessProbe:
+          httpGet:
+            path: /apisix/status
+            port: 9080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /apisix/status
+            port: 9080
+          initialDelaySeconds: 30
+          periodSeconds: 15
+      volumes:
+      - name: config
+        configMap:
+          name: apisix-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apisix
+  labels:
+    app: apisix
+    app.kubernetes.io/name: apisix
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/part-of: maps-platform
+spec:
+  type: ClusterIP
+  selector:
+    app: apisix
+  ports:
+  - name: http
+    port: 80
+    targetPort: 9080
+  - name: admin
+    port: 9180
+    targetPort: 9180
+  - name: metrics
+    port: 9091
+    targetPort: 9091

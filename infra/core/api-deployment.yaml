@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-api
+  labels:
+    app: fastapi-api
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: maps-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fastapi-api
+  template:
+    metadata:
+      labels:
+        app: fastapi-api
+        app.kubernetes.io/name: api
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: maps-platform
+    spec:
+      containers:
+      - name: api
+        image: pronittardis/maps-api:latest
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: REDIS_URL
+        - name: ETL_SERVICE_URL
+          value: "http://etl-service:8001"
+        - name: KEYCLOAK_URL
+          value: "https://auth.tardis.digital"
+        - name: KEYCLOAK_REALM
+          value: "maps"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-api
+  labels:
+    app: fastapi-api
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: maps-platform
+spec:
+  type: ClusterIP
+  selector:
+    app: fastapi-api
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000

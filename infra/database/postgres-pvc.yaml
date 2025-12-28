@@ -1,17 +1,16 @@
 apiVersion: v1
-kind: Service
+kind: PersistentVolumeClaim
 metadata:
-  name: postgres
+  name: postgres-pvc
   labels:
     app: postgres
     app.kubernetes.io/name: postgres
     app.kubernetes.io/component: database
     app.kubernetes.io/part-of: maps-platform
 spec:
-  type: ClusterIP
-  selector:
-    app: postgres
-  ports:
-  - protocol: TCP
-    port: 5432
-    targetPort: 5432
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: local-storage

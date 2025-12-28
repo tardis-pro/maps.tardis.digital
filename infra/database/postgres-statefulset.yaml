@@ -4,6 +4,9 @@ metadata:
   name: postgres
   labels:
     app: postgres
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: maps-platform
 spec:
   serviceName: "postgres"
   replicas: 1
@@ -14,60 +17,74 @@ spec:
     metadata:
       labels:
         app: postgres
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: maps-platform
     spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: postgres
-        image: kartoza/postgis:15-3.3
+        image: postgis/postgis:17-3.5
         ports:
         - containerPort: 5432
         resources:
           requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
             memory: "2Gi"
             cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        envFrom:
+        - secretRef:
+            name: postgres-secrets
         env:
-        - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secrets
-              key: POSTGRES_USER
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secrets
-              key: POSTGRES_PASSWORD
-        - name: POSTGRES_DBNAME
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secrets
-              key: POSTGRES_DBNAME 
-        - name: POSTGRES_MULTIPLE_EXTENSIONS
-          value: postgis,hstore,postgis_topology,postgis_raster,pgrouting
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata
-        - name: POSTGRES_SHARED_BUFFERS
+        - name: POSTGRES_INITDB_ARGS
+          value: "--data-checksums"
+        - name: SHARED_BUFFERS
           value: "512MB"
-        - name: POSTGRES_EFFECTIVE_CACHE_SIZE
+        - name: EFFECTIVE_CACHE_SIZE
           value: "1536MB"
-        - name: POSTGRES_WORK_MEM
+        - name: WORK_MEM
           value: "16MB"
         volumeMounts:
-          - name: postgres-data
-            mountPath: /var/lib/postgresql/data
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d
         readinessProbe:
           exec:
-            command: ["pg_isready", "-U", "$(POSTGRES_USER)"]
+            command: ["pg_isready", "-U", "postgres"]
           initialDelaySeconds: 5
           periodSeconds: 10
         livenessProbe:
           exec:
-            command: ["pg_isready", "-U", "$(POSTGRES_USER)"]
+            command: ["pg_isready", "-U", "postgres"]
           initialDelaySeconds: 30
           periodSeconds: 15
       volumes:
-        - name: postgres-data
-          persistentVolumeClaim:
-            claimName: postgres-pvc
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+      - name: init-scripts
+        configMap:
+          name: postgres-init-scripts
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+  labels:
+    app: postgres
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: maps-platform
+data:
+  01-extensions.sql: |
+    CREATE EXTENSION IF NOT EXISTS postgis;
+    CREATE EXTENSION IF NOT EXISTS postgis_topology;
+    CREATE EXTENSION IF NOT EXISTS postgis_raster;
+    CREATE EXTENSION IF NOT EXISTS pgrouting;
+    CREATE EXTENSION IF NOT EXISTS hstore;
+    CREATE EXTENSION IF NOT EXISTS pg_stat_statements;

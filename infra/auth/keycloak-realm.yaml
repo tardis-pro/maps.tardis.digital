@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm-config
+  labels:
+    app: keycloak
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/component: auth
+    app.kubernetes.io/part-of: maps-platform
+data:
+  maps-realm.json: |
+    {
+      "realm": "maps",
+      "enabled": true,
+      "sslRequired": "external",
+      "registrationAllowed": false,
+      "loginWithEmailAllowed": true,
+      "bruteForceProtected": true,
+      "failureFactor": 5,
+      "maxFailureWaitSeconds": 300,
+      "passwordPolicy": "length(8) and upperCase(1) and digits(1)",
+      "accessTokenLifespan": 300,
+      "ssoSessionIdleTimeout": 1800,
+      "roles": {
+        "realm": [
+          {"name": "admin", "description": "Administrator role"},
+          {"name": "editor", "description": "Editor role"},
+          {"name": "viewer", "description": "Viewer role"}
+        ]
+      },
+      "clients": [
+        {
+          "clientId": "maps-frontend",
+          "enabled": true,
+          "publicClient": true,
+          "standardFlowEnabled": true,
+          "redirectUris": ["https://maps.tardis.digital/*", "http://localhost:3000/*"],
+          "webOrigins": ["https://maps.tardis.digital", "http://localhost:3000"],
+          "attributes": {"pkce.code.challenge.method": "S256"}
+        },
+        {
+          "clientId": "maps-api",
+          "enabled": true,
+          "publicClient": false,
+          "serviceAccountsEnabled": true,
+          "directAccessGrantsEnabled": true
+        }
+      ],
+      "defaultRoles": ["viewer"]
+    }
