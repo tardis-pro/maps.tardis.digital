@@ -1,0 +1,22 @@
+[package]
+name = "geo_engine"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "geo_engine"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.21", features = ["extension-module"] }
+geo = "0.28"
+geojson = "0.24"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rayon = "1.10"
+thiserror = "1.0"
+wkb = "0.7"
+
+[profile.release]
+lto = true
+codegen-units = 1
