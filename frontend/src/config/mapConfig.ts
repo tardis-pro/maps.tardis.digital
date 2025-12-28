@@ -4,7 +4,8 @@
  */
 
 // Base map tile source URL
-export const MAP_TILE_SOURCE = "http://localhost:3000/planet-full-poi-0-v2.2.2.3";
+export const MAP_TILE_SOURCE =
+    'http://localhost:3000/planet-full-poi-0-v2.2.2.3';
 
 // Default view state settings
 export const DEFAULT_VIEW_STATE = {
@@ -14,7 +15,7 @@ export const DEFAULT_VIEW_STATE = {
     pitch: 0,
     bearing: 0,
     maxZoom: 24,
-    minZoom: 1.5
+    minZoom: 1.5,
 };
 
 // Controller settings for DeckGL
@@ -23,19 +24,19 @@ export const DECK_CONTROLLER_OPTIONS = {
     scrollZoom: { smooth: true, speed: 0.1 },
     inertia: 300,
     minPitch: 0,
-    maxPitch: 79
+    maxPitch: 79,
 };
 
 // Event bus event names
 export enum MapEvents {
     VIEW_CHANGE = 'widget.map.zxy.change',
-    LAYER_TOGGLE = 'widget.map.layer.add'
+    LAYER_TOGGLE = 'widget.map.layer.add',
 }
 
 // Style factory configuration
 export const DEFAULT_STYLE_CONFIG = {
     sources: {
-        "openmaptiles": MAP_TILE_SOURCE
+        openmaptiles: MAP_TILE_SOURCE,
     },
-    exclusion: ["vectordata"]
+    exclusion: ['vectordata'],
 };

@@ -26,35 +26,43 @@ export const useMapHandlers = (mapRef: RefObject<any>) => {
     // Initialize PMTiles protocol
     useEffect(() => {
         const protocol = new Protocol();
-        maplibregl.addProtocol("pmtiles", protocol.tile);
+        maplibregl.addProtocol('pmtiles', protocol.tile);
 
         // Listen for map view state changes from other components
-        const handleMapViewChange = ({ zxy }: { zxy: [number, number, number] }) => {
+        const handleMapViewChange = (data: unknown) => {
+            const { zxy } = data as { zxy: [number, number, number] };
             setViewState({
                 zoom: zxy[0],
                 latitude: zxy[1],
-                longitude: zxy[2]
+                longitude: zxy[2],
             });
         };
 
-        eventBus.on(MapEvents.VIEW_CHANGE, handleMapViewChange);
+        const proxyFunc = eventBus.on(
+            MapEvents.VIEW_CHANGE,
+            handleMapViewChange
+        );
 
         return () => {
-            maplibregl.removeProtocol("pmtiles");
-            eventBus.off(MapEvents.VIEW_CHANGE, handleMapViewChange);
+            maplibregl.removeProtocol('pmtiles');
+            eventBus.off(MapEvents.VIEW_CHANGE, proxyFunc);
         };
     }, [setViewState]);
 
     // Handle layer visibility changes
     useEffect(() => {
-        const handleLayerToggle = ({ layer, checked }: { layer: string; checked: boolean }) => {
+        const handleLayerToggle = (data: unknown) => {
+            const { layer } = data as { layer: string; checked: boolean };
             toggleLayerVisibility(layer);
         };
 
-        eventBus.on(MapEvents.LAYER_TOGGLE, handleLayerToggle);
+        const proxyFunc = eventBus.on(
+            MapEvents.LAYER_TOGGLE,
+            handleLayerToggle
+        );
 
         return () => {
-            eventBus.off(MapEvents.LAYER_TOGGLE, handleLayerToggle);
+            eventBus.off(MapEvents.LAYER_TOGGLE, proxyFunc);
         };
     }, [toggleLayerVisibility]);
 
@@ -69,11 +77,11 @@ export const useMapHandlers = (mapRef: RefObject<any>) => {
     const onViewStateChange = ({ viewState }: { viewState: ViewState }) => {
         setViewState(viewState);
         eventBus.emit(MapEvents.VIEW_CHANGE, {
-            zxy: [viewState.zoom, viewState.latitude, viewState.longitude]
+            zxy: [viewState.zoom, viewState.latitude, viewState.longitude],
         });
     };
 
     return {
-        onViewStateChange
+        onViewStateChange,
     };
 };

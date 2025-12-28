@@ -2,10 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 interface SettingsProps {
-    isOpen: boolean;
+    isOpen?: boolean;
 }
 
-const Settings: React.FC<SettingsProps> = ({ isOpen }) => {
+const Settings: React.FC<SettingsProps> = ({ isOpen = true }) => {
     return (
         <motion.div
             className="flex items-center p-3 hover:bg-gray-700 rounded-md cursor-pointer"

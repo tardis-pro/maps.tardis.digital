@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 import { useUI } from '../context/UIContext';
 import { useAuth } from '../context/AuthContext';
 import Dashboard from './Dashboard';
@@ -11,48 +11,45 @@ import Navigation from './Navigation';
 const overlayVariants = {
     closed: {
         opacity: 0,
-        pointerEvents: "none" as "none",
+        pointerEvents: 'none' as const,
     },
     open: {
         opacity: 1,
-        pointerEvents: "auto" as "auto",
-    }
+        pointerEvents: 'auto' as const,
+    },
 };
 
 const sidebarVariants = {
     closed: {
         width: 63,
         transition: {
-            width: { type: "spring", stiffness: 400, damping: 40 },
+            width: { type: 'spring', stiffness: 400, damping: 40 },
             staggerChildren: 0.05,
-            staggerDirection: -1
-        }
+            staggerDirection: -1,
+        },
     },
     open: {
         width: 250,
         transition: {
-            width: { type: "spring", stiffness: 400, damping: 40 },
+            width: { type: 'spring', stiffness: 400, damping: 40 },
             staggerChildren: 0.05,
-            delayChildren: 0.2
-        }
-    }
+            delayChildren: 0.2,
+        },
+    },
 };
 
 const itemVariants = {
     closed: {
         opacity: 0,
         x: -20,
-        transition: { opacity: { duration: 0.2 } }
+        transition: { opacity: { duration: 0.2 } },
     },
     open: {
         opacity: 1,
         x: 0,
-        transition: { opacity: { duration: 0.2 } }
-    }
+        transition: { opacity: { duration: 0.2 } },
+    },
 };
-
-// Define transition for animations
-const transition = { duration: 0.5 };
 
 interface SidebarProps {
     isOpen: boolean;
@@ -78,7 +75,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
             <motion.div
                 className="fixed inset-0 bg-black bg-opacity-50 z-10"
                 initial="closed"
-                animate={isOpen ? "open" : "closed"}
+                animate={isOpen ? 'open' : 'closed'}
                 variants={overlayVariants}
                 onClick={handleOverlayClick}
             />
@@ -87,7 +84,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
             <motion.div
                 className="sidebar"
                 initial="closed"
-                animate={isOpen ? "open" : "closed"}
+                animate={isOpen ? 'open' : 'closed'}
                 variants={sidebarVariants}
             >
                 {/* Profile section */}
@@ -97,12 +94,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
                         variants={itemVariants}
                     >
                         <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold mr-3">
-                            {user ? user.firstName.charAt(0) + user.lastName.charAt(0) : 'G'}
+                            {user
+                                ? user.firstName.charAt(0) +
+                                  user.lastName.charAt(0)
+                                : 'G'}
                         </div>
                         {isOpen && (
                             <motion.div variants={itemVariants}>
                                 <div className="font-medium text-white">
-                                    {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
+                                    {user
+                                        ? `${user.firstName} ${user.lastName}`
+                                        : 'Guest User'}
                                 </div>
                                 <div className="text-xs text-gray-400">
                                     {user ? user.email : 'Not signed in'}

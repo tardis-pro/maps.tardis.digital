@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { motion } from "framer-motion";
+import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import BaseMap from './BaseMap';
 import Sidebar from './Sidebar';
 import { useUI } from '../context/UIContext';

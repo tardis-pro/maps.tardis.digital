@@ -1,10 +1,10 @@
-declare var process: any;
+declare let process: any;
 
-import i from "./index";
+import i from './index';
 
 if (process.argv.length < 2) {
-  process.stdout.write("usage: generate-layers SOURCE_NAME THEME");
-  process.exit(1);
+    process.stdout.write('usage: generate-layers SOURCE_NAME THEME');
+    process.exit(1);
 }
 const args = process.argv.slice(2);
 

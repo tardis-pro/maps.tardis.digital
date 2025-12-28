@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import {
+    createContext,
+    useContext,
+    useState,
+    useCallback,
+    ReactNode,
+} from 'react';
 import type { Layer } from '../services/akgda/models/Layer';
 
 interface LayerUIContextValue {
@@ -10,10 +16,14 @@ interface LayerUIContextValue {
     isLayerActive: (id: string) => boolean;
 }
 
-const LayerUIContext = createContext<LayerUIContextValue | undefined>(undefined);
+const LayerUIContext = createContext<LayerUIContextValue | undefined>(
+    undefined
+);
 
 export function LayerUIProvider({ children }: { children: ReactNode }) {
-    const [activeLayers, setActiveLayersState] = useState<Set<string>>(new Set());
+    const [activeLayers, setActiveLayersState] = useState<Set<string>>(
+        new Set()
+    );
     const [selectedLayer, setSelectedLayerState] = useState<Layer | null>(null);
 
     const toggleLayerVisibility = useCallback((id: string) => {
@@ -36,9 +46,12 @@ export function LayerUIProvider({ children }: { children: ReactNode }) {
         setSelectedLayerState(layer);
     }, []);
 
-    const isLayerActive = useCallback((id: string) => {
-        return activeLayers.has(id);
-    }, [activeLayers]);
+    const isLayerActive = useCallback(
+        (id: string) => {
+            return activeLayers.has(id);
+        },
+        [activeLayers]
+    );
 
     return (
         <LayerUIContext.Provider

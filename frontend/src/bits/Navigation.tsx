@@ -9,7 +9,7 @@ export const items = [
     { id: 'water', text: 'Water', icon: '💧' },
     { id: 'parks', text: 'Parks', icon: '🌳' },
     { id: 'poi', text: 'Points of Interest', icon: '📍' },
-    { id: 'boundaries', text: 'Boundaries', icon: '🗺️' }
+    { id: 'boundaries', text: 'Boundaries', icon: '🗺️' },
 ];
 
 interface NavigationProps {
@@ -26,7 +26,9 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen }) => {
 
     return (
         <div className="mt-4">
-            <h3 className={`px-3 text-xs uppercase text-gray-500 font-semibold ${!isOpen && 'text-center'}`}>
+            <h3
+                className={`px-3 text-xs uppercase text-gray-500 font-semibold ${!isOpen && 'text-center'}`}
+            >
                 {isOpen ? 'Map Layers' : 'Layers'}
             </h3>
             <div className="mt-2 space-y-1">
@@ -40,7 +42,9 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen }) => {
                     >
                         <span className="text-xl">{item.icon}</span>
                         {isOpen && (
-                            <span className="ml-3 text-gray-300">{item.text}</span>
+                            <span className="ml-3 text-gray-300">
+                                {item.text}
+                            </span>
                         )}
                     </motion.div>
                 ))}

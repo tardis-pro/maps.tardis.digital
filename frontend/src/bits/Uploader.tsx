@@ -14,9 +14,14 @@ interface UploaderProps {
 const Uploader: React.FC<UploaderProps> = ({
     updateUploadedFiles,
     allowMultiple = false,
-    acceptedFileTypes = ['image/jpeg', 'image/png', 'application/json', 'application/geo+json'],
+    acceptedFileTypes = [
+        'image/jpeg',
+        'image/png',
+        'application/json',
+        'application/geo+json',
+    ],
     maxFileSize = 50 * 1024 * 1024, // 50MB
-    label = 'Upload Files'
+    label: _label = 'Upload Files',
 }) => {
     const { addToast } = useToast();
     const [files, setFiles] = useState<File[]>([]);
@@ -25,23 +30,29 @@ const Uploader: React.FC<UploaderProps> = ({
     const [uploadProgress, setUploadProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const validateFiles = useCallback((filesToValidate: File[]): File[] => {
-        return filesToValidate.filter(file => {
-            // Check file type
-            if (acceptedFileTypes.length && !acceptedFileTypes.includes(file.type)) {
-                addToast(`File type not supported: ${file.type}`, 'error');
-                return false;
-            }
+    const validateFiles = useCallback(
+        (filesToValidate: File[]): File[] => {
+            return filesToValidate.filter((file) => {
+                // Check file type
+                if (
+                    acceptedFileTypes.length &&
+                    !acceptedFileTypes.includes(file.type)
+                ) {
+                    addToast(`File type not supported: ${file.type}`, 'error');
+                    return false;
+                }
 
-            // Check file size
-            if (maxFileSize && file.size > maxFileSize) {
-                addToast(`File too large: ${file.name}`, 'error');
-                return false;
-            }
+                // Check file size
+                if (maxFileSize && file.size > maxFileSize) {
+                    addToast(`File too large: ${file.name}`, 'error');
+                    return false;
+                }
 
-            return true;
-        });
-    }, [acceptedFileTypes, maxFileSize, addToast]);
+                return true;
+            });
+        },
+        [acceptedFileTypes, maxFileSize, addToast]
+    );
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
@@ -49,7 +60,9 @@ const Uploader: React.FC<UploaderProps> = ({
             const validFiles = validateFiles(newFiles);
 
             if (validFiles.length) {
-                const updatedFiles = allowMultiple ? [...files, ...validFiles] : validFiles;
+                const updatedFiles = allowMultiple
+                    ? [...files, ...validFiles]
+                    : validFiles;
                 setFiles(updatedFiles);
                 if (updateUploadedFiles) {
                     updateUploadedFiles(updatedFiles);
@@ -58,33 +71,44 @@ const Uploader: React.FC<UploaderProps> = ({
         }
     };
 
-    const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        setIsDragging(true);
-    }, []);
+    const handleDragOver = useCallback(
+        (event: React.DragEvent<HTMLDivElement>) => {
+            event.preventDefault();
+            setIsDragging(true);
+        },
+        []
+    );
 
-    const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        setIsDragging(false);
-    }, []);
+    const handleDragLeave = useCallback(
+        (event: React.DragEvent<HTMLDivElement>) => {
+            event.preventDefault();
+            setIsDragging(false);
+        },
+        []
+    );
 
-    const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        setIsDragging(false);
+    const handleDrop = useCallback(
+        (event: React.DragEvent<HTMLDivElement>) => {
+            event.preventDefault();
+            setIsDragging(false);
 
-        if (event.dataTransfer.files) {
-            const newFiles = Array.from(event.dataTransfer.files);
-            const validFiles = validateFiles(newFiles);
+            if (event.dataTransfer.files) {
+                const newFiles = Array.from(event.dataTransfer.files);
+                const validFiles = validateFiles(newFiles);
 
-            if (validFiles.length) {
-                const updatedFiles = allowMultiple ? [...files, ...validFiles] : validFiles;
-                setFiles(updatedFiles);
-                if (updateUploadedFiles) {
-                    updateUploadedFiles(updatedFiles);
+                if (validFiles.length) {
+                    const updatedFiles = allowMultiple
+                        ? [...files, ...validFiles]
+                        : validFiles;
+                    setFiles(updatedFiles);
+                    if (updateUploadedFiles) {
+                        updateUploadedFiles(updatedFiles);
+                    }
                 }
             }
-        }
-    }, [allowMultiple, files, updateUploadedFiles, validateFiles]);
+        },
+        [allowMultiple, files, updateUploadedFiles, validateFiles]
+    );
 
     const handleUpload = async () => {
         if (!files.length) {
@@ -104,7 +128,10 @@ const Uploader: React.FC<UploaderProps> = ({
                 setUploadProgress(Math.round((i / files.length) * 100));
 
                 // Check if it's a GeoJSON file
-                if (file.type === 'application/geo+json' || file.name.endsWith('.geojson')) {
+                if (
+                    file.type === 'application/geo+json' ||
+                    file.name.endsWith('.geojson')
+                ) {
                     // Read the file content
                     const content = await readFileAsText(file);
 
@@ -113,28 +140,40 @@ const Uploader: React.FC<UploaderProps> = ({
                         const geojson = JSON.parse(content);
 
                         // Create a new source with this GeoJSON data
+                        // Note: API uses 'attritutes' (typo in API model)
                         const source = {
-                            name: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+                            sid: `upload-${Date.now()}`,
+                            name: file.name.replace(/\.[^/.]+$/, ''), // Remove extension
                             description: `Uploaded GeoJSON: ${file.name}`,
                             source_type: 'geojson',
-                            attributes: {
-                                data: geojson
-                            }
+                            attritutes: {
+                                data: geojson,
+                            },
                         };
 
-                        // Upload to the API
-                        await V1Service.v1SourcesCreate(source);
+                        // Upload to the API (id is auto-generated by server)
+                        await V1Service.v1SourcesCreate(
+                            source as unknown as Parameters<
+                                typeof V1Service.v1SourcesCreate
+                            >[0]
+                        );
 
-                        addToast(`Successfully uploaded ${file.name} as a new source`, 'success');
+                        addToast(
+                            `Successfully uploaded ${file.name} as a new source`,
+                            'success'
+                        );
                     } catch (error) {
-                        addToast(`Error processing GeoJSON: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+                        addToast(
+                            `Error processing GeoJSON: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                            'error'
+                        );
                     }
                 } else {
                     // For other file types, we could implement different upload strategies
                     // For example, uploading to S3 or another storage service
 
                     // Simulate upload for now
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await new Promise((resolve) => setTimeout(resolve, 500));
 
                     addToast(`Uploaded ${file.name}`, 'success');
                 }
@@ -150,7 +189,10 @@ const Uploader: React.FC<UploaderProps> = ({
                 }
             }
         } catch (error) {
-            addToast(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+            addToast(
+                `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                'error'
+            );
         } finally {
             setIsUploading(false);
         }
@@ -183,8 +225,11 @@ const Uploader: React.FC<UploaderProps> = ({
     return (
         <div className="w-full">
             <div
-                className={`p-4 border-2 border-dashed rounded-lg transition-colors ${isDragging ? 'border-blue-500 bg-blue-50 bg-opacity-10' : 'border-gray-600 bg-gray-800 bg-opacity-50'
-                    }`}
+                className={`p-4 border-2 border-dashed rounded-lg transition-colors ${
+                    isDragging
+                        ? 'border-blue-500 bg-blue-50 bg-opacity-10'
+                        : 'border-gray-600 bg-gray-800 bg-opacity-50'
+                }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
@@ -213,7 +258,8 @@ const Uploader: React.FC<UploaderProps> = ({
                     </p>
 
                     <p className="mt-1 text-xs text-gray-400">
-                        {acceptedFileTypes.join(', ')} up to {Math.round(maxFileSize / (1024 * 1024))}MB
+                        {acceptedFileTypes.join(', ')} up to{' '}
+                        {Math.round(maxFileSize / (1024 * 1024))}MB
                     </p>
                 </div>
 
@@ -250,7 +296,9 @@ const Uploader: React.FC<UploaderProps> = ({
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                     />
                                 </svg>
-                                <div className="text-sm truncate max-w-xs">{file.name}</div>
+                                <div className="text-sm truncate max-w-xs">
+                                    {file.name}
+                                </div>
                             </div>
                             <button
                                 type="button"
@@ -289,7 +337,9 @@ const Uploader: React.FC<UploaderProps> = ({
                             style={{ width: `${uploadProgress}%` }}
                         ></div>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1 text-right">{uploadProgress}%</p>
+                    <p className="text-xs text-gray-400 mt-1 text-right">
+                        {uploadProgress}%
+                    </p>
                 </div>
             )}
 
@@ -299,10 +349,11 @@ const Uploader: React.FC<UploaderProps> = ({
                 whileTap={{ scale: 0.98 }}
                 onClick={handleUpload}
                 disabled={isUploading || files.length === 0}
-                className={`mt-4 w-full py-2 px-4 rounded font-medium ${isUploading || files.length === 0
+                className={`mt-4 w-full py-2 px-4 rounded font-medium ${
+                    isUploading || files.length === 0
                         ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
+                }`}
             >
                 {isUploading ? 'Uploading...' : 'Upload Files'}
             </motion.button>

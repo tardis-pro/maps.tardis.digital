@@ -81,7 +81,10 @@ const PasswordChange: React.FC = () => {
                 {step === 1 ? (
                     <form onSubmit={handleRequestReset}>
                         <div className="mb-4">
-                            <label className="block text-gray-300 mb-2" htmlFor="email">
+                            <label
+                                className="block text-gray-300 mb-2"
+                                htmlFor="email"
+                            >
                                 Email Address
                             </label>
                             <input
@@ -114,7 +117,10 @@ const PasswordChange: React.FC = () => {
                 ) : (
                     <form onSubmit={handleResetPassword}>
                         <div className="mb-4">
-                            <label className="block text-gray-300 mb-2" htmlFor="code">
+                            <label
+                                className="block text-gray-300 mb-2"
+                                htmlFor="code"
+                            >
                                 Reset Code
                             </label>
                             <input
@@ -128,7 +134,10 @@ const PasswordChange: React.FC = () => {
                         </div>
 
                         <div className="mb-4">
-                            <label className="block text-gray-300 mb-2" htmlFor="newPassword">
+                            <label
+                                className="block text-gray-300 mb-2"
+                                htmlFor="newPassword"
+                            >
                                 New Password
                             </label>
                             <input
@@ -142,7 +151,10 @@ const PasswordChange: React.FC = () => {
                         </div>
 
                         <div className="mb-6">
-                            <label className="block text-gray-300 mb-2" htmlFor="confirmPassword">
+                            <label
+                                className="block text-gray-300 mb-2"
+                                htmlFor="confirmPassword"
+                            >
                                 Confirm Password
                             </label>
                             <input
@@ -150,7 +162,9 @@ const PasswordChange: React.FC = () => {
                                 type="password"
                                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
                                 value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                onChange={(e) =>
+                                    setConfirmPassword(e.target.value)
+                                }
                                 placeholder="Confirm new password"
                             />
                         </div>

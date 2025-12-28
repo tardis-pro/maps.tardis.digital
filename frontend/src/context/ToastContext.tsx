@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import {
+    createContext,
+    useContext,
+    useState,
+    useCallback,
+    ReactNode,
+} from 'react';
 
 type ToastType = 'info' | 'success' | 'warning' | 'error';
 
@@ -39,7 +45,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     );
 }
 
-function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast: (id: string) => void }) {
+function ToastContainer({
+    toasts,
+    removeToast,
+}: {
+    toasts: Toast[];
+    removeToast: (id: string) => void;
+}) {
     if (toasts.length === 0) return null;
 
     const bgColors: Record<ToastType, string> = {

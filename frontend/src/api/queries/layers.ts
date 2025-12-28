@@ -6,7 +6,8 @@ import type { Layer } from '../../services/akgda/models/Layer';
 export const layerKeys = {
     all: ['layers'] as const,
     lists: () => [...layerKeys.all, 'list'] as const,
-    list: (filters: Record<string, unknown>) => [...layerKeys.lists(), filters] as const,
+    list: (filters: Record<string, unknown>) =>
+        [...layerKeys.lists(), filters] as const,
     details: () => [...layerKeys.all, 'detail'] as const,
     detail: (id: number) => [...layerKeys.details(), id] as const,
 };
@@ -73,7 +74,9 @@ export function useDeleteLayer() {
         },
         onSuccess: (deletedId) => {
             queryClient.invalidateQueries({ queryKey: layerKeys.all });
-            queryClient.removeQueries({ queryKey: layerKeys.detail(deletedId) });
+            queryClient.removeQueries({
+                queryKey: layerKeys.detail(deletedId),
+            });
         },
     });
 }

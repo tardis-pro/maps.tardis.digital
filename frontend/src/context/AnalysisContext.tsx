@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import {
+    createContext,
+    useContext,
+    useState,
+    useCallback,
+    ReactNode,
+} from 'react';
 import { FeatureCollection } from 'geojson';
 
 // Analysis types supported
@@ -37,7 +43,9 @@ interface AnalysisContextValue {
     clearAllResults: () => void;
 }
 
-const AnalysisContext = createContext<AnalysisContextValue | undefined>(undefined);
+const AnalysisContext = createContext<AnalysisContextValue | undefined>(
+    undefined
+);
 
 export function AnalysisProvider({ children }: { children: ReactNode }) {
     const [results, setResults] = useState<Record<string, AnalysisResult>>({});

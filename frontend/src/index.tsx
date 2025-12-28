@@ -1,12 +1,15 @@
-import * as React from 'react'
+import * as React from 'react';
 
-import { App } from './App'
+import { App } from './App';
 import { createRoot } from 'react-dom/client';
+
 const container = document.getElementById('root');
-const root = createRoot(container); 
-// why this doesnot render on the browser
+if (!container) {
+    throw new Error('Root element not found');
+}
+const root = createRoot(container);
 root.render(
     <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-  );
+        <App />
+    </React.StrictMode>
+);
