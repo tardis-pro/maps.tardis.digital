@@ -44,7 +44,9 @@ const Signin: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
             >
-                <h2 className="text-2xl font-bold text-white mb-6 text-center">Sign In</h2>
+                <h2 className="text-2xl font-bold text-white mb-6 text-center">
+                    Sign In
+                </h2>
 
                 {error && (
                     <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-4 py-3 rounded mb-4">
@@ -54,7 +56,10 @@ const Signin: React.FC = () => {
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block text-gray-300 mb-2" htmlFor="username">
+                        <label
+                            className="block text-gray-300 mb-2"
+                            htmlFor="username"
+                        >
                             Username
                         </label>
                         <input
@@ -68,7 +73,10 @@ const Signin: React.FC = () => {
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-gray-300 mb-2" htmlFor="password">
+                        <label
+                            className="block text-gray-300 mb-2"
+                            htmlFor="password"
+                        >
                             Password
                         </label>
                         <input
@@ -84,10 +92,11 @@ const Signin: React.FC = () => {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className={`w-full font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors ${isLoading
+                        className={`w-full font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors ${
+                            isLoading
                                 ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                                 : 'bg-blue-600 hover:bg-blue-700 text-white'
-                            }`}
+                        }`}
                     >
                         {isLoading ? 'Signing in...' : 'Sign In'}
                     </button>

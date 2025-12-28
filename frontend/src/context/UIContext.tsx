@@ -1,67 +1,151 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import {
+    createContext,
+    useContext,
+    useState,
+    useCallback,
+    ReactNode,
+} from 'react';
 
-interface GridItem {
+interface GridLayoutItem {
     i: string;
     x: number;
     y: number;
     w: number;
     h: number;
-    isResizable: boolean;
 }
+
+type TabType =
+    | 'layers'
+    | 'analytics'
+    | 'data'
+    | 'visualization'
+    | 'spatial-analysis';
 
 interface UIContextValue {
+    // Sidebar
     isSidebarOpen: boolean;
-    activeTab: string;
-    isDarkMode: boolean;
-    isLoading: boolean;
-    gridLayout: GridItem[];
     toggleSidebar: () => void;
     setSidebarOpen: (open: boolean) => void;
-    setActiveTab: (tab: string) => void;
-    toggleDarkMode: () => void;
-    setLoading: (loading: boolean) => void;
-    updateGridLayout: (layout: GridItem[]) => void;
-}
 
-const defaultGridLayout: GridItem[] = [
-    { i: '0', x: 0, y: 0, w: 2, h: 2, isResizable: false },
-    { i: '1', x: 2, y: 0, w: 1, h: 1, isResizable: false },
-    { i: '2', x: 3, y: 0, w: 2, h: 1, isResizable: false },
-    { i: '3', x: 5, y: 0, w: 1, h: 2, isResizable: false },
-    { i: '4', x: 2, y: 1, w: 1, h: 1, isResizable: false },
-    { i: '5', x: 3, y: 1, w: 2, h: 1, isResizable: false },
-];
+    // Bottom drawer
+    isDrawerExpanded: boolean;
+    toggleDrawer: () => void;
+    setDrawerExpanded: (expanded: boolean) => void;
+
+    // Selected layer
+    selectedLayerId: string | number | null;
+    setSelectedLayerId: (id: string | number | null) => void;
+
+    // Add layer modal
+    isAddLayerModalOpen: boolean;
+    openAddLayerModal: () => void;
+    closeAddLayerModal: () => void;
+
+    // Loading state
+    isLoading: boolean;
+    setLoading: (loading: boolean) => void;
+
+    // Grid layout (for bits/Home.tsx dashboard)
+    gridLayout: GridLayoutItem[];
+    updateGridLayout: (layout: GridLayoutItem[]) => void;
+
+    // Active tab
+    activeTab: TabType;
+    setActiveTab: (tab: TabType) => void;
+}
 
 const UIContext = createContext<UIContextValue | undefined>(undefined);
 
-export function UIProvider({ children }: { children: ReactNode }) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [activeTab, setActiveTabState] = useState('map');
-    const [isDarkMode, setIsDarkMode] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
-    const [gridLayout, setGridLayout] = useState<GridItem[]>(defaultGridLayout);
+const defaultGridLayout: GridLayoutItem[] = [
+    { i: '0', x: 0, y: 0, w: 1, h: 2 },
+    { i: '1', x: 1, y: 0, w: 1, h: 2 },
+    { i: '2', x: 2, y: 0, w: 1, h: 2 },
+    { i: '3', x: 3, y: 0, w: 1, h: 2 },
+    { i: '4', x: 4, y: 0, w: 1, h: 2 },
+    { i: '5', x: 5, y: 0, w: 1, h: 2 },
+];
 
-    const toggleSidebar = useCallback(() => setIsSidebarOpen((prev) => !prev), []);
-    const setSidebarOpen = useCallback((open: boolean) => setIsSidebarOpen(open), []);
-    const setActiveTab = useCallback((tab: string) => setActiveTabState(tab), []);
-    const toggleDarkMode = useCallback(() => setIsDarkMode((prev) => !prev), []);
-    const setLoading = useCallback((loading: boolean) => setIsLoading(loading), []);
-    const updateGridLayout = useCallback((layout: GridItem[]) => setGridLayout(layout), []);
+export function UIProvider({ children }: { children: ReactNode }) {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isDrawerExpanded, setIsDrawerExpanded] = useState(false);
+    const [selectedLayerId, setSelectedLayerIdState] = useState<
+        string | number | null
+    >(null);
+    const [isAddLayerModalOpen, setIsAddLayerModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [gridLayout, setGridLayout] =
+        useState<GridLayoutItem[]>(defaultGridLayout);
+    const [activeTab, setActiveTabState] = useState<TabType>('layers');
+
+    const toggleSidebar = useCallback(
+        () => setIsSidebarOpen((prev) => !prev),
+        []
+    );
+    const setSidebarOpen = useCallback(
+        (open: boolean) => setIsSidebarOpen(open),
+        []
+    );
+
+    const toggleDrawer = useCallback(
+        () => setIsDrawerExpanded((prev) => !prev),
+        []
+    );
+    const setDrawerExpanded = useCallback(
+        (expanded: boolean) => setIsDrawerExpanded(expanded),
+        []
+    );
+
+    const setSelectedLayerId = useCallback((id: string | number | null) => {
+        setSelectedLayerIdState(id);
+        if (id !== null) {
+            setIsDrawerExpanded(true);
+        }
+    }, []);
+
+    const openAddLayerModal = useCallback(
+        () => setIsAddLayerModalOpen(true),
+        []
+    );
+    const closeAddLayerModal = useCallback(
+        () => setIsAddLayerModalOpen(false),
+        []
+    );
+
+    const setLoading = useCallback(
+        (loading: boolean) => setIsLoading(loading),
+        []
+    );
+
+    const updateGridLayout = useCallback(
+        (layout: GridLayoutItem[]) => setGridLayout(layout),
+        []
+    );
+
+    const setActiveTab = useCallback(
+        (tab: TabType) => setActiveTabState(tab),
+        []
+    );
 
     return (
         <UIContext.Provider
             value={{
                 isSidebarOpen,
-                activeTab,
-                isDarkMode,
-                isLoading,
-                gridLayout,
                 toggleSidebar,
                 setSidebarOpen,
-                setActiveTab,
-                toggleDarkMode,
+                isDrawerExpanded,
+                toggleDrawer,
+                setDrawerExpanded,
+                selectedLayerId,
+                setSelectedLayerId,
+                isAddLayerModalOpen,
+                openAddLayerModal,
+                closeAddLayerModal,
+                isLoading,
                 setLoading,
+                gridLayout,
                 updateGridLayout,
+                activeTab,
+                setActiveTab,
             }}
         >
             {children}

@@ -5,15 +5,19 @@
         "esModuleInterop": true,
         "jsx": "react-jsx",
         "outDir": "./dist/",
-        "module": "commonjs",
-        "moduleResolution": "node",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
         "noImplicitAny": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "sourceMap": true,
         "strict": true,
-        "target": "es6",
-        "skipLibCheck": true
+        "target": "ES2020",
+        "skipLibCheck": true,
+        "types": ["vite/client"],
+        "paths": {
+            "@/*": ["./*"]
+        }
     },
-    "exclude": ["node_modules/*"]
+    "exclude": ["node_modules/*", "src/bits/Tardis.tsx"]
 }

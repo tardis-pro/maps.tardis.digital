@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { OpenAPI } from '../services/akgda';
 import { RestAuthService } from '../services/akgda/services/RestAuthService';
@@ -41,11 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         queryFn: async () => {
             const response = await RestAuthService.restAuthUserRetrieve();
             return {
-                id: response.id,
+                id: response.pk,
                 username: response.username,
                 email: response.email,
-                firstName: response.first_name,
-                lastName: response.last_name,
+                firstName: response.first_name ?? '',
+                lastName: response.last_name ?? '',
             } as User;
         },
         enabled: !!token,
@@ -53,8 +53,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const loginMutation = useMutation({
-        mutationFn: async ({ username, password }: { username: string; password: string }) => {
-            const response = await RestAuthService.restAuthLoginCreate({ username, password });
+        mutationFn: async ({
+            username,
+            password,
+        }: {
+            username: string;
+            password: string;
+        }) => {
+            const response = await RestAuthService.restAuthLoginCreate({
+                username,
+                password,
+            });
             localStorage.setItem('token', response.key);
             OpenAPI.TOKEN = response.key;
             return response;
@@ -83,8 +92,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await logoutMutation.mutateAsync();
     };
 
-    const isLoading = isUserLoading || loginMutation.isPending || logoutMutation.isPending;
-    const error = userError?.message || loginMutation.error?.message || logoutMutation.error?.message || null;
+    const isLoading =
+        isUserLoading || loginMutation.isPending || logoutMutation.isPending;
+    const error =
+        userError?.message ||
+        loginMutation.error?.message ||
+        logoutMutation.error?.message ||
+        null;
 
     return (
         <AuthContext.Provider

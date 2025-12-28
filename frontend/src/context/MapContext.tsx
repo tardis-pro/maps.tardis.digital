@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import {
+    createContext,
+    useContext,
+    useState,
+    useCallback,
+    ReactNode,
+} from 'react';
 
 interface ViewState {
     longitude: number;
@@ -34,18 +40,30 @@ const defaultViewState: ViewState = {
 const MapContext = createContext<MapContextValue | undefined>(undefined);
 
 export function MapProvider({ children }: { children: ReactNode }) {
-    const [viewState, setViewStateInternal] = useState<ViewState>(defaultViewState);
+    const [viewState, setViewStateInternal] =
+        useState<ViewState>(defaultViewState);
     const [baseMapStyle, setBaseMapStyleState] = useState('dark');
     const [isMapLoaded, setIsMapLoaded] = useState(false);
-    const [selectedFeature, setSelectedFeatureState] = useState<any | null>(null);
+    const [selectedFeature, setSelectedFeatureState] = useState<any | null>(
+        null
+    );
 
     const setViewState = useCallback((partial: Partial<ViewState>) => {
         setViewStateInternal((prev) => ({ ...prev, ...partial }));
     }, []);
 
-    const setBaseMapStyle = useCallback((style: string) => setBaseMapStyleState(style), []);
-    const setMapLoaded = useCallback((loaded: boolean) => setIsMapLoaded(loaded), []);
-    const setSelectedFeature = useCallback((feature: any | null) => setSelectedFeatureState(feature), []);
+    const setBaseMapStyle = useCallback(
+        (style: string) => setBaseMapStyleState(style),
+        []
+    );
+    const setMapLoaded = useCallback(
+        (loaded: boolean) => setIsMapLoaded(loaded),
+        []
+    );
+    const setSelectedFeature = useCallback(
+        (feature: any | null) => setSelectedFeatureState(feature),
+        []
+    );
 
     return (
         <MapContext.Provider

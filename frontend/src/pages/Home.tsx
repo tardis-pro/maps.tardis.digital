@@ -1,70 +1,144 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Map from '../components/Map';
-import Sidebar from '../components/Sidebar';
-import LayerPanel from '../bits/LayerPanel';
-import AnalyticsPanel from '../bits/AnalyticsPanel';
-import DataManager from '../bits/DataManager';
-import VisualizationControls from '../bits/VisualizationControls';
-import SpatialAnalysisPanel from '../bits/SpatialAnalysisPanel';
+import TopBar from '../components/TopBar';
+import Sidebar from '../components/sidebar';
+import BottomDrawer from '../components/BottomDrawer';
+import AddLayerModal from '../components/AddLayerModal';
 import { useUI } from '../context/UIContext';
 import { useLayerUI } from '../context/LayerUIContext';
-import { useLayers, useUpdateLayer, useDeleteLayer } from '../api/queries/layers';
+import { useLayers } from '../api/queries/layers';
+import type { Layer } from '../components/sidebar/LayerList';
 
 const Home: React.FC = () => {
-  const { isSidebarOpen, activeTab, toggleSidebar } = useUI();
-  const { activeLayers, toggleLayerVisibility } = useLayerUI();
-  const { data: layers = [], refetch: refetchLayers } = useLayers();
-  const updateLayerMutation = useUpdateLayer();
-  const deleteLayerMutation = useDeleteLayer();
-  const [mapLoaded, setMapLoaded] = useState(false);
+    const {
+        isSidebarOpen,
+        toggleSidebar,
+        isDrawerExpanded,
+        toggleDrawer,
+        selectedLayerId,
+        setSelectedLayerId,
+        isAddLayerModalOpen,
+        openAddLayerModal,
+        closeAddLayerModal,
+    } = useUI();
 
-  useEffect(() => {
-    // Fetch layers when component mounts
-    refetchLayers();
-  }, [refetchLayers]);
+    const { activeLayers, toggleLayerVisibility } = useLayerUI();
+    const { data: layersData = [] } = useLayers();
 
-  const handleMapLoad = () => {
-    setMapLoaded(true);
-  };
+    const [currentPage, setCurrentPage] = useState(1);
 
-  const renderActivePanel = () => {
-    switch (activeTab) {
-      case 'layers':
-        return (
-          <LayerPanel
-            layers={layers}
-            activeLayers={Array.from(activeLayers)}
-            onToggleLayer={(layerId) => toggleLayerVisibility(layerId)}
-            onStyleChange={(layerId, style) => updateLayerMutation.mutate({ id: Number(layerId), data: { style } as any })}
-            onRemoveLayer={(layerId) => deleteLayerMutation.mutate(Number(layerId))}
-            onLayerOrderChange={(newOrder) => {/* implement layer order change */}}
-            onAddLayer={(layer) => {/* implement add layer */}}
-          />
-        );
-      case 'analytics':
-        return <AnalyticsPanel />;
-      case 'data':
-        return <DataManager />;
-      case 'visualization':
-        return <VisualizationControls />;
-      case 'spatial-analysis':
-        return <SpatialAnalysisPanel />;
-      default:
-        return <LayerPanel />;
-    }
-  };
+    // Transform layers to sidebar format
+    const layers: Layer[] = useMemo(
+        () =>
+            layersData.map((layer: any) => ({
+                id: layer.id,
+                name: layer.name || `Layer ${layer.id}`,
+                visible: activeLayers.has(String(layer.id)),
+                type: layer.type,
+            })),
+        [layersData, activeLayers]
+    );
 
-  return (
-    <div className="home">
-      <div className={`map-container ${isSidebarOpen ? 'with-sidebar' : ''}`}>
-        <Map onLoad={handleMapLoad} />
-      </div>
+    // Get selected layer data for drawer
+    const selectedLayer = useMemo(
+        () => layersData.find((l: any) => l.id === selectedLayerId),
+        [layersData, selectedLayerId]
+    );
 
-      <Sidebar isOpen={isSidebarOpen} onToggle={() => toggleSidebar()}>
-        {renderActivePanel()}
-      </Sidebar>
-    </div>
-  );
+    // Mock feature data - replace with actual layer features
+    const featureData = useMemo(() => {
+        if (!selectedLayer) return [];
+        // This would come from actual layer data
+        return [];
+    }, [selectedLayer]);
+
+    const columns = [
+        { key: 'id', label: 'ID', width: '80px' },
+        { key: 'name', label: 'Name' },
+        { key: 'type', label: 'Type', width: '100px' },
+    ];
+
+    const handleToggleVisibility = (layerId: string | number) => {
+        toggleLayerVisibility(String(layerId));
+    };
+
+    const handleLayerSelect = (layerId: string | number) => {
+        setSelectedLayerId(layerId);
+    };
+
+    const handleAnalysisTool = (toolId: string) => {
+        console.log('Analysis tool selected:', toolId);
+        // Implement analysis tool handling
+    };
+
+    const handleFileUpload = (files: File[]) => {
+        console.log('Files uploaded:', files);
+        // Implement file upload handling - reuse DataManager logic
+    };
+
+    const handleApiConnect = (url: string) => {
+        console.log('API connect:', url);
+        // Implement API connection - reuse DataManager logic
+    };
+
+    return (
+        <div
+            style={{
+                height: '100vh',
+                width: '100vw',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+            }}
+        >
+            <TopBar onMenuClick={toggleSidebar} />
+
+            <div
+                style={{
+                    flex: 1,
+                    position: 'relative',
+                    marginTop: 'var(--topbar-height)',
+                    marginBottom: isDrawerExpanded
+                        ? 'var(--drawer-expanded)'
+                        : 'var(--drawer-collapsed)',
+                    marginLeft: isSidebarOpen ? 'var(--sidebar-width)' : 0,
+                    transition: 'margin var(--transition-normal)',
+                }}
+            >
+                <Map />
+            </div>
+
+            <Sidebar
+                isOpen={isSidebarOpen}
+                layers={layers}
+                onToggleLayerVisibility={handleToggleVisibility}
+                onLayerSelect={handleLayerSelect}
+                onAddLayer={openAddLayerModal}
+                onAnalysisTool={handleAnalysisTool}
+                selectedLayerId={selectedLayerId}
+            />
+
+            <BottomDrawer
+                isExpanded={isDrawerExpanded}
+                onToggle={toggleDrawer}
+                title="Features"
+                subtitle={selectedLayer?.name}
+                columns={columns}
+                data={featureData}
+                featureCount={featureData.length}
+                currentPage={currentPage}
+                totalPages={Math.ceil(featureData.length / 50) || 1}
+                onPageChange={setCurrentPage}
+            />
+
+            <AddLayerModal
+                isOpen={isAddLayerModalOpen}
+                onClose={closeAddLayerModal}
+                onFileUpload={handleFileUpload}
+                onApiConnect={handleApiConnect}
+            />
+        </div>
+    );
 };
 
-export default Home; 
+export default Home;

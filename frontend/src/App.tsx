@@ -7,7 +7,6 @@ import Signup from './bits/Signup';
 import ResetPassword from './bits/PasswordChange';
 import Home from './bits/Home';
 
-const Dashboard = lazy(() => import('./bits/Dashboard'));
 const Settings = lazy(() => import('./bits/Settings'));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {

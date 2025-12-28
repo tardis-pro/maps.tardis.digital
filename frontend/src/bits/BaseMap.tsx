@@ -3,33 +3,32 @@ import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import { MVTLayer } from '@deck.gl/geo-layers';
-import { HexagonLayer, HeatmapLayer, ScatterplotLayer } from '@deck.gl/aggregation-layers';
+import { GeoJsonLayer, type Color } from 'deck.gl';
 import { Protocol } from 'pmtiles';
-import { styleFactory } from './tile';
 import { useMap } from '../context/MapContext';
 import { useLayerUI } from '../context/LayerUIContext';
-import { useLayers, useUpdateLayer, useDeleteLayer } from '../api/queries/layers';
-// Analytics functions - now placeholders (can be moved to a utils file or context)
-import eventBus from '../utils/eventBus';
-import { initializeWebGL } from '../utils/webglUtils';
 import {
-    colorRamps,
-    generateScaleFunction,
-    getColorForValue
-} from '../utils/color';
-import {
-    DECK_CONTROLLER_OPTIONS,
-    DEFAULT_STYLE_CONFIG,
-    MapEvents,
-    ANALYTICS_MODES
-} from '../config/config';
+    useLayers,
+    useUpdateLayer,
+    useDeleteLayer,
+} from '../api/queries/layers';
+import type { Layer as AkgdaLayer } from '../services/akgda/models/Layer';
+import { getColorForValue } from '../utils/color';
+import { DECK_CONTROLLER_OPTIONS } from '../config/config';
 import MapControls from './MapControls';
 import LayerPanel from './LayerPanel';
 import AnalyticsPanel from './AnalyticsPanel';
-import VisualizationControls from './VisualizationControls';
 import LoadingIndicator from './LoadingIndicator';
-import Legend from './Legend';
-import { GeoJsonLayer } from 'deck.gl';
+
+// Extended layer type for UI usage (adds type, url, data properties)
+interface UILayer extends AkgdaLayer {
+    type?: string;
+    url?: string;
+    data?: string | object;
+}
+
+// MapLibre Demo Tiles - free basemap for development
+const DEFAULT_MAP_STYLE = 'https://demotiles.maplibre.org/style.json';
 
 interface ViewState {
     longitude: number;
@@ -55,15 +54,20 @@ interface BaseMapProps {
  * Mimics CARTO and Kepler.gl functionality with MVT support and analytics
  */
 const BaseMap: React.FC<BaseMapProps> = ({
-    initialViewState,
-    className = 'map',
-    mapStyle,
+    initialViewState: _initialViewState,
+    className: _className = 'map',
+    mapStyle = DEFAULT_MAP_STYLE,
     showControls = true,
     showLayerPanel = true,
-    showAnalyticsPanel = true
+    showAnalyticsPanel = true,
 }) => {
     // Use context hooks instead of Redux
-    const { viewState, isMapLoaded, setMapLoaded } = useMap();
+    const {
+        viewState,
+        setViewState,
+        isMapLoaded,
+        setMapLoaded: _setMapLoaded,
+    } = useMap();
     const { activeLayers, toggleLayerVisibility } = useLayerUI();
 
     // Use React Query for layers data
@@ -72,25 +76,27 @@ const BaseMap: React.FC<BaseMapProps> = ({
     const deleteLayerMutation = useDeleteLayer();
 
     // Analytics mode - keeping local state for now (can be moved to context later)
-    const [selectedAnalyticsMode, setSelectedAnalyticsMode] = useState<string | null>(null);
+    const [selectedAnalyticsMode, _setSelectedAnalyticsMode] = useState<
+        string | null
+    >(null);
 
     const deck = useRef<any>(null);
     const mapRef = useRef<any>(null);
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [colorRamp, setColorRamp] = useState<string>('viridis');
-    const [opacity, setOpacity] = useState<number>(0.8);
-    const [radius, setRadius] = useState<number>(100);
-    const [filterRange, setFilterRange] = useState<[number, number]>([0, 100]);
-    const [selectedProperty, setSelectedProperty] = useState<string>('');
+    const [colorRamp, _setColorRamp] = useState<string>('viridis');
+    const [opacity, _setOpacity] = useState<number>(0.8);
+    const [_radius, _setRadius] = useState<number>(100);
+    const [filterRange, _setFilterRange] = useState<[number, number]>([0, 100]);
+    const [selectedProperty, _setSelectedProperty] = useState<string>('');
 
     // Initialize PMTiles protocol
     useEffect(() => {
         const protocol = new Protocol();
-        maplibregl.addProtocol("pmtiles", protocol.tile);
+        maplibregl.addProtocol('pmtiles', protocol.tile);
 
         return () => {
-            maplibregl.removeProtocol("pmtiles");
+            maplibregl.removeProtocol('pmtiles');
         };
     }, []);
 
@@ -106,24 +112,35 @@ const BaseMap: React.FC<BaseMapProps> = ({
 
     // Create deck.gl layers based on context state
     const deckLayers = useMemo(() => {
-        return layers
-            .filter(layer => activeLayers.has(layer.id.toString()))
-            .map(layer => {
+        return (layers as UILayer[])
+            .filter((layer) => activeLayers.has(layer.id.toString()))
+            .map((layer) => {
                 switch (layer.type) {
                     case 'mvt':
                         return new MVTLayer({
-                            id: layer.id,
+                            id: String(layer.id),
                             data: layer.url,
                             pickable: true,
                             opacity: layer.style?.opacity || opacity,
-                            getFillColor: d => getColorForValue(d.properties[selectedProperty], colorRamp, filterRange),
+                            getFillColor: (d) =>
+                                getColorForValue(
+                                    d.properties[selectedProperty],
+                                    colorRamp,
+                                    filterRange
+                                ) as Color,
                         });
                     case 'geojson':
                         return new GeoJsonLayer({
-                            id: layer.id,
-                            data: layer.data,
+                            id: String(layer.id),
+
+                            data: layer.data as any,
                             pickable: true,
-                            getFillColor: d => getColorForValue(d.properties[selectedProperty], colorRamp, filterRange),
+                            getFillColor: (d) =>
+                                getColorForValue(
+                                    d.properties?.[selectedProperty],
+                                    colorRamp,
+                                    filterRange
+                                ) as Color,
                         });
                     // Add other layer types as needed
                     default:
@@ -131,38 +148,69 @@ const BaseMap: React.FC<BaseMapProps> = ({
                 }
             })
             .filter(Boolean);
-    }, [layers, activeLayers, colorRamp, opacity, filterRange, selectedProperty]);
+    }, [
+        layers,
+        activeLayers,
+        colorRamp,
+        opacity,
+        filterRange,
+        selectedProperty,
+    ]);
 
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <DeckGL
                 ref={deck}
                 controller={DECK_CONTROLLER_OPTIONS}
-                initialViewState={initialViewState || viewState}
                 viewState={viewState}
+                onViewStateChange={({ viewState: newViewState }) =>
+                    setViewState(newViewState as any)
+                }
                 layers={deckLayers}
-                style={{ zIndex: 1 }}
+                style={{ zIndex: '1' }}
             >
-                <Map
-                    ref={mapRef}
-                    mapLib={maplibregl}
-                    mapStyle={mapStyle}
-                    className={className}
-                />
+                <Map ref={mapRef} mapLib={maplibregl} mapStyle={mapStyle} />
             </DeckGL>
 
             {/* Visualization Controls */}
-            {showControls && <MapControls />}
+            {showControls && (
+                <MapControls
+                    onBasemapChange={(_style) => {
+                        /* implement basemap change */
+                    }}
+                    onExportMap={() => {
+                        /* implement export map */
+                    }}
+                />
+            )}
             {/* Layer Panel */}
             {showLayerPanel && (
                 <LayerPanel
-                    layers={layers}
+                    layers={(layers as UILayer[]).map((layer) => ({
+                        id: String(layer.id),
+                        name: layer.name,
+                        type: layer.type || 'unknown',
+                        url: layer.url,
+                        data: layer.data,
+                        style: layer.style,
+                    }))}
                     activeLayers={Array.from(activeLayers)}
                     onToggleLayer={(layerId) => toggleLayerVisibility(layerId)}
-                    onStyleChange={(layerId, style) => updateLayerMutation.mutate({ id: Number(layerId), data: { style } as any })}
-                    onRemoveLayer={(layerId) => deleteLayerMutation.mutate(Number(layerId))}
-                    onLayerOrderChange={(newOrder) => {/* implement layer order change */}}
-                    onAddLayer={(layer) => {/* implement add layer */}}
+                    onStyleChange={(layerId, style) =>
+                        updateLayerMutation.mutate({
+                            id: Number(layerId),
+                            data: { style } as any,
+                        })
+                    }
+                    onRemoveLayer={(layerId) =>
+                        deleteLayerMutation.mutate(Number(layerId))
+                    }
+                    onLayerOrderChange={(_newOrder) => {
+                        /* implement layer order change */
+                    }}
+                    onAddLayer={(_layer) => {
+                        /* implement add layer */
+                    }}
                 />
             )}
             {/* Analytics Panel */}

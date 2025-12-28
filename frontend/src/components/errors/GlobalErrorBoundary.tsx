@@ -1,5 +1,5 @@
 // src/components/errors/GlobalErrorBoundary.tsx
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
     children: ReactNode;
@@ -29,9 +29,12 @@ export class GlobalErrorBoundary extends Component<Props, State> {
             return (
                 <div className="min-h-screen flex items-center justify-center bg-gray-900">
                     <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-                        <h1 className="text-2xl font-bold text-red-500 mb-4">Something went wrong</h1>
+                        <h1 className="text-2xl font-bold text-red-500 mb-4">
+                            Something went wrong
+                        </h1>
                         <p className="text-gray-300 mb-6">
-                            {this.state.error?.message || 'An unexpected error occurred'}
+                            {this.state.error?.message ||
+                                'An unexpected error occurred'}
                         </p>
                         <button
                             onClick={() => window.location.reload()}

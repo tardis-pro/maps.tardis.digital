@@ -2,16 +2,20 @@ import React from 'react';
 import * as imm from 'immutable';
 import * as duckdb from '@duckdb/duckdb-wasm';
 import { useDuckDB, useDuckDBResolver } from './db_provider';
-import { ResolvableStatus } from './resolvable';
 
 type DialerFn = (id?: number) => void;
 
-export const poolCtx = React.createContext<imm.Map<number, duckdb.AsyncDuckDBConnection>>(imm.Map());
+export const poolCtx = React.createContext<
+    imm.Map<number, duckdb.AsyncDuckDBConnection>
+>(imm.Map());
 export const dialerCtx = React.createContext<DialerFn | null>(null);
 
-export const useDuckDBConnection = (id?: number): duckdb.AsyncDuckDBConnection | null =>
+export const useDuckDBConnection = (
+    id?: number
+): duckdb.AsyncDuckDBConnection | null =>
     React.useContext(poolCtx)?.get(id || 0) || null;
-export const useDuckDBConnectionDialer = (): DialerFn => React.useContext(dialerCtx)!;
+export const useDuckDBConnectionDialer = (): DialerFn =>
+    React.useContext(dialerCtx)!;
 
 type DuckDBConnectionProps = {
     /// The children
@@ -20,11 +24,15 @@ type DuckDBConnectionProps = {
     epoch?: number;
 };
 
-export const DuckDBConnectionProvider: React.FC<DuckDBConnectionProps> = (props: DuckDBConnectionProps) => {
+export const DuckDBConnectionProvider: React.FC<DuckDBConnectionProps> = (
+    props: DuckDBConnectionProps
+) => {
     const db = useDuckDB();
     const resolveDB = useDuckDBResolver();
     const [pending, setPending] = React.useState<imm.List<number>>(imm.List());
-    const [pool, setPool] = React.useState<imm.Map<number, duckdb.AsyncDuckDBConnection>>(imm.Map());
+    const [pool, setPool] = React.useState<
+        imm.Map<number, duckdb.AsyncDuckDBConnection>
+    >(imm.Map());
 
     const inFlight = React.useRef<Map<number, boolean>>(new Map());
 
@@ -34,7 +42,7 @@ export const DuckDBConnectionProvider: React.FC<DuckDBConnectionProps> = (props:
             return;
         }
         const conn = await db!.value!.connect();
-        setPool(p => p.set(id, conn));
+        setPool((p) => p.set(id, conn));
         inFlight.current.delete(id);
     };
 
@@ -48,7 +56,7 @@ export const DuckDBConnectionProvider: React.FC<DuckDBConnectionProps> = (props:
                 setPending(pending.push(id || 0));
             }
         },
-        [db],
+        [db]
     );
 
     // Process pending if possible
