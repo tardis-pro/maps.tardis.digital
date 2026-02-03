@@ -1,10 +1,24 @@
 [package]
 name = "pip"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-rocket = "0.4.11"
-rocket_codegen = "0.4.11"
+# Web framework with async/await support
+rocket = "0.5.0"
+rocket_sync_db_pools = "0.5.0"
+
+# Spatial geometry library with geospatial operations
+geo = "0.26"
+geo-types = "0.7"
+
+# R-Tree spatial indexing for O(log n) point-in-polygon queries
+rstar = "0.11"
+
+# Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+# Logging for performance monitoring
+log = "0.4"
+env_logger = "0.10"
