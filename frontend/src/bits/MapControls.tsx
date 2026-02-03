@@ -27,6 +27,9 @@ const MapControls: React.FC<MapControlsProps> = ({
 
     return (
         <div
+            role="toolbar"
+            aria-label="Map controls"
+            aria-orientation="vertical"
             style={{
                 position: 'absolute',
                 ...positionStyles[position],
@@ -42,56 +45,101 @@ const MapControls: React.FC<MapControlsProps> = ({
         >
             <button
                 onClick={() => onBasemapChange('streets')}
+                aria-label="Switch to streets basemap"
                 title="Streets Basemap"
+                tabIndex={0}
                 style={{
                     padding: '8px',
                     borderRadius: '4px',
                     cursor: 'pointer',
+                    border: '1px solid transparent',
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onBasemapChange('streets');
+                    }
                 }}
             >
-                <FaMapMarkedAlt />
+                <FaMapMarkedAlt aria-hidden="true" />
             </button>
             <button
                 onClick={() => onBasemapChange('satellite')}
+                aria-label="Switch to satellite basemap"
                 title="Satellite Basemap"
+                tabIndex={0}
                 style={{
                     padding: '8px',
                     borderRadius: '4px',
                     cursor: 'pointer',
+                    border: '1px solid transparent',
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onBasemapChange('satellite');
+                    }
                 }}
             >
-                <FaLayerGroup />
+                <FaLayerGroup aria-hidden="true" />
             </button>
             <button
                 onClick={onExportMap}
+                aria-label="Export map as image"
                 title="Export Map"
+                tabIndex={0}
                 style={{
                     padding: '8px',
                     borderRadius: '4px',
                     cursor: 'pointer',
+                    border: '1px solid transparent',
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onExportMap();
+                    }
                 }}
             >
-                <FaDownload />
+                <FaDownload aria-hidden="true" />
             </button>
             <button
+                aria-label="Measure distance on map"
                 title="Measure Distance"
+                tabIndex={0}
                 style={{
                     padding: '8px',
                     borderRadius: '4px',
                     cursor: 'pointer',
+                    border: '1px solid transparent',
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        // TODO: Implement measure distance functionality
+                    }
                 }}
             >
-                <FaRuler />
+                <FaRuler aria-hidden="true" />
             </button>
             <button
+                aria-label="Share map location"
                 title="Share Map"
+                tabIndex={0}
                 style={{
                     padding: '8px',
                     borderRadius: '4px',
                     cursor: 'pointer',
+                    border: '1px solid transparent',
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        // TODO: Implement share functionality
+                    }
                 }}
             >
-                <FaShareAlt />
+                <FaShareAlt aria-hidden="true" />
             </button>
         </div>
     );
