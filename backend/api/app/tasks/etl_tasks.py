@@ -21,7 +21,10 @@ Example Usage:
 """
 
 import logging
+import sys
+from datetime import datetime, timezone
 from typing import Optional
+from pathlib import Path
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -90,7 +93,7 @@ def process_etl_job(
 
             # Update source status to completed
             source.status = "completed"
-            source.processed_at = datetime.utcnow()
+            source.processed_at = datetime.now(timezone.utc)
             await session.commit()
 
             logger.info(f"ETL job {job_id} completed successfully")
@@ -109,7 +112,7 @@ def process_etl_job(
 
     except Exception as e:
         logger.error(f"ETL job {job_id} failed: {str(e)}")
-        await _mark_source_failed(source_id, str(e))
+        await _mark_source_failed(source_id, "Processing failed due to an internal error")
 
         # Retry on transient failures
         if self.request.retries < self.max_retries:
@@ -120,7 +123,7 @@ def process_etl_job(
             "job_id": job_id,
             "source_id": source_id,
             "status": TaskStatus.FAILURE,
-            "error": str(e),
+            "error": "Processing failed due to an internal error",
         }
 
 
@@ -202,8 +205,9 @@ def run_trainandinfer(
         self.update_state(state=TaskStatus.STARTED, meta={"status": "Training model"})
 
         # Import ML modules (heavy imports should be inside task)
-        import sys
-        sys.path.append("/backend/etl")
+        # Use proper relative path handling instead of hardcoded sys.path
+        etl_path = Path(__file__).parent.parent.parent.parent / "etl"
+        sys.path.insert(0, str(etl_path))
         from trainandinfer import train_and_infer
 
         # Run ML pipeline
@@ -233,7 +237,7 @@ def run_trainandinfer(
             "job_id": job_id,
             "source_id": source_id,
             "status": TaskStatus.FAILURE,
-            "error": str(e),
+            "error": "ML processing failed due to an internal error",
         }
 
 
@@ -251,12 +255,12 @@ def cleanup_old_jobs(days_old: int = 7) -> dict:
         dict: Cleanup statistics
     """
     import asyncio
-    from datetime import datetime, timedelta
+    from datetime import timedelta
     from sqlalchemy import delete
     from app.models.job import Job
 
     async def _cleanup():
-        cutoff = datetime.utcnow() - timedelta(days=days_old)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days_old)
 
         # This would need proper async SQLAlchemy syntax
         # Simplified version
@@ -271,8 +275,4 @@ def cleanup_old_jobs(days_old: int = 7) -> dict:
         }
     except Exception as e:
         logger.error(f"Cleanup failed: {e}")
-        return {"status": "error", "error": str(e)}
-
-
-# Import datetime for the main task
-from datetime import datetime
+        return {"status": "error", "error": "Cleanup operation failed"}

@@ -97,10 +97,10 @@ async def submit_etl_job(
     immediately. Use WebSocket or status endpoint to track progress.
     """
     from app.tasks.etl_tasks import process_etl_job
-    from datetime import datetime
+    from uuid import uuid4
     
     # Create job record
-    job_id = UUID()
+    job_id = uuid4()
     
     async with get_db_session() as session:
         job = Job(
@@ -113,6 +113,7 @@ async def submit_etl_job(
         )
         session.add(job)
         await session.commit()
+        await session.refresh(job)
     
     # Enqueue Celery task
     task = process_etl_job.delay(
@@ -122,6 +123,12 @@ async def submit_etl_job(
         operation=request.operation,
         options=request.options,
     )
+    
+    # Save Celery task ID to database
+    async with get_db_session() as session:
+        job = await session.get(Job, job_id)
+        job.celery_task_id = task.id
+        await session.commit()
     
     logger.info(f"ETL job {job_id} submitted by user {current_user.id}")
     
@@ -152,10 +159,10 @@ async def submit_ml_job(
     Runs isolation forest or other ML models on the source data.
     """
     from app.tasks.etl_tasks import run_trainandinfer
-    from datetime import datetime
+    from uuid import uuid4
     
     # Create job record
-    job_id = UUID()
+    job_id = uuid4()
     
     async with get_db_session() as session:
         job = Job(
@@ -168,6 +175,7 @@ async def submit_ml_job(
         )
         session.add(job)
         await session.commit()
+        await session.refresh(job)
     
     # Enqueue Celery task
     task = run_trainandinfer.delay(
@@ -176,6 +184,12 @@ async def submit_ml_job(
         user_id=str(current_user.id),
         model_type=request.model_type,
     )
+    
+    # Save Celery task ID to database
+    async with get_db_session() as session:
+        job = await session.get(Job, job_id)
+        job.celery_task_id = task.id
+        await session.commit()
     
     logger.info(f"ML job {job_id} submitted by user {current_user.id}")
     
