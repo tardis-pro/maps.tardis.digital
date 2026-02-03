@@ -21,7 +21,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.models import Source, Geometry
+from app.models import Source
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,9 @@ class HybridTilingService:
         source_id: int,
     ) -> int:
         """Get the total number of features in a source."""
-        stmt = select(func.count()).select_from(Geometry).where(Geometry.source_id == source_id)
+        # For PostGIS sources, count rows in the table
+        # For file-based sources, count features in the file
+        stmt = select(func.count()).select_from(Source).where(Source.id == source_id)
         result = await db.execute(stmt)
         return result.scalar() or 0
 
