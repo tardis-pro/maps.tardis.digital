@@ -19,6 +19,7 @@ import MapControls from './MapControls';
 import LayerPanel from './LayerPanel';
 import AnalyticsPanel from './AnalyticsPanel';
 import LoadingIndicator from './LoadingIndicator';
+import { AnalysisErrorBoundary } from '../components/errors/AnalysisErrorBoundary';
 
 // Extended layer type for UI usage (adds type, url, data properties)
 interface UILayer extends AkgdaLayer {
@@ -214,7 +215,11 @@ const BaseMap: React.FC<BaseMapProps> = ({
                 />
             )}
             {/* Analytics Panel */}
-            {showAnalyticsPanel && <AnalyticsPanel />}
+            {showAnalyticsPanel && (
+                <AnalysisErrorBoundary panelName="Analytics Panel">
+                    <AnalyticsPanel />
+                </AnalysisErrorBoundary>
+            )}
             {/* Loading Indicator */}
             {isLoading && <LoadingIndicator />}
             {/* Tooltip */}

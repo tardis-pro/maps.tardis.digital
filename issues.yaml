@@ -1,0 +1,400 @@
+- title: "Refactor: Optimize Rust Point-in-Polygon Service with Spatial Indexing"
+  body: |
+    The current `pip` microservice (backend/micros/pip) lacks dedicated spatial libraries, relying on basic dependencies. This will lead to O(N*M) complexity for point-in-polygon operations.
+
+    ### Why?
+    To achieve sub-millisecond query times for large datasets, we must utilize spatial indexing algorithms (R-Tree) rather than iterating through all geometries.
+
+    ### How?
+    1.  Update `backend/micros/pip/Cargo.toml` to include `geo = "0.26"` and `rstar = "0.11"`.
+    2.  Refactor the request handler to build an R-Tree from the polygon dataset upon initialization or cache it.
+    3.  Implement the `contains` check using the R-Tree's `locate_all_at_point` method.
+    4.  Upgrade `rocket` to version `0.5.0+` to leverage async/await for better concurrency handling.
+
+- title: "Feature: Natural Language Spatial Query Interface"
+  body: |
+    Implement an endpoint in the Core Monolith that accepts natural language queries and converts them into PostGIS SQL or DuckDB filters.
+
+    ### Why?
+    To transform the application from a passive viewer into an agentic tool, allowing users to ask questions like "Show me stores within 5km of high traffic areas" without manually configuring complex filters.
+
+    ### How?
+    1.  Create a new Django app `backend/core-monolith/dashboard/agent/`.
+    2.  Implement a service that interfaces with an LLM (e.g., OpenAI API).
+    3.  Feed the LLM the schema of `backend/core-monolith/dashboard/core/models.py` (specifically the `Geometry` and `Source` tables).
+    4.  Sanitize and execute the generated SQL using Django's `connection.cursor()` for read-only operations, returning the resulting `gid`s to the frontend.
+
+- title: "Performance: Offload DuckDB Processing to Web Worker"
+  body: |
+    Ensure the DuckDB WASM instance runs in a dedicated Web Worker thread to prevent blocking the main UI thread during heavy data analysis.
+
+    ### Why?
+    Currently, large analytical queries on the client side can freeze the map interaction (pan/zoom), degrading the user experience.
+
+    ### How?
+    1.  Refactor `frontend/src/utils/ducksdb/db_provider.ts`.
+    2.  Use `comlink` or native `Worker` API to wrap the DuckDB instance.
+    3.  Ensure `AsyncDuckDB` is instantiated within the worker scope.
+    4.  Update `DataManager.tsx` to communicate with the database via asynchronous message passing.
+
+- title: "Feature: Context-Aware Map Styling"
+  body: |
+    Implement dynamic map styling that adapts based on zoom level and data density.
+
+    ### Why?
+    To reduce cognitive load. Users currently see the same density of information at all zoom levels. The map should strictly show macro-trends at low zoom and micro-details (building footprints) at high zoom.
+
+    ### How?
+    1.  Modify `frontend/src/layers/themes.ts` to support zoom-dependent style functions.
+    2.  In `frontend/src/layers/generate_layers.ts`, update the Deck.gl or MapLibre layer definitions.
+    3.  Use the `minZoom` and `maxZoom` properties for layer visibility.
+    4.  Implement a transition effect where heatmaps fade out and vector polygons fade in as `viewState.zoom` crosses a threshold (e.g., zoom level 12).
+
+- title: "Infrastructure: Event-Driven ETL Pipeline"
+  body: |
+    Decouple long-running Python ETL scripts from the synchronous HTTP request-response cycle.
+
+    ### Why?
+    Scripts like `trainandinfer.py` can take minutes to run, causing HTTP timeouts and blocking the Django server threads.
+
+    ### How?
+    1.  Introduce Redis as a message broker in `backend/docker-compose.yml`.
+    2.  Set up Celery or generic Python workers to consume tasks from a "processing" queue.
+    3.  Update `backend/core-monolith/dashboard/views.py` to push a job ID to the queue and return immediately.
+    4.  Implement a WebSocket endpoint (using Django Channels or raw ASGI in `asgi.py`) to push "Job Complete" notifications to the frontend.
+
+- title: "Security: Implement Row-Level Security (RLS) in PostgreSQL"
+  body: |
+    Enable Row-Level Security on the `Geometry` and `Source` tables to ensure strict data isolation between users/tenants.
+
+    ### Why?
+    As we move towards a multi-tenant architecture, relying solely on application-level logic (Django ORM filters) is insufficient and prone to developer error. RLS provides defense-in-depth.
+
+    ### How?
+    1.  Create a migration in `backend/core-monolith/dashboard/core/migrations/` to enable RLS on target tables.
+    2.  Define PostgreSQL policies (e.g., `CREATE POLICY user_isolation ON core_geometry USING (owner_id = current_user_id)`).
+    3.  Update the Django database connection setup to inject the current user context into the Postgres session variable.
+
+- title: "Search: Semantic Vector Search for Locations"
+  body: |
+    Implement vector embeddings for map features to allow concept-based searching (e.g., "Find areas that feel like Brooklyn").
+
+    ### Why?
+    Keyword search is limited. Users often search for "vibes" or structural similarities which requires vectorizing spatial and attribute data.
+
+    ### How?
+    1.  Install `pgvector` extension in the Postgres database.
+    2.  Update `vectorize.py` to generate embeddings for geometries using an encoder (like SBERT or a custom spatial encoder).
+    3.  Add a `vector` column to the `Geometry` model in Django.
+    4.  Implement a "Similarity Search" API endpoint using cosine similarity.
+
+- title: "Automation: Automated Data Enrichment Worker"
+  body: |
+    Create a background service that automatically fetches metadata for newly uploaded CSV/GeoJSON files.
+
+    ### Why?
+    Users often upload bare-bones data (Lat/Lon only). Automatically adding context (Census tract, City, Elevation, Zoning) adds massive value without user effort.
+
+    ### How?
+    1.  Create a new Celery task `enrich_data_task`.
+    2.  When a file is uploaded via `Uploader.tsx`, trigger this task.
+    3.  The task should inspect column headers and querying external APIs (e.g., OpenStreetMap, US Census API) to fill in missing columns.
+    4.  Update the `Source` attributes with the new metadata.
+
+- title: "Agent: Proactive Insight Generation"
+  body: |
+    Develop an analysis agent that runs immediately after data ingestion to highlight interesting patterns.
+
+    ### Why?
+    Users shouldn't have to hunt for insights. The system should proactively notify them of anomalies or clusters.
+
+    ### How?
+    1.  Expand `trainandinfer.py` to include statistical outlier detection (e.g., Isolation Forest).
+    2.  Generate a natural language summary of findings (e.g., "Cluster detected in North Quadrant").
+    3.  Store these insights in a new `Insights` model linked to the `Project`.
+    4.  Display these as "Toast" notifications or a "What's New" panel in the frontend.
+
+- title: "Reliability: Self-Healing ETL Scripts"
+  body: |
+    Wrap ETL scripts like `gmlh2geojson.js` with an error-handling supervisor that uses an LLM to attempt fixes.
+
+    ### Why?
+    Geospatial data formats are notoriously inconsistent. Hard-coded parsers break easily. An intelligent supervisor can suggest or apply fixes for malformed inputs.
+
+    ### How?
+    1.  Create a Python wrapper that executes the ETL scripts.
+    2.  Catch `stderr` output. If an error occurs, send the error + data snippet to an LLM.
+    3.  Request a "patch" or a corrected parsing logic.
+    4.  (Optional) Sandbox the execution of the suggested patch to retry the operation.
+
+- title: "UX: Generative Dashboard Layouts"
+  body: |
+    Make `Dashboard.tsx` dynamic, auto-configuring widgets based on the data types present in the active layer.
+
+    ### Why?
+    A static dashboard doesn't fit all data. Financial data needs currency widgets; Logistics data needs flow maps.
+
+    ### How?
+    1.  Analyze `Source.attributes` to determine data types (Temporal, Monetary, Spatial, Categorical).
+    2.  Create a mapping of `Data Types -> Widget Components`.
+    3.  Refactor `Dashboard.tsx` to render a list of widgets provided by this logic rather than a hardcoded layout.
+
+- title: "Simulation: 'What-If' Scenario Agent"
+  body: |
+    Integrate `gridInference.py` into a real-time interactive mode on the frontend.
+
+    ### Why?
+    Users want to simulate decisions (e.g., "What if I open a store here?").
+
+    ### How?
+    1.  Allow users to drop a temporary "Ghost Pin" on the map in `MapControls.tsx`.
+    2.  Send the pin coordinates to a new API endpoint wrapping `gridInference.py`.
+    3.  Return the predicted impact (e.g., Sales Cannibalization Map) as a temporary GeoJSON layer.
+    4.  Render this layer with a specific "Simulation" style (e.g., dashed lines, pulsating).
+
+- title: "Performance: Predictive Tile Fetching"
+  body: |
+    Implement a "mouse velocity" tracker in the frontend to pre-fetch map tiles in the direction of movement.
+
+    ### Why?
+    To reduce perceived latency during panning.
+
+    ### How?
+    1.  In `useMapHandlers.ts`, listen to `mousemove` events.
+    2.  Calculate vector velocity of the cursor/pan interaction.
+    3.  Project the viewport bounds `n` seconds into the future based on current velocity.
+    4.  Trigger the tile loading logic (Deck.gl or MapLibre pre-fetching) for those projected bounds.
+
+- title: "Visualization: 3D Digital Twin Extrusion"
+  body: |
+    Update map layers to support 3D building extrusion based on height attributes.
+
+    ### Why?
+    2D maps miss verticality, which is crucial for urban analysis (line of sight, shadow analysis).
+
+    ### How?
+    1.  Ensure vector tiles include `height` or `levels` attributes.
+    2.  In `frontend/src/layers/base_layers.ts`, switch to `PolygonLayer` (Deck.gl) or `fill-extrusion` (MapLibre).
+    3.  Bind the `getElevation` accessor to the data attribute.
+    4.  Add a lighting effect to the `Deck` context for depth perception.
+
+- title: "UX: Automated 'Story Mode' Reports"
+  body: |
+    Create a feature that generates a guided tour of the map insights, exportable as a PDF or video.
+
+    ### Why?
+    Stakeholders need polished reports, not raw tools.
+
+    ### How?
+    1.  Define "Keyframes" based on high-interest data points (clusters, anomalies).
+    2.  Implement a camera interpolation path (using `react-map-gl`'s `flyTo` sequence).
+    3.  Use a library like `jspdf` or server-side Puppeteer to capture screenshots at each keyframe.
+    4.  Compile into a branded document.
+
+- title: "API: Generate OpenAPI/Swagger Specification"
+  body: |
+    Configure Django REST Framework to auto-generate a complete OpenAPI 3.0 spec.
+
+    ### Why?
+    Essential for third-party integration and for "Agent" tools (Custom GPTs) to understand how to call our API.
+
+    ### How?
+    1.  Install `drf-spectacular`.
+    2.  Annotate `views.py` and `serializers.py` with proper types and examples.
+    3.  Expose the schema at `/api/schema/` and Swagger UI at `/api/docs/`.
+
+- title: "Optimization: Hybrid Vector/Raster Tiling Strategy"
+  body: |
+    Implement a strategy to switch between Vector Tiles (MVT) and Cloud Optimized GeoTIFFs (COG) based on data size.
+
+    ### Why?
+    Rendering >100k polygons on the client kills performance. Large datasets should be server-rendered rasters.
+
+    ### How?
+    1.  In the `Tiler` service, implement logic to check dataset row count.
+    2.  If `count > threshold`, trigger `raster-tiler` (GDAL/MapServer) instead of `vector-tiler`.
+    3.  Frontend `LayerManager` should check metadata to decide whether to instantiate a `TileLayer` (Raster) or `MVTLayer` (Vector).
+
+- title: "QA: Visual Regression Testing"
+  body: |
+    Set up a Playwright or Cypress suite that performs visual snapshot testing on the map component.
+
+    ### Why?
+    Standard unit tests don't catch rendering regressions (e.g., broken shaders, missing styles).
+
+    ### How?
+    1.  Create `frontend/e2e/` directory.
+    2.  Write a test that loads the map at a specific coordinate/zoom.
+    3.  Use `expect(page).toHaveScreenshot()` to compare against a baseline reference image.
+    4.  Run this in CI (GitHub Actions).
+
+- title: "UX: Command Palette Implementation"
+  body: |
+    Add a global `Cmd+K` command palette for navigation and quick actions.
+
+    ### Why?
+    Power users need keyboard-centric navigation for speed.
+
+    ### How?
+    1.  Install `cmdk` or similar React library.
+    2.  Index all available actions (Upload, Settings, Layer Toggles) and "Agent" commands.
+    3.  Render the Command Menu overlay at the root `App.tsx`.
+    4.  Connect actions to the Redux store or Router.
+
+- title: "Performance: Port Rust PIP Logic to WASM"
+  body: |
+    Compile the Rust `pip` logic into WebAssembly for client-side execution.
+
+    ### Why?
+    Reduces server load and latency for small-to-medium interactions. The server API becomes a fallback for massive datasets.
+
+    ### How?
+    1.  Refactor `backend/micros/pip` to separate core logic into a `lib.rs`.
+    2.  Use `wasm-pack` to generate a WASM package.
+    3.  Import the `.wasm` module in `frontend/src/utils/`.
+    4.  Implement a strategy: Try WASM first; if OOM/slow, fall back to API.
+
+- title: "Infrastructure: Redis Caching Layer"
+  body: |
+    Implement caching for expensive geometry capability checks and metadata retrieval.
+
+    ### Why?
+    `get_caps.py` and similar inspection scripts are expensive.
+
+    ### How?
+    1.  Use `django.core.cache`.
+    2.  Decorate expensive views with `@cache_page`.
+    3.  For custom scripts, manually check/set Redis keys before executing the heavy logic.
+
+- title: "Auth: Complete Keycloak Integration"
+  body: |
+    Finalize the Keycloak setup in `infra/authentication` and connect it to the Django backend.
+
+    ### Why?
+    Currently, we have deployment YAMLs but likely standard Django auth. Keycloak enables SSO and centralized identity management.
+
+    ### How?
+    1.  Deploy the `keycloak-deployment.yaml`.
+    2.  Install `mozilla-django-oidc` in the core monolith.
+    3.  Configure `settings.py` to use Keycloak as the OIDC provider.
+    4.  Update frontend `Signin.tsx` to redirect to the Keycloak login flow.
+
+- title: "Maintenance: Dependency Management (Renovate/Dependabot)"
+  body: |
+    Configure automated dependency updates for Python, Rust, and Node packages.
+
+    ### Why?
+    To prevent security vulnerabilities and technical debt from outdated libraries.
+
+    ### How?
+    1.  Create/Update `.github/dependabot.yml`.
+    2.  Configure schedules for `pip`, `npm`, and `cargo`.
+    3.  Set up auto-merge rules for minor/patch updates if CI passes.
+
+- title: "Frontend: Global Error Boundary"
+  body: |
+    Implement a React Error Boundary to catch component tree crashes.
+
+    ### Why?
+    If a map layer crashes due to WebGL context loss or bad data, the entire app shouldn't go white.
+
+    ### How?
+    1.  Create `frontend/src/components/ErrorBoundary.tsx`.
+    2.  Wrap the `Map` component and `AnalysisPanel`.
+    3.  Display a friendly "Something went wrong" UI with a "Reload Map" button.
+
+- title: "Accessibility: Map Control ARIA Labels"
+  body: |
+    Conduct an accessibility audit and add ARIA labels to all map controls and custom widgets.
+
+    ### Why?
+    To ensure the tool is usable by screen readers and compliant with WCAG standards.
+
+    ### How?
+    1.  Audit `frontend/src/bits/MapControls.tsx` and `Sidebar.tsx`.
+    2.  Add `aria-label`, `role`, and keyboard navigation (`tabIndex`) support.
+    3.  Ensure color contrast ratios in `themes.ts` meet standards.
+
+- title: "DevOps: Docker Multi-Stage Builds"
+  body: |
+    Optimize the `backend/core-monolith/Dockerfile` to reduce image size.
+
+    ### Why?
+    Smaller images mean faster deployments and lower storage costs.
+
+    ### How?
+    1.  Use a "builder" stage to install build dependencies (gcc, etc.) and compile wheels.
+    2.  Copy only the installed packages and source code to a slim "runner" stage (e.g., `python:3.9-slim`).
+    3.  Remove cached files (`__pycache__`, `apt-get clean`).
+
+- title: "Observability: Structured JSON Logging"
+  body: |
+    Configure backend services to output logs in JSON format.
+
+    ### Why?
+    Plain text logs are hard to query in aggregators like ELK or Datadog. JSON allows filtering by `level`, `module`, `request_id`.
+
+    ### How?
+    1.  Install `python-json-logger` in Django.
+    2.  Update `LOGGING` config in `settings.py` to use a JSON formatter.
+    3.  Apply similar logging crates (e.g., `tracing-subscriber` with json feature) in Rust services.
+
+- title: "Testing: Increase Python Unit Test Coverage"
+  body: |
+    Write tests to achieve >80% code coverage for the Core Monolith.
+
+    ### Why?
+    Ensures reliability and prevents regressions during refactoring.
+
+    ### How?
+    1.  Identify uncovered areas using `pytest --cov`.
+    2.  Focus on `views.py` and `utils/` which often contain business logic.
+    3.  Mock external calls (Celery, Redis, S3) to keep tests fast.
+
+- title: "Workflow: Pre-commit Hooks"
+  body: |
+    Enforce code quality standards before code is committed.
+
+    ### Why?
+    Prevents "fix lint" commits and ensures a consistent codebase.
+
+    ### How?
+    1.  Add `.pre-commit-config.yaml` to root.
+    2.  Include hooks for `black` (Python), `clippy` (Rust), and `eslint/prettier` (JS/TS).
+    3.  Run `pre-commit install` in the setup script.
+
+- title: "Ops: Automated DB Migrations Job"
+  body: |
+    Create a Kubernetes Job to run database migrations automatically during deployment.
+
+    ### Why?
+    Manual migrations are error-prone. The app should not start until the DB schema is up to date.
+
+    ### How?
+    1.  Create `infra/database/migration-job.yaml`.
+    2.  Use the core-monolith image with the command `python manage.py migrate`.
+    3.  Configure the deployment pipeline (GitHub Actions) to `kubectl apply` this job and wait for completion before rolling out the app.
+
+- title: "Security: Content Security Policy (CSP) Headers"
+  body: |
+    Configure strict CSP headers in Django and Nginx.
+
+    ### Why?
+    To mitigate XSS attacks, especially since the app handles user-uploaded data and renders complex DOMs.
+
+    ### How?
+    1.  Use `django-csp` middleware.
+    2.  Define allowlists for scripts (self, trusted CDNs), styles, and connect-src (API endpoints, tile servers).
+    3.  Test in "Report Only" mode first to identify violations.
+
+- title: "Infrastructure: Rate Limiting"
+  body: |
+    Implement rate limiting on public API endpoints.
+
+    ### Why?
+    To prevent abuse and DoS attacks.
+
+    ### How?
+    1.  Use `django-ratelimit` or DRF's built-in throttling classes.
+    2.  Configure limits (e.g., "100/min") for `AnonRateThrottle` and `UserRateThrottle`.
+    3.  Back this with Redis for distributed counting.
