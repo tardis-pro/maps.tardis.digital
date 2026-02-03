@@ -7,6 +7,7 @@ from app.config import settings
 from app.core.users import fastapi_users
 from app.core.security import auth_backend
 from app.core.rate_limit import get_rate_limiter, rate_limit_exceeded_handler
+from app.core.sentry import setup_sentry
 from app.routes import (
     sources_router,
     layers_router,
@@ -23,6 +24,9 @@ app = FastAPI(
     redoc_url="/api/redoc",
     openapi_url="/api/schema",
 )
+
+# Initialize Sentry
+setup_sentry()
 
 # Initialize rate limiter
 limiter = get_rate_limiter()
