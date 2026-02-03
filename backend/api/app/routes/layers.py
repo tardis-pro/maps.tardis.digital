@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.core.users import current_active_user
+from app.core.rate_limit import limiter, RateLimits
 from app.models import Layer, Source, User
 from app.schemas import LayerCreate, LayerUpdate, LayerSchema, PaginatedResponse
 
@@ -12,7 +13,9 @@ router = APIRouter(prefix="/api/v1/layers", tags=["layers"])
 
 
 @router.get("/", response_model=PaginatedResponse[LayerSchema])
+@limiter.limit(RateLimits.READ_ONLY)
 async def list_layers(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=100),

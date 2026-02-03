@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 
 from app.core.database import get_db
 from app.core.users import current_active_user
+from app.core.rate_limit import limiter, RateLimits
 from app.models import Source, User
 from app.schemas import SourceCreate, SourceUpdate, SourceSchema, PaginatedResponse
 
@@ -11,7 +13,9 @@ router = APIRouter(prefix="/api/v1/sources", tags=["sources"])
 
 
 @router.get("/", response_model=PaginatedResponse[SourceSchema])
+@limiter.limit(RateLimits.READ_ONLY)
 async def list_sources(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=100),
@@ -30,7 +34,9 @@ async def list_sources(
 
 
 @router.post("/", response_model=SourceSchema, status_code=201)
+@limiter.limit(RateLimits.WRITE)
 async def create_source(
+    request: Request,
     payload: SourceCreate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(current_active_user),
@@ -43,7 +49,8 @@ async def create_source(
 
 
 @router.get("/{source_id}/", response_model=SourceSchema)
-async def get_source(source_id: int, db: AsyncSession = Depends(get_db)):
+@limiter.limit(RateLimits.READ_ONLY)
+async def get_source(request: Request, source_id: int, db: AsyncSession = Depends(get_db)):
     source = await db.get(Source, source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
@@ -51,7 +58,9 @@ async def get_source(source_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/{source_id}/", response_model=SourceSchema)
+@limiter.limit(RateLimits.WRITE)
 async def update_source(
+    request: Request,
     source_id: int,
     payload: SourceCreate,
     db: AsyncSession = Depends(get_db),
@@ -68,7 +77,9 @@ async def update_source(
 
 
 @router.patch("/{source_id}/", response_model=SourceSchema)
+@limiter.limit(RateLimits.WRITE)
 async def partial_update_source(
+    request: Request,
     source_id: int,
     payload: SourceUpdate,
     db: AsyncSession = Depends(get_db),
@@ -85,7 +96,9 @@ async def partial_update_source(
 
 
 @router.delete("/{source_id}/", status_code=204)
+@limiter.limit(RateLimits.WRITE)
 async def delete_source(
+    request: Request,
     source_id: int,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(current_active_user),
