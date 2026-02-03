@@ -1,0 +1,48 @@
+[package]
+name = "maps-pip-wasm"
+version = "0.1.0"
+edition = "2021"
+description = "WebAssembly Point-in-Polygon for Maps Platform"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["console_error_panic_hook"]
+
+[dependencies]
+# WASM bindings
+wasm-bindgen = "0.2"
+
+# Spatial geometry
+geo = { version = "0.26", features = ["use-serde"] }
+geo-types = "0.7"
+
+# R-Tree spatial indexing
+rstar = { version = "0.11", features = ["wasm-bindgen"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+
+# Error handling
+thiserror = "1.0"
+
+# Console for debugging
+console_error_panic_hook = { version = "0.1.7", optional = true }
+
+# Performance monitoring
+getrandom = { version = "0.2", features = ["js"] }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "console",
+]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[profile.release]
+lto = true
+opt-level = 3
