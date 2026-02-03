@@ -1,0 +1,228 @@
+# Pre-commit hooks configuration for Maps Platform
+# https://pre-commit.com/
+
+# See .pre-commit-hooks.yaml for supported hook types
+
+repos:
+  # ========================================
+  # Essential Checks
+  # ========================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=5000"]
+        description: Prevent large files from being committed
+      - id: check-ast
+        description: Check Python syntax
+      - id: check-builtin-literals
+        description: Require magic values as literals
+      - id: check-case-conflict
+        description: Check for case conflicts
+      - id: check-executables-have-shebangs
+        description: Check that executables have shebangs
+      - id: check-json
+        description: Check JSON files for syntax errors
+      - id: check-merge-conflict
+        args: ["--assume-in-merge-base"]
+        description: Check for merge conflict markers
+      - id: check-toml
+        description: Check TOML files for syntax errors
+      - id: check-xml
+        description: Check XML files for syntax errors
+      - id: check-yaml
+        args: ["--unsafe"]
+        description: Check YAML files for syntax errors
+      - id: debug-statements
+        description: Check for debug statements
+      - id: end-of-file-fixer
+        description: Ensure files end with newlines
+      - id: trailing-whitespace
+        args: ["--markdown-linebreak-ext=md"]
+        description: Trim trailing whitespace
+
+  # ========================================
+  # Python Formatting & Linting
+  # ========================================
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3.11
+        description: Format Python code
+        files: \.py$
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+        description: Sort Python imports
+        files: \.py$
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - flake8-docstrings
+          - flake8-bugbear
+          - flake8-builtins
+          - pep8-naming
+        description: Lint Python code
+        files: \.py$
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - pydantic>=2.5.0
+          - types-redis
+          - types-pkg-resources
+        description: Type check Python code
+        files: \.py$
+        args: [--ignore-missing-imports, --strict-optional]
+
+  # ========================================
+  # JavaScript/TypeScript Formatting & Linting
+  # ========================================
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.11.1
+    hooks:
+      - id: eslint
+        types: [typescript]
+        additional_dependencies:
+          - eslint@8.57.0
+          - "@typescript-eslint/eslint-plugin"
+          - "@typescript-eslint/parser"
+        description: Lint TypeScript/JavaScript
+        files: \.(ts|tsx|js|jsx)$
+
+  - repo: https://github.com/prettier/prettier
+    rev: v3.3.3
+    hooks:
+      - id: prettier
+        types: [typescript]
+        additional_dependencies:
+          - prettier@3.3.3
+          - prettier-plugin-tailwindcss@0.6.8
+        description: Format TypeScript/JavaScript
+        files: \.(ts|tsx|js|jsx|json|yaml|yml)$
+
+  # ========================================
+  # Rust Formatting & Linting
+  # ========================================
+  - repo: https://github.com/rust-lang/rustfmt
+    rev: v1.75.0
+    hooks:
+      - id: rustfmt
+        description: Format Rust code
+        files: \.rs$
+
+  - repo: https://github.com/rust-lang/rust-clippy
+    rev: v1.82.0
+    hooks:
+      - id: rust-clippy
+        description: Lint Rust code
+        files: \.rs$
+        args: [--warn, clippy::all, --allow, clippy::pedantic]
+
+  # ========================================
+  # Docker & Kubernetes
+  # ========================================
+  - repo: https://github.com/reviewdog/reviewdog
+    rev: v0.17.0
+    hooks:
+      - id: dockerfile-lint
+        description: Lint Dockerfiles
+        files: Dockerfile
+      - id: hadolint
+        description: Lint Dockerfiles with hadolint
+        files: Dockerfile
+        additional_dependencies:
+          - hadolint/hadolint:latest
+
+  - repo: https://github.com/zricethezav/gitleaks
+    rev: v8.18.3
+    hooks:
+      - id: gitleaks
+        description: Detect secrets in code
+        files: \.(py|ts|js|java|go|rb|php)$
+
+  # ========================================
+  # Security Checks
+  # ========================================
+  - repo: https://github.com/bandit-project/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        description: Security linting for Python
+        files: \.py$
+        args: ["-r", "-ii"]
+
+  - repo: https://github.com/pycqa/safety
+    rev: 3.2.0
+    hooks:
+      - id: safety
+        description: Check Python dependencies for vulnerabilities
+        files: requirements.*\.txt$
+        args: ["check", "-r", "requirements.txt", "--full-report"]
+
+  # ========================================
+  # Documentation
+  # ========================================
+  - repo: https://github.com/igorshubovych/markdownlint-cli2
+    rev: v0.14.0
+    hooks:
+      - id: markdownlint-cli2
+        description: Lint Markdown files
+        files: \.md$
+        args: ["--config", ".markdownlint.yaml"]
+
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+        description: Format Go code
+        files: \.go$
+      - id: go-mod-tidy
+        description: Tidy Go modules
+        files: go\.mod$
+
+  # ========================================
+  # Git-specific
+  # ========================================
+  - repo: https://github.com/alessandrojcm/commitlint-prettier-hook
+    rev: v9.13.0
+    hooks:
+      - id: commitlint-prettier
+        stages: [commit-msg]
+        additional_dependencies:
+          - "@commitlint/cli@19"
+          - "@commitlint/config-conventional@19"
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.2.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        description: Validate commit messages
+        additional_dependencies:
+          - "@conventional-changelog/conventional-changelog@9"
+
+# ========================================
+# Hook Settings
+# ========================================
+default_install_hook_types: [pre-commit]
+default_stages: [pre-commit]
+
+# Language version settings
+language_version:
+  python: python3.11
+
+# Fail hook on errors
+fail_fast: false
+
+# Autoupdate settings
+autoupdate_commit_msg: "chore: update pre-commit hooks"
