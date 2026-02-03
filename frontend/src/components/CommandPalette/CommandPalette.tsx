@@ -224,14 +224,6 @@ export const createDefaultCommands = (
     action: () => executeAction('toggleTheme'),
     keywords: ['dark', 'light', 'color'],
   },
-  {
-    id: 'settings-theme',
-    title: 'Change Theme',
-    description: 'Switch between light/dark mode',
-    category: 'settings',
-    action: () => executeAction('toggleTheme'),
-    keywords: ['dark', 'light', 'color'],
-  },
 ];
 
 // ============================================
