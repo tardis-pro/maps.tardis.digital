@@ -176,9 +176,14 @@ class RedisCache:
         
         try:
             full_key = self._make_key(key)
-            await self._client.delete(full_key)
-            logger.debug(f"Cache DELETE: {key}")
-            return True
+            result = await self._client.delete(full_key)
+            
+            # Update cache size statistic if key was actually deleted
+            if result > 0:
+                self._stats.size = max(0, self._stats.size - 1)
+                logger.debug(f"Cache DELETE: {key}")
+            
+            return result > 0
         except redis.RedisError as e:
             logger.error(f"Cache delete error: {e}")
             return False
@@ -188,6 +193,9 @@ class RedisCache:
         Clear all keys matching a pattern.
         
         Useful for invalidating related cache entries.
+        
+        Uses SCAN instead of KEYS for production-safe iteration.
+        KEYS is a blocking command that can cause latency spikes.
         
         Args:
             pattern: Key pattern to match
@@ -200,14 +208,21 @@ class RedisCache:
         
         try:
             full_pattern = self._make_key(pattern)
-            keys = await self._client.keys(full_pattern)
             
-            if keys:
-                deleted = await self._client.delete(*keys)
-                logger.info(f"Cache CLEAR: {pattern} ({deleted} keys)")
-                return deleted
+            # Use SCAN instead of KEYS for production-safe iteration
+            # SCAN is non-blocking and works with large datasets
+            deleted_count = 0
+            async for key in self._client.scan_iter(match=full_pattern, count=100):
+                await self._client.delete(key)
+                deleted_count += 1
             
-            return 0
+            # Update cache size statistic
+            self._stats.size = max(0, self._stats.size - deleted_count)
+            
+            if deleted_count > 0:
+                logger.info(f"Cache CLEAR: {pattern} ({deleted_count} keys)")
+            
+            return deleted_count
         except redis.RedisError as e:
             logger.error(f"Cache clear error: {e}")
             return 0
