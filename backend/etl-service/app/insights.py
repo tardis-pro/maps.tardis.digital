@@ -22,7 +22,7 @@ class InsightAgent:
 
         # Outlier detection using Isolation Forest
         try:
-            iso = IsolationForest(contamination=0.1)
+            iso = IsolationForest(contamination="auto")
             outliers = iso.fit_predict(numerical_data)
 
             outlier_count = (outliers == -1).sum()

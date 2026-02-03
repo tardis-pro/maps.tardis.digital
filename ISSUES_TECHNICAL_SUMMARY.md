@@ -488,7 +488,7 @@ class CacheService:
 **Solution**:
 - `InsightAgent` class with async `analyze()` method
 - Numerical feature extraction from structured data using numpy
-- Statistical outlier detection using sampling-based approach
+- Statistical outlier detection using Isolation Forest algorithm
 - Returns structured insight objects with type and human-readable messages
 
 **Key Components**:
@@ -498,21 +498,19 @@ class InsightAgent:
         # Extract numerical features
         numerical_data = self._extract_numerical(data)
         
-        # Detect outliers if sufficient data
-        if len(numerical_data) > 10:
-            outliers = np.random.choice(
-                len(numerical_data), 
-                min(5, len(numerical_data)//10), 
-                replace=False
-            )
-            if len(outliers) > 0:
+        # Detect outliers using Isolation Forest
+        if len(numerical_data) >= 10:
+            iso = IsolationForest(contamination=0.1)
+            outliers = iso.fit_predict(numerical_data)
+            outlier_count = (outliers == -1).sum()
+            if outlier_count > 0:
                 return [{"type": "outlier_detection", 
-                        "message": f"Found {len(outliers)} statistical outliers"}]
+                        "message": f"Found {outlier_count} statistical outliers"}]
         return []
 ```
 
 **Technical Decisions**:
-1. **Sampling Strategy**: Uses proportional sampling (10% of data, max 5 outliers) to avoid performance issues with large datasets
+1. **ML-based Detection**: Uses Isolation Forest for accurate outlier detection vs random sampling
 2. **Async Design**: Agent methods are async to integrate with ETL pipeline event loop
 3. **Numerical Focus**: Currently analyzes numerical columns; future enhancement would include spatial clustering
 
@@ -522,7 +520,14 @@ class InsightAgent:
 
 **Solution**:
 - Async HTTP client for external API calls
+- City data enrichment via OpenStreetMap Nominatim API
+- Elevation data via OpenTopoData API
 - Integration point for geocoding and data augmentation services
+
+**Key Features**:
+- Automatic detection of enrichable columns (city, elevation)
+- Graceful fallback on API failures
+- Type-safe implementation with proper annotations
 
 #### What-If Scenario Agent (`whatif.py`)
 
@@ -531,10 +536,12 @@ class InsightAgent:
 **Solution**:
 - Parameterized analysis framework
 - Simulation capabilities for different scenarios
+- GeoJSON layer generation from simulation results
+- Integrates with existing gridInference.py
 
 ### Integration Points
 
-The agents are designed to integrate with the ETL pipeline:
+The agents are designed to integrate with ETL pipeline:
 1. **Trigger**: Called after data ingestion completes
 2. **Input**: Structured data from uploaded files (CSV, GeoJSON, Shapefile)
 3. **Output**: Insights stored in database, surfaced via API
@@ -546,13 +553,14 @@ The agents are designed to integrate with the ETL pipeline:
 2. **Natural Language Generation**: Convert statistical insights to natural language summaries
 3. **Insight Persistence**: Store insights in database linked to Projects
 4. **User Preferences**: Allow users to configure sensitivity thresholds
-5. **Real ML**: Replace sampling-based detection with actual Isolation Forest implementation
+5. **More Enrichments**: Add population, weather, and other external data sources
 
 ### Testing Considerations
 
 - Unit tests for numerical feature extraction
 - Integration tests with sample datasets
 - Performance benchmarks with large datasets (>100K features)
+- Mock API responses for reliable testing
 
 ---
 
