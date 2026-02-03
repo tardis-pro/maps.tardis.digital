@@ -18,6 +18,7 @@ dependencies = [
     "httpx>=0.26.0",
     "shapely>=2.0.0",
     "geojson-pydantic>=1.0.0",
+    "slowapi>=0.1.9",
 ]
 
 [project.optional-dependencies]
