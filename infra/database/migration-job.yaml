@@ -29,7 +29,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: migration
-          image: ghcr.io/tardis-pro/maps-api:latest
+          image: ghcr.io/tardis-pro/maps-api:${IMAGE_VERSION:-v0.1.0}
           command: ["alembic", "upgrade", "head"]
           env:
             - name: DATABASE_URL
