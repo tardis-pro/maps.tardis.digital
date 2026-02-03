@@ -227,10 +227,10 @@ async def get_tiling_info(
 
 @router.get("/strategy")
 async def get_render_strategy(
+    db: Annotated[AsyncSession, Depends(get_db)],
     source_id: int,
     zoom: int = Query(ge=0, le=22, description="Current zoom level"),
     feature_count: Optional[int] = Query(None, description="Override feature count"),
-    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> dict:
     """
     Calculate the optimal render strategy for given parameters.
