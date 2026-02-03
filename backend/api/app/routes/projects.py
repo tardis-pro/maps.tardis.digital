@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.core.users import current_active_user
+from app.core.rate_limit import limiter, RateLimits
 from app.models import Project, Layer, User
 from app.schemas import ProjectCreate, ProjectUpdate, ProjectSchema, PaginatedResponse
 
@@ -12,7 +13,9 @@ router = APIRouter(prefix="/api/v1/projects", tags=["projects"])
 
 
 @router.get("/", response_model=PaginatedResponse[ProjectSchema])
+@limiter.limit(RateLimits.READ_ONLY)
 async def list_projects(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=100),
@@ -33,7 +36,9 @@ async def list_projects(
 
 
 @router.post("/", response_model=ProjectSchema, status_code=201)
+@limiter.limit(RateLimits.WRITE)
 async def create_project(
+    request: Request,
     payload: ProjectCreate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(current_active_user),
@@ -51,7 +56,8 @@ async def create_project(
 
 
 @router.get("/{project_id}/", response_model=ProjectSchema)
-async def get_project(project_id: int, db: AsyncSession = Depends(get_db)):
+@limiter.limit(RateLimits.READ_ONLY)
+async def get_project(request: Request, project_id: int, db: AsyncSession = Depends(get_db)):
     stmt = (
         select(Project)
         .options(selectinload(Project.layers).selectinload(Layer.source))
@@ -65,7 +71,9 @@ async def get_project(project_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/{project_id}/", response_model=ProjectSchema)
+@limiter.limit(RateLimits.WRITE)
 async def update_project(
+    request: Request,
     project_id: int,
     payload: ProjectCreate,
     db: AsyncSession = Depends(get_db),
@@ -87,7 +95,9 @@ async def update_project(
 
 
 @router.patch("/{project_id}/", response_model=ProjectSchema)
+@limiter.limit(RateLimits.WRITE)
 async def partial_update_project(
+    request: Request,
     project_id: int,
     payload: ProjectUpdate,
     db: AsyncSession = Depends(get_db),
@@ -109,7 +119,9 @@ async def partial_update_project(
 
 
 @router.delete("/{project_id}/", status_code=204)
+@limiter.limit(RateLimits.WRITE)
 async def delete_project(
+    request: Request,
     project_id: int,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(current_active_user),

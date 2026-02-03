@@ -32,7 +32,9 @@ async def list_layers(
 
 
 @router.post("/", response_model=LayerSchema, status_code=201)
+@limiter.limit(RateLimits.WRITE)
 async def create_layer(
+    request: Request,
     payload: LayerCreate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(current_active_user),
@@ -48,7 +50,8 @@ async def create_layer(
 
 
 @router.get("/{layer_id}/", response_model=LayerSchema)
-async def get_layer(layer_id: int, db: AsyncSession = Depends(get_db)):
+@limiter.limit(RateLimits.READ_ONLY)
+async def get_layer(request: Request, layer_id: int, db: AsyncSession = Depends(get_db)):
     stmt = select(Layer).options(selectinload(Layer.source)).where(Layer.id == layer_id)
     result = await db.execute(stmt)
     layer = result.scalar_one_or_none()
@@ -58,7 +61,9 @@ async def get_layer(layer_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/{layer_id}/", response_model=LayerSchema)
+@limiter.limit(RateLimits.WRITE)
 async def update_layer(
+    request: Request,
     layer_id: int,
     payload: LayerCreate,
     db: AsyncSession = Depends(get_db),
@@ -75,7 +80,9 @@ async def update_layer(
 
 
 @router.patch("/{layer_id}/", response_model=LayerSchema)
+@limiter.limit(RateLimits.WRITE)
 async def partial_update_layer(
+    request: Request,
     layer_id: int,
     payload: LayerUpdate,
     db: AsyncSession = Depends(get_db),
@@ -92,7 +99,9 @@ async def partial_update_layer(
 
 
 @router.delete("/{layer_id}/", status_code=204)
+@limiter.limit(RateLimits.WRITE)
 async def delete_layer(
+    request: Request,
     layer_id: int,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(current_active_user),
