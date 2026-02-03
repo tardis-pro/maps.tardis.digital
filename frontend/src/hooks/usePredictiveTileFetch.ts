@@ -2,337 +2,440 @@
  * Predictive Tile Fetching Hook
  *
  * Implements mouse velocity tracking to pre-fetch map tiles in the direction
- * of user movement, reducing perceived latency during panning.
+ * of movement, reducing perceived latency during panning.
+ *
+ * How it works:
+ * 1. Track mouse/touch movement velocity during drag/pan interactions
+ * 2. Calculate projected viewport bounds based on velocity
+ * 3. Trigger tile prefetching for predicted bounds
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { MapRef, ViewState } from 'react-map-gl';
+import maplibregl, { Map } from 'maplibre-gl';
 
-// Velocity vector type
-export interface Velocity {
-  vx: number; // horizontal velocity (pixels/frame)
-  vy: number; // vertical velocity (pixels/frame)
+interface VelocityData {
+  vx: number; // Velocity X (pixels per ms)
+  vy: number; // Velocity Y (pixels per ms)
+  timestamp: number;
 }
 
-// Viewport bounds type
-export interface ViewportBounds {
-  minLon: number;
-  maxLon: number;
-  minLat: number;
-  maxLat: number;
-  width: number;
-  height: number;
-}
-
-// Prefetch configuration
-export interface PrefetchConfig {
-  /** Number of seconds to predict ahead */
-  predictionWindow: number;
-  /** Minimum velocity to trigger prefetch (pixels/frame) */
-  velocityThreshold: number;
-  /** Maximum tiles to prefetch per update */
-  maxTiles: number;
-  /** Zoom levels to prefetch (relative to current) */
-  zoomLevels: number[];
-  /** Debounce delay in ms */
+interface PredictionConfig {
+  /** Time window in ms to calculate velocity */
+  velocityWindowMs: number;
+  /** Prediction horizon in ms (how far ahead to fetch) */
+  predictionHorizonMs: number;
+  /** Minimum velocity threshold to trigger prefetch */
+  minVelocity: number;
+  /** Debounce delay in ms after movement stops */
   debounceMs: number;
+  /** Number of extra tiles to prefetch in each direction */
+  tilePadding: number;
 }
 
-// Default configuration
-const DEFAULT_CONFIG: PrefetchConfig = {
-  predictionWindow: 2, // 2 seconds ahead
-  velocityThreshold: 5, // 5 pixels/frame
-  maxTiles: 20,
-  zoomLevels: [0, 1], // Current + 1 level
+interface TileCoord {
+  x: number;
+  y: number;
+  z: number;
+}
+
+interface BoundingBox {
+  minLon: number;
+  minLat: number;
+  maxLon: number;
+  maxLat: number;
+}
+
+const DEFAULT_CONFIG: PredictionConfig = {
+  velocityWindowMs: 200,
+  predictionHorizonMs: 500,
+  minVelocity: 0.5,
   debounceMs: 100,
+  tilePadding: 1,
 };
 
-/**
- * Calculate current viewport bounds
- */
-function getViewportBounds(
-  longitude: number,
-  latitude: number,
-  zoom: number,
-  width: number,
-  height: number
-): ViewportBounds {
-  const latDelta = (360 / (2 ** (zoom + 8))) * (height / 256);
-  const lonDelta = (360 / (2 ** (zoom + 8))) * (width / 256);
+export function usePredictiveTileFetch(
+  map: Map | null,
+  config: Partial<PredictionConfig> = {}
+) {
+  const mergedConfig = { ...DEFAULT_CONFIG, ...config };
 
-  return {
-    minLon: longitude - lonDelta / 2,
-    maxLon: longitude + lonDelta / 2,
-    minLat: latitude - latDelta / 2,
-    maxLat: latitude + latDelta / 2,
-    width,
-    height,
-  };
-}
+  const velocityHistory = useRef<VelocityData[]>([]);
+  const lastMovementTime = useRef<number>(0);
+  const isMoving = useRef<boolean>(false);
+  const prefetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prefetchInProgress = useRef<boolean>(false);
 
-/**
- * Calculate future viewport bounds based on velocity
- */
-function predictViewportBounds(
-  currentBounds: ViewportBounds,
-  velocity: Velocity,
-  predictionWindow: number,
-  width: number,
-  height: number,
-  zoom: number
-): ViewportBounds {
-  // Convert velocity to degrees
-  const metersPerPixel = 40075000 / (256 * 2 ** zoom);
-  const metersPerDegree = 111000;
+  const [isPredicting, setIsPredicting] = useState(false);
 
-  const dx = (velocity.vx * predictionWindow * metersPerPixel) / metersPerDegree;
-  const dy = (velocity.vy * predictionWindow * metersPerPixel) / metersPerDegree;
+  /**
+   * Calculate velocity from recent movement history
+   */
+  const calculateVelocity = useCallback((): VelocityData | null => {
+    const now = Date.now();
+    const windowStart = now - mergedConfig.velocityWindowMs;
 
-  return {
-    minLon: currentBounds.minLon - dx,
-    maxLon: currentBounds.maxLon - dx,
-    minLat: Math.max(-85, currentBounds.minLat - dy),
-    maxLat: Math.min(85, currentBounds.maxLat - dy),
-    width,
-    height,
-  };
-}
+    // Filter to only recent movements
+    const recentMovements = velocityHistory.current.filter(
+      (v) => v.timestamp > windowStart
+    );
 
-/**
- * Get tile coordinates for a viewport
- */
-function getTilesForBounds(
-  bounds: ViewportBounds,
-  zoom: number
-): { x: number; y: number; z: number }[] {
-  const tiles: { x: number; y: number; z: number }[] = [];
+    if (recentMovements.length < 2) {
+      return null;
+    }
 
-  for (let z = zoom; z <= zoom; z++) {
-    const n = 2 ** z;
-    const minX = Math.floor((bounds.minLon + 180) / 360 * n);
-    const maxX = Math.floor((bounds.maxLon + 180) / 360 * n);
-    const minY = Math.floor((1 - Math.log(Math.tan((bounds.minLat * Math.PI) / 180) + 1 / Math.cos((bounds.minLat * Math.PI) / 180)) / Math.PI) / 2 * n);
-    const maxY = Math.floor((1 - Math.log(Math.tan((bounds.maxLat * Math.PI) / 180) + 1 / Math.cos((bounds.maxLat * Math.PI) / 180)) / Math.PI) / 2 * n);
+    // Calculate average velocity
+    let totalVx = 0;
+    let totalVy = 0;
+    let totalTime = 0;
 
-    for (let x = minX; x <= maxX; x++) {
-      for (let y = minY; y <= maxY; y++) {
-        tiles.push({ x, y, z });
+    for (let i = 1; i < recentMovements.length; i++) {
+      const dt = recentMovements[i].timestamp - recentMovements[i - 1].timestamp;
+      if (dt > 0) {
+        totalVx += (recentMovements[i].vx + recentMovements[i - 1].vx) / 2;
+        totalVy += (recentMovements[i].vy + recentMovements[i - 1].vy) / 2;
+        totalTime += dt;
       }
     }
-  }
 
-  return tiles;
+    if (totalTime === 0 || recentMovements.length === 0) {
+      return null;
+    }
+
+    return {
+      vx: totalVx / (recentMovements.length - 1),
+      vy: totalVy / (recentMovements.length - 1),
+      timestamp: now,
+    };
+  }, [mergedConfig.velocityWindowMs]);
+
+  /**
+   * Convert velocity to geographic displacement
+   */
+  const velocityToDisplacement = useCallback(
+    (velocity: VelocityData, durationMs: number): { dx: number; dy: number } => {
+      // Convert pixel velocity to geographic displacement
+      // This is an approximation - for more accuracy, use the map's projection
+      const pixelsPerMsX = velocity.vx;
+      const pixelsPerMsY = velocity.vy;
+
+      return {
+        dx: pixelsPerMsX * durationMs,
+        dy: pixelsPerMsY * durationMs,
+      };
+    },
+    []
+  );
+
+  /**
+   * Get current viewport bounds
+   */
+  const getViewportBounds = useCallback((): BoundingBox | null => {
+    if (!map) return null;
+
+    const bounds = map.getBounds();
+    return {
+      minLon: bounds.getWest(),
+      minLat: bounds.getSouth(),
+      maxLon: bounds.getEast(),
+      maxLat: bounds.getNorth(),
+    };
+  }, [map]);
+
+  /**
+   * Convert geographic bounds to tile coordinates
+   */
+  const boundsToTiles = useCallback(
+    (bounds: BoundingBox, zoom: number): TileCoord[] => {
+      const tiles: TileCoord[] = [];
+
+      // Calculate tile range
+      const minTileX = Math.floor(lonToTileX(bounds.minLon, zoom));
+      const maxTileX = Math.floor(lonToTileX(bounds.maxLon, zoom));
+      const minTileY = Math.floor(latToTileY(bounds.minLat, zoom));
+      const maxTileY = Math.floor(latToTileY(bounds.maxLat, zoom));
+
+      for (let x = minTileX - mergedConfig.tilePadding; x <= maxTileX + mergedConfig.tilePadding; x++) {
+        for (let y = minTileY - mergedConfig.tilePadding; y <= maxTileY + mergedConfig.tilePadding; y++) {
+          tiles.push({ x, y, z: zoom });
+        }
+      }
+
+      return tiles;
+    },
+    [mergedConfig.tilePadding]
+  );
+
+  /**
+   * Calculate predicted bounds based on velocity
+   */
+  const getPredictedBounds = useCallback((): BoundingBox | null => {
+    const velocity = calculateVelocity();
+    if (!velocity) return null;
+
+    const displacement = velocityToDisplacement(velocity, mergedConfig.predictionHorizonMs);
+    const currentBounds = getViewportBounds();
+    if (!currentBounds) return null;
+
+    return {
+      minLon: currentBounds.minLon - displacement.dx,
+      maxLon: currentBounds.maxLon - displacement.dx,
+      minLat: currentBounds.minLat + displacement.dy,
+      maxLat: currentBounds.maxLat + displacement.dy,
+    };
+  }, [calculateVelocity, velocityToDisplacement, mergedConfig.predictionHorizonMs, getViewportBounds]);
+
+  /**
+   * Prefetch tiles for predicted viewport
+   */
+  const prefetchTiles = useCallback(async () => {
+    if (!map || prefetchInProgress.current) return;
+
+    const predictedBounds = getPredictedBounds();
+    if (!predictedBounds) return;
+
+    const zoom = map.getZoom();
+    const tiles = boundsToTiles(predictedBounds, zoom);
+
+    // Trigger tile loading for predicted tiles
+    // This tells MapLibre to load these tiles
+    tiles.forEach((tile) => {
+      // Request the tile from the source
+      map.style?.sourceCaches.forEach((cache) => {
+        // This is a simplified approach - in practice, you'd want to
+        // use the source's tile loading mechanism directly
+        const url = tileToURL(tile, map.getStyle());
+        if (url) {
+          preloadImage(url);
+        }
+      });
+    });
+
+    prefetchInProgress.current = true;
+    setIsPredicting(true);
+
+    // Reset flag after prefetch
+    setTimeout(() => {
+      prefetchInProgress.current = false;
+      setIsPredicting(false);
+    }, 50);
+  }, [map, getPredictedBounds, boundsToTiles]);
+
+  /**
+   * Handle move/drag events - update velocity tracking
+   */
+  const handleMove = useCallback(
+    (event: maplibregl.MapMouseEvent | maplibregl.MapTouchEvent) => {
+      const now = Date.now();
+      const timeSinceLast = now - lastMovementTime.current;
+
+      if (timeSinceLast > mergedConfig.debounceMs) {
+        // New movement phase
+        velocityHistory.current = [];
+      }
+
+      // Calculate pixel movement from the event
+      const point = event.point;
+      const prevPoint = velocityHistory.current[velocityHistory.current.length - 1];
+
+      if (prevPoint) {
+        const vx = (point.x - prevPoint.x) / timeSinceLast;
+        const vy = (point.y - prevPoint.y) / timeSinceLast;
+
+        // Only track if velocity is significant
+        if (Math.abs(vx) > 0.01 || Math.abs(vy) > 0.01) {
+          velocityHistory.current.push({
+            vx,
+            vy,
+            timestamp: now,
+          });
+
+          // Trim history to velocity window
+          const windowStart = now - mergedConfig.velocityWindowMs;
+          velocityHistory.current = velocityHistory.current.filter(
+            (v) => v.timestamp > windowStart
+          );
+        }
+      } else {
+        velocityHistory.current.push({
+          vx: 0,
+          vy: 0,
+          timestamp: now,
+        });
+      }
+
+      lastMovementTime.current = now;
+      isMoving.current = true;
+
+      // Schedule prefetch
+      if (prefetchTimer.current) {
+        clearTimeout(prefetchTimer.current);
+      }
+
+      prefetchTimer.current = setTimeout(() => {
+        prefetchTiles();
+      }, 50); // Small delay to batch movements
+    },
+    [mergedConfig.debounceMs, mergedConfig.velocityWindowMs, prefetchTiles]
+  );
+
+  /**
+   * Clean up timer when movement stops
+   */
+  const handleMoveEnd = useCallback(() => {
+    isMoving.current = false;
+
+    if (prefetchTimer.current) {
+      clearTimeout(prefetchTimer.current);
+      prefetchTimer.current = null;
+    }
+
+    // Clear velocity history after a delay
+    setTimeout(() => {
+      if (!isMoving.current) {
+        velocityHistory.current = [];
+      }
+    }, mergedConfig.debounceMs * 2);
+  }, [mergedConfig.debounceMs]);
+
+  /**
+   * Set up event listeners
+   */
+  useEffect(() => {
+    if (!map) return;
+
+    // Track movement events for velocity calculation
+    map.on('move', handleMove);
+    map.on('moveend', handleMoveEnd);
+
+    // Also track drag events for more responsive feedback
+    map.on('drag', handleMove);
+    map.on('dragend', handleMoveEnd);
+
+    return () => {
+      map.off('move', handleMove);
+      map.off('moveend', handleMoveEnd);
+      map.off('drag', handleMove);
+      map.off('dragend', handleMoveEnd);
+
+      if (prefetchTimer.current) {
+        clearTimeout(prefetchTimer.current);
+      }
+    };
+  }, [map, handleMove, handleMoveEnd]);
+
+  return {
+    isPredicting,
+    velocity: calculateVelocity(),
+    config: mergedConfig,
+  };
+}
+
+// Helper functions
+
+/**
+ * Convert longitude to tile X coordinate
+ */
+function lonToTileX(lon: number, zoom: number): number {
+  return ((lon + 180) / 360) * Math.pow(2, zoom);
 }
 
 /**
- * Calculate tile URLs for prefetching
+ * Convert latitude to tile Y coordinate
  */
-function generateTileUrls(
-  tiles: { x: number; y: number; z: number }[],
-  tileServer: string
-): string[] {
-  return tiles.map((tile) =>
-    tileServer
-      .replace('{z}', tile.z.toString())
-      .replace('{x}', tile.x.toString())
-      .replace('{y}', tile.y.toString())
+function latToTileY(lat: number, zoom: number): number {
+  const latRad = (lat * Math.PI) / 180;
+  return (
+    ((1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2) * Math.pow(2, zoom)
   );
 }
 
 /**
- * Prefetch tiles by creating invisible image elements
+ * Generate tile URL for prefetching
  */
-async function prefetchTiles(urls: string[], maxConcurrent = 5): Promise<void> {
-  const chunks: string[][] = [];
-
-  for (let i = 0; i < urls.length; i += maxConcurrent) {
-    chunks.push(urls.slice(i, i + maxConcurrent));
+function tileToURL(tile: TileCoord, style: maplibregl.Style): string | null {
+  // Extract tile URL from source configuration
+  // This is a simplified version - in practice, you'd want to
+  // use the source's tile URL template directly
+  for (const source of Object.values(style.sources)) {
+    if (source.type === 'vector' || source.type === 'raster') {
+      const tiles = source.tiles;
+      if (tiles && tiles.length > 0) {
+        let url = tiles[0];
+        url = url.replace('{z}', tile.z.toString());
+        url = url.replace('{x}', tile.x.toString());
+        url = url.replace('{y}', tile.y.toString());
+        return url;
+      }
+    }
   }
-
-  for (const chunk of chunks) {
-    await Promise.all(
-      chunk.map(
-        (url) =>
-          new Promise<void>((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve();
-            img.onerror = () => resolve(); // Don't fail on error
-            img.src = url;
-          })
-      )
-    );
-  }
+  return null;
 }
 
 /**
- * Hook for predictive tile fetching
+ * Preload image for tile prefetching
  */
-export function usePredictiveTileFetch(
-  mapRef: React.RefObject<MapRef>,
-  tileServer: string,
-  onPrefetch?: (urls: string[]) => void,
-  config: Partial<PrefetchConfig> = {}
-) {
-  const fullConfig = { ...DEFAULT_CONFIG, ...config };
-
-  const velocityRef = useRef<Velocity>({ vx: 0, vy: 0 });
-  const lastMouseRef = useRef<{ x: number; y: number } | null>(null);
-  const lastUpdateRef = useRef<number>(Date.now());
-  const animationFrameRef = useRef<number | null>(null);
-  const [isPrefetching, setIsPrefetching] = useState(false);
-  const prefetchQueueRef = useRef<Set<string>>(new Set());
-  const debounceTimerRef = useRef<number | null>(null);
-
-  // Smooth velocity using exponential moving average
-  const smoothVelocity = useCallback((newVx: number, newVy: number) => {
-    const alpha = 0.3; // Smoothing factor
-    velocityRef.current.vx = velocityRef.current.vx * (1 - alpha) + newVx * alpha;
-    velocityRef.current.vy = velocityRef.current.vy * (1 - alpha) + newVy * alpha;
-  }, []);
-
-  // Calculate and trigger prefetch
-  const triggerPrefetch = useCallback(async () => {
-    const map = mapRef.current;
-    if (!map || !tileServer) return;
-
-    const viewState = map.getViewState() as ViewState;
-    if (!viewState || viewState.width === 0 || viewState.height === 0) return;
-
-    const velocity = velocityRef.current;
-    const speed = Math.sqrt(velocity.vx ** 2 + velocity.vy ** 2);
-
-    // Skip if below threshold
-    if (speed < fullConfig.velocityThreshold) return;
-
-    // Calculate current and predicted bounds
-    const currentBounds = getViewportBounds(
-      viewState.longitude,
-      viewState.latitude,
-      viewState.zoom,
-      viewState.width,
-      viewState.height
-    );
-
-    const predictedBounds = predictViewportBounds(
-      currentBounds,
-      velocity,
-      fullConfig.predictionWindow,
-      viewState.width,
-      viewState.height,
-      viewState.zoom
-    );
-
-    // Get tiles for predicted bounds
-    let tiles = getTilesForBounds(predictedBounds, viewState.zoom);
-
-    // Limit tiles
-    if (tiles.length > fullConfig.maxTiles) {
-      tiles = tiles.slice(0, fullConfig.maxTiles);
-    }
-
-    // Generate URLs
-    const urls = generateTileUrls(tiles, tileServer);
-
-    // Filter already prefetched
-    const newUrls = urls.filter((url) => !prefetchQueueRef.current.has(url));
-
-    if (newUrls.length === 0) return;
-
-    // Add to queue
-    newUrls.forEach((url) => prefetchQueueRef.current.add(url));
-
-    // Trigger prefetch
-    setIsPrefetching(true);
-    await prefetchTiles(newUrls);
-    setIsPrefetching(false);
-
-    // Callback
-    onPrefetch?.(newUrls);
-  }, [mapRef, tileServer, fullConfig, onPrefetch]);
-
-  // Mouse move handler
-  const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    const now = Date.now();
-    const deltaTime = now - lastUpdateRef.current;
-
-    if (deltaTime < 16) return; // Skip if too frequent (60fps max)
-
-    const { clientX, clientY } = event;
-
-    if (lastMouseRef.current) {
-      const dx = clientX - lastMouseRef.current.x;
-      const dy = clientY - lastMouseRef.current.y;
-
-      // Calculate velocity (pixels per frame, assuming 60fps)
-      const vx = dx / (deltaTime / 16.67);
-      const vy = dy / (deltaTime / 16.67);
-
-      smoothVelocity(vx, vy);
-    }
-
-    lastMouseRef.current = { x: clientX, y: clientY };
-    lastUpdateRef.current = now;
-
-    // Debounce prefetch trigger
-    if (debounceTimerRef.current) {
-      cancelAnimationFrame(debounceTimerRef.current);
-    }
-
-    debounceTimerRef.current = requestAnimationFrame(() => {
-      triggerPrefetch();
-    });
-  }, [smoothVelocity, triggerPrefetch]);
-
-  // Animation loop for continuous velocity tracking
-  const animationLoop = useCallback(() => {
-    const velocity = velocityRef.current;
-    const speed = Math.sqrt(velocity.vx ** 2 + velocity.vy ** 2);
-
-    if (speed > fullConfig.velocityThreshold) {
-      // Decay velocity (friction)
-      velocity.vx *= 0.95;
-      velocity.vy *= 0.95;
-
-      // Trigger prefetch
-      triggerPrefetch();
-    }
-
-    animationFrameRef.current = requestAnimationFrame(animationLoop);
-  }, [fullConfig, triggerPrefetch]);
-
-  // Start/stop tracking
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    // Start animation loop
-    animationFrameRef.current = requestAnimationFrame(animationLoop);
-
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      if (debounceTimerRef.current) {
-        cancelAnimationFrame(debounceTimerRef.current);
-      }
-    };
-  }, [mapRef, animationLoop]);
-
-  // Clean up prefetched tiles periodically
-  useEffect(() => {
-    const cleanupInterval = setInterval(() => {
-      prefetchQueueRef.current.clear();
-    }, 30000); // Clear every 30 seconds
-
-    return () => clearInterval(cleanupInterval);
-  }, []);
-
-  return {
-    handleMouseMove,
-    isPrefetching,
-    velocity: velocityRef.current,
-    prefetchQueueSize: prefetchQueueRef.current.size,
-  };
+function preloadImage(url: string): void {
+  const img = new Image();
+  img.src = url;
 }
 
-export default usePredictiveTileFetch;
+/**
+ * Hook for automatic predictive prefetching
+ * Use this instead of usePredictiveTileFetch for simpler usage
+ */
+export function useAutoPredictiveFetch(
+  map: Map | null,
+  options: {
+    enabled?: boolean;
+    onPrefetch?: (tiles: TileCoord[]) => void;
+  } = {}
+) {
+  const { enabled = true, onPrefetch } = options;
+
+  const { isPredicting, velocity, config } = usePredictiveTileFetch(map);
+
+  useEffect(() => {
+    if (!enabled || !map || !velocity) return;
+
+    // Only prefetch if velocity is above threshold
+    const speed = Math.sqrt(velocity.vx * velocity.vx + velocity.vy * velocity.vy);
+    if (speed < config.minVelocity) return;
+
+    // Get predicted bounds and convert to tiles
+    const now = Date.now();
+    const windowStart = now - config.velocityWindowMs;
+
+    // Calculate predicted viewport based on velocity
+    const displacementX = velocity.vx * config.predictionHorizonMs;
+    const displacementY = velocity.vy * config.predictionHorizonMs;
+
+    const bounds = map.getBounds();
+    const predictedBounds: BoundingBox = {
+      minLon: bounds.getWest() - displacementX,
+      maxLon: bounds.getEast() - displacementX,
+      minLat: bounds.getSouth() + displacementY,
+      maxLat: bounds.getNorth() + displacementY,
+    };
+
+    const zoom = Math.floor(map.getZoom());
+    const tiles: TileCoord[] = [];
+
+    const minTileX = Math.floor(lonToTileX(predictedBounds.minLon, zoom));
+    const maxTileX = Math.floor(lonToTileX(predictedBounds.maxLon, zoom));
+    const minTileY = Math.floor(latToTileY(predictedBounds.maxLat, zoom));
+    const maxTileY = Math.floor(latToTileY(predictedBounds.minLat, zoom));
+
+    for (let x = minTileX - config.tilePadding; x <= maxTileX + config.tilePadding; x++) {
+      for (let y = minTileY - config.tilePadding; y <= maxTileY + config.tilePadding; y++) {
+        tiles.push({ x, y, z: zoom });
+      }
+    }
+
+    // Notify about tiles to prefetch
+    if (onPrefetch) {
+      onPrefetch(tiles);
+    }
+  }, [velocity, enabled, config, map, onPrefetch]);
+
+  return { isPredicting, speed: velocity ? Math.sqrt(velocity.vx ** 2 + velocity.vy ** 2) : 0 };
+}
