@@ -112,15 +112,18 @@ export function usePredictiveTileFetch(
    * Convert velocity to geographic displacement
    */
   const velocityToDisplacement = useCallback(
-    (velocity: VelocityData, durationMs: number): { dx: number; dy: number } => {
-      // Convert pixel velocity to geographic displacement
-      // This is an approximation - for more accuracy, use the map's projection
-      const pixelsPerMsX = velocity.vx;
-      const pixelsPerMsY = velocity.vy;
+    (velocity: VelocityData, durationMs: number, map: Map): { dx: number; dy: number } => {
+      const pixelsX = velocity.vx * durationMs;
+      const pixelsY = velocity.vy * durationMs;
+
+      const currentCenter = map.getCenter();
+      const currentPoint = map.project(currentCenter);
+      const newPoint = { x: currentPoint.x + pixelsX, y: currentPoint.y + pixelsY };
+      const newCenter = map.unproject(newPoint);
 
       return {
-        dx: pixelsPerMsX * durationMs,
-        dy: pixelsPerMsY * durationMs,
+        dx: newCenter.lng - currentCenter.lng,
+        dy: newCenter.lat - currentCenter.lat,
       };
     },
     []
@@ -170,19 +173,19 @@ export function usePredictiveTileFetch(
    */
   const getPredictedBounds = useCallback((): BoundingBox | null => {
     const velocity = calculateVelocity();
-    if (!velocity) return null;
+    if (!velocity || !map) return null;
 
-    const displacement = velocityToDisplacement(velocity, mergedConfig.predictionHorizonMs);
+    const displacement = velocityToDisplacement(velocity, mergedConfig.predictionHorizonMs, map);
     const currentBounds = getViewportBounds();
     if (!currentBounds) return null;
 
     return {
-      minLon: currentBounds.minLon - displacement.dx,
-      maxLon: currentBounds.maxLon - displacement.dx,
+      minLon: currentBounds.minLon + displacement.dx,
+      maxLon: currentBounds.maxLon + displacement.dx,
       minLat: currentBounds.minLat + displacement.dy,
       maxLat: currentBounds.maxLat + displacement.dy,
     };
-  }, [calculateVelocity, velocityToDisplacement, mergedConfig.predictionHorizonMs, getViewportBounds]);
+  }, [calculateVelocity, velocityToDisplacement, mergedConfig.predictionHorizonMs, getViewportBounds, map]);
 
   /**
    * Prefetch tiles for predicted viewport
@@ -229,27 +232,23 @@ export function usePredictiveTileFetch(
       const timeSinceLast = now - lastMovementTime.current;
 
       if (timeSinceLast > mergedConfig.debounceMs) {
-        // New movement phase
         velocityHistory.current = [];
       }
 
-      // Calculate pixel movement from the event
       const point = event.point;
-      const prevPoint = velocityHistory.current[velocityHistory.current.length - 1];
+      const prevVelocity = velocityHistory.current[velocityHistory.current.length - 1];
 
-      if (prevPoint) {
-        const vx = (point.x - prevPoint.x) / timeSinceLast;
-        const vy = (point.y - prevPoint.y) / timeSinceLast;
+      if (prevVelocity) {
+        const vx = (point.x - prevVelocity.vx * timeSinceLast) / timeSinceLast;
+        const vy = (point.y - prevVelocity.vy * timeSinceLast) / timeSinceLast;
 
-        // Only track if velocity is significant
         if (Math.abs(vx) > 0.01 || Math.abs(vy) > 0.01) {
           velocityHistory.current.push({
-            vx,
-            vy,
+            vx: point.x,
+            vy: point.y,
             timestamp: now,
           });
 
-          // Trim history to velocity window
           const windowStart = now - mergedConfig.velocityWindowMs;
           velocityHistory.current = velocityHistory.current.filter(
             (v) => v.timestamp > windowStart
@@ -257,8 +256,8 @@ export function usePredictiveTileFetch(
         }
       } else {
         velocityHistory.current.push({
-          vx: 0,
-          vy: 0,
+          vx: point.x,
+          vy: point.y,
           timestamp: now,
         });
       }
@@ -410,11 +409,20 @@ export function useAutoPredictiveFetch(
     const displacementY = velocity.vy * config.predictionHorizonMs;
 
     const bounds = map.getBounds();
+    const projectedCenter = map.project(bounds.getCenter());
+    const predictedCenter = map.unproject({
+      x: projectedCenter.x + displacementX,
+      y: projectedCenter.y + displacementY,
+    });
+
+    const lngSpan = bounds.getEast() - bounds.getWest();
+    const latSpan = bounds.getNorth() - bounds.getSouth();
+
     const predictedBounds: BoundingBox = {
-      minLon: bounds.getWest() - displacementX,
-      maxLon: bounds.getEast() - displacementX,
-      minLat: bounds.getSouth() + displacementY,
-      maxLat: bounds.getNorth() + displacementY,
+      minLon: predictedCenter.lng - lngSpan / 2,
+      maxLon: predictedCenter.lng + lngSpan / 2,
+      minLat: predictedCenter.lat - latSpan / 2,
+      maxLat: predictedCenter.lat + latSpan / 2,
     };
 
     const zoom = Math.floor(map.getZoom());
