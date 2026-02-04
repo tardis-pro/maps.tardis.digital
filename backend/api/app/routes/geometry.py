@@ -1,19 +1,22 @@
 import json
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from geoalchemy2.functions import ST_AsGeoJSON, ST_Intersects, ST_MakeEnvelope
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.rate_limit import limiter, RateLimits
 from app.models import Geometry
 
 router = APIRouter(prefix="/api/v1/wfs", tags=["wfs"])
 
 
 @router.get("/")
+@limiter.limit(RateLimits.READ_ONLY)
 async def get_geometries(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     bbox: str | None = Query(None, description="Bounding box: minx,miny,maxx,maxy"),
     source_id: int | None = Query(None),
