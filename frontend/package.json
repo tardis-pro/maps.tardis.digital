@@ -15,7 +15,7 @@
     "@luma.gl/shadertools": "^9.2.5",
     "@luma.gl/webgl": "^9.2.5",
     "@mantine/core": "^7.17.0",
-    "@mantine/hooks": "^7.17.0",
+    "@mantine/hooks": "^8.3.14",
     "@maticoapp/deck.gl-pmtiles": "^0.0.33",
     "@pmndrs/branding": "0.0.8",
     "@popperjs/core": "^2.11.8",
