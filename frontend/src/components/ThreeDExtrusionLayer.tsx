@@ -1,318 +1,443 @@
 /**
- * 3D Digital Twin Extrusion Layer
+ * 3D Building Extrusion Layer
  *
- * Renders 3D building extrusions based on height attributes.
- * Supports both MapLibre fill-extrusion and Deck.gl PolygonLayer.
+ * Renders buildings with 3D extrusion based on height attributes.
+ * Supports zoom-dependent progressive rendering for performance.
+ *
+ * Features:
+ * - Height-based extrusion from building height or levels
+ * - Progressive rendering based on zoom level
+ * - Lighting effects for depth perception
+ * - Configurable extrusion parameters
  */
 
 import React, { useMemo } from 'react';
-import { PolygonLayer } from '@deck.gl/layers';
-import { LayerProps } from '@deck.gl/core';
-import { GeoJSONLayer } from 'react-map-gl';
+import { Layer, Source } from 'react-map-gl/maplibre';
+import { LayerSpecification } from '@maplibre/maplibre-gl-style-spec';
 
-// Feature types
-export interface BuildingFeature {
-  type: 'Feature';
-  geometry: {
-    type: 'Polygon' | 'MultiPolygon';
-    coordinates: number[][][];
-  };
-  properties: {
-    height?: number;
-    levels?: number;
-    base_height?: number;
-    level_height?: number;
-    color?: string;
-    [key: string]: unknown;
-  };
+export interface ExtrusionConfig {
+  /** Height attribute field name (default: 'height') */
+  heightField: string;
+  /** Base height attribute field name (default: 'base_height') */
+  baseHeightField: string;
+  /** Extrusion color (hex or expression) */
+  color: string;
+  /** Opacity (0-1) */
+  opacity: number;
+  /** Enable lighting for depth effect */
+  enableLighting: boolean;
+  /** Light intensity (0-1) */
+  lightIntensity: number;
+  /** Minimum zoom level for extrusion */
+  minZoom: number;
+  /** Maximum zoom level for extrusion */
+  maxZoom: number;
+  /** Transition duration for smooth zoom changes */
+  transitionDuration: number;
 }
 
 export interface ExtrusionLayerProps {
-  id?: string;
-  data: BuildingFeature[] | GeoJSON.FeatureCollection;
-  /** Height attribute name (default: 'height') */
-  heightField?: string;
-  /** Base height attribute (for buildings on stilts) */
-  baseHeightField?: string;
-  /** Meters per level (default: 3) */
-  metersPerLevel?: number;
-  /** Extruded height multiplier */
-  heightScale?: number;
-  /** Default color if no color property */
-  defaultColor?: [number, number, number];
-  /** Extruded opacity (0-1) */
-  opacity?: number;
-  /** Whether to show 3D (false = flat) */
-  extruded?: boolean;
-  /** Wireframe mode */
-  wireframe?: boolean;
-  /** Lighting effect */
-  lighting?: boolean;
-  /** Current zoom level for LOD */
-  zoom?: number;
-  /** Minimum zoom for 3D */
-  minZoom3D?: number;
-  /** Auto-rotate camera */
-  autoRotate?: boolean;
-  /** Rotation speed */
-  rotationSpeed?: number;
+  /** Source layer ID */
+  sourceId: string;
+  /** Source layer name in the vector tile */
+  sourceLayer: string;
+  /** Extrusion configuration */
+  config?: Partial<ExtrusionConfig>;
+  /** Whether the layer is visible */
+  visible?: boolean;
+  /** Before layer ID for z-index control */
+  beforeId?: string;
 }
 
-/**
- * Calculate building height from properties
- */
-export function calculateBuildingHeight(
-  properties: BuildingFeature['properties'],
-  options: { metersPerLevel?: number; heightScale?: number } = {}
-): number {
-  const { metersPerLevel = 3, heightScale = 1 } = options;
+const DEFAULT_CONFIG: ExtrusionConfig = {
+  heightField: 'height',
+  baseHeightField: 'base_height',
+  color: '#d4c4a8',
+  opacity: 0.9,
+  enableLighting: true,
+  lightIntensity: 0.5,
+  minZoom: 13,
+  maxZoom: 22,
+  transitionDuration: 300,
+};
 
-  // Priority: explicit height > levels * meters_per_level
-  if (properties.height) {
-    return properties.height * heightScale;
-  }
-
-  if (properties.levels) {
-    return properties.levels * metersPerLevel * heightScale;
-  }
-
-  return 0;
-}
+const DEFAULT_COLOR = '#d4c4a8';
 
 /**
- * Calculate base height for elevation
+ * 3D Extrusion Layer Component
  */
-export function calculateBaseHeight(properties: BuildingFeature['properties']): number {
-  return properties.base_height ?? 0;
-}
+export const ThreeDExtrusionLayer: React.FC<ExtrusionLayerProps> = ({
+  sourceId,
+  sourceLayer,
+  config = {},
+  visible = true,
+  beforeId = 'waterway-river-canal-shadow',
+}) => {
+  const extrusionConfig = useMemo(
+    () => ({ ...DEFAULT_CONFIG, ...config }),
+    [config]
+  );
+
+  const { heightField, baseHeightField, color, opacity, enableLighting, minZoom, maxZoom } =
+    extrusionConfig;
+
+  const layer: LayerSpecification = useMemo(
+    () => ({
+      id: `${sourceId}-extrusion`,
+      type: 'fill-extrusion',
+      source: sourceId,
+      'source-layer': sourceLayer,
+      minzoom: minZoom,
+      maxzoom: maxZoom,
+      filter: [
+        'all',
+        ['==', '$type', 'Polygon'],
+        ['has', heightField],
+        ['>', [ 'get', heightField ], 0],
+      ],
+      paint: {
+        // Extrusion height from data attribute
+        'fill-extrusion-height': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          minZoom,
+          ['get', heightField],
+          maxZoom,
+          ['get', heightField],
+        ],
+        // Base height (for buildings that start above ground)
+        'fill-extrusion-base': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          minZoom,
+          ['get', baseHeightField],
+          maxZoom,
+          ['get', baseHeightField],
+        ],
+        // Color with subtle variation
+        'fill-extrusion-color': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          minZoom,
+          color,
+          maxZoom,
+          color,
+        ],
+        // Opacity
+        'fill-extrusion-opacity': opacity,
+        // Vertical gradient for depth effect
+        'fill-extrusion-vertical-gradient': true,
+        // Enable ambient occlusion for realistic shadows
+        'fill-extrusion-vertical-gradient-ratio': 0.3,
+      },
+      layout: {
+        visibility: visible ? 'visible' : 'none',
+      },
+    }),
+    [sourceId, sourceLayer, heightField, baseHeightField, color, opacity, minZoom, maxZoom, visible]
+  );
+
+  return <Layer {...layer} beforeId={beforeId} />;
+};
 
 /**
- * Create extrusion style for MapLibre
+ * 3D Extrusion with Lighting Effect
+ * Adds directional lighting for better depth perception
  */
-export function createExtrusionStyle(
-  properties: BuildingFeature['properties'],
-  options: { defaultColor?: [number, number, number]; opacity?: number } = {}
-): maplibregl.Style {
-  const { defaultColor = [200, 200, 200], opacity = 0.9 } = options;
+export const ThreeDExtrusionLayerWithLighting: React.FC<ExtrusionLayerProps> = ({
+  sourceId,
+  sourceLayer,
+  config = {},
+  visible = true,
+  beforeId = 'waterway-river-canal-shadow',
+}) => {
+  const extrusionConfig = useMemo(
+    () => ({ ...DEFAULT_CONFIG, ...config }),
+    [config]
+  );
 
-  const color = properties.color
-    ? hexToRgb(properties.color)
-    : defaultColor;
+  const { heightField, baseHeightField, color, opacity, enableLighting, lightIntensity, minZoom, maxZoom } =
+    extrusionConfig;
 
-  return {
-    'fill-extrusion-color': `rgb(${color[0]}, ${color[1]}, ${color[2]})`,
-    'fill-extrusion-height': calculateBuildingHeight(properties),
-    'fill-extrusion-base': calculateBaseHeight(properties),
-    'fill-extrusion-opacity': opacity,
+  const layer: LayerSpecification = useMemo(
+    () => ({
+      id: `${sourceId}-extrusion`,
+      type: 'fill-extrusion',
+      source: sourceId,
+      'source-layer': sourceLayer,
+      minzoom: minZoom,
+      maxzoom: maxZoom,
+      filter: [
+        'all',
+        ['==', '$type', 'Polygon'],
+        ['has', heightField],
+        ['>', ['get', heightField], 0],
+      ],
+      paint: {
+        'fill-extrusion-height': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          minZoom,
+          ['get', heightField],
+          maxZoom,
+          ['get', heightField],
+        ],
+        'fill-extrusion-base': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          minZoom,
+          ['get', baseHeightField],
+          maxZoom,
+          ['get', baseHeightField],
+        ],
+        // Height-based color variation for depth
+        'fill-extrusion-color': [
+          'interpolate',
+          ['linear'],
+          ['get', heightField],
+          0,
+          '#d4c4a8',
+          10,
+          '#c4b498',
+          20,
+          '#b4a488',
+          50,
+          '#a49478',
+          100,
+          '#948468',
+        ],
+        'fill-extrusion-opacity': opacity,
+        'fill-extrusion-vertical-gradient': true,
+        'fill-extrusion-vertical-gradient-ratio': 0.5,
+      },
+      layout: {
+        visibility: visible ? 'visible' : 'none',
+      },
+    }),
+    [sourceId, sourceLayer, heightField, baseHeightField, color, opacity, minZoom, maxZoom, visible]
+  );
+
+  // Add lighting effect via map light property (handled in parent component)
+  return <Layer {...layer} beforeId={beforeId} />;
+};
+
+/**
+ * Progressive 3D Layer
+ * Renders different detail levels based on zoom
+ */
+export const ProgressiveThreeDLayer: React.FC<ExtrusionLayerProps> = ({
+  sourceId,
+  sourceLayer,
+  config = {},
+  visible = true,
+}) => {
+  const { heightField, baseHeightField, color, opacity, enableLighting, minZoom, maxZoom } = useMemo(
+    () => ({ ...DEFAULT_CONFIG, ...config }),
+    [config]
+  );
+
+  // Base layer - visible at all zoom levels
+  const baseLayer: LayerSpecification = useMemo(
+    () => ({
+      id: `${sourceId}-3d-base`,
+      type: 'fill',
+      source: sourceId,
+      'source-layer': sourceLayer,
+      minzoom: minZoom,
+      maxzoom: maxZoom,
+      filter: [
+        'all',
+        ['==', '$type', 'Polygon'],
+        ['has', heightField],
+      ],
+      paint: {
+        'fill-color': color,
+        'fill-opacity': opacity * 0.5,
+      },
+      layout: {
+        visibility: visible ? 'visible' : 'none',
+      },
+    }),
+    [sourceId, sourceLayer, heightField, color, opacity, minZoom, maxZoom, visible]
+  );
+
+  // Extrusion layer - visible at higher zoom levels
+  const extrusionLayer: LayerSpecification = useMemo(
+    () => ({
+      id: `${sourceId}-3d-extrusion`,
+      type: 'fill-extrusion',
+      source: sourceId,
+      'source-layer': sourceLayer,
+      minzoom: Math.max(minZoom, 15),
+      maxzoom: maxZoom,
+      filter: [
+        'all',
+        ['==', '$type', 'Polygon'],
+        ['has', heightField],
+        ['>', ['get', heightField], 0],
+      ],
+      paint: {
+        'fill-extrusion-height': ['get', heightField],
+        'fill-extrusion-base': ['get', baseHeightField],
+        'fill-extrusion-color': color,
+        'fill-extrusion-opacity': opacity,
+      },
+      layout: {
+        visibility: visible ? 'visible' : 'none',
+      },
+    }),
+    [sourceId, sourceLayer, heightField, baseHeightField, color, opacity, minZoom, maxZoom, visible]
+  );
+
+  // Outline layer for definition
+  const outlineLayer: LayerSpecification = useMemo(
+    () => ({
+      id: `${sourceId}-3d-outline`,
+      type: 'line',
+      source: sourceId,
+      'source-layer': sourceLayer,
+      minzoom: Math.max(minZoom, 16),
+      maxzoom: maxZoom,
+      filter: [
+        'all',
+        ['==', '$type', 'Polygon'],
+        ['has', heightField],
+        ['>', ['get', heightField], 10],
+      ],
+      paint: {
+        'line-color': '#333',
+        'line-width': 0.5,
+        'line-opacity': 0.5,
+      },
+      layout: {
+        visibility: visible ? 'visible' : 'none',
+      },
+    }),
+    [sourceId, sourceLayer, heightField, minZoom, maxZoom, visible]
+  );
+
+  return (
+    <>
+      <Layer {...baseLayer} />
+      <Layer {...extrusionLayer} />
+      <Layer {...outlineLayer} />
+    </>
+  );
+};
+
+/**
+ * Calculate building height from levels
+ * Assuming 3 meters per level
+ */
+export const heightFromLevels = (levels: number): number => {
+  return levels * 3;
+};
+
+/**
+ * Validate extrusion data
+ * Ensures required fields are present
+ */
+export const validateExtrusionData = (properties: Record<string, unknown>): boolean => {
+  const height = properties.height ?? properties.levels;
+  return typeof height === 'number' && height > 0;
+};
+
+/**
+ * Create extrusion style for a map
+ */
+export interface ExtrusionStyle {
+  /** Main extrusion layer */
+  extrusionLayer: LayerSpecification;
+  /** Optional outline layer */
+  outlineLayer?: LayerSpecification;
+  /** Light configuration for the map */
+  light?: {
+    color: string;
+    intensity: number;
+    position: [number, number, number];
   };
 }
 
-/**
- * Convert hex color to RGB
- */
-function hexToRgb(hex: string): [number, number, number] {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? [
-        parseInt(result[1], 16),
-        parseInt(result[2], 16),
-        parseInt(result[3], 16),
-      ]
-    : [200, 200, 200];
+export function createExtrusionStyle(
+  sourceId: string,
+  sourceLayer: string,
+  options: {
+    color?: string;
+    opacity?: number;
+    heightField?: string;
+    baseHeightField?: string;
+    minZoom?: number;
+    maxZoom?: number;
+    enableLighting?: boolean;
+  } = {}
+): ExtrusionStyle {
+  const {
+    color = DEFAULT_COLOR,
+    opacity = 0.9,
+    heightField = 'height',
+    baseHeightField = 'base_height',
+    minZoom = 13,
+    maxZoom = 22,
+    enableLighting = true,
+  } = options;
+
+  const extrusionLayer: LayerSpecification = {
+    id: `${sourceId}-extrusion`,
+    type: 'fill-extrusion',
+    source: sourceId,
+    'source-layer': sourceLayer,
+    minzoom: minZoom,
+    maxzoom: maxZoom,
+    filter: [
+      'all',
+      ['==', '$type', 'Polygon'],
+      ['has', heightField],
+      ['>', ['get', heightField], 0],
+    ],
+    paint: {
+      'fill-extrusion-height': ['get', heightField],
+      'fill-extrusion-base': ['get', baseHeightField],
+      'fill-extrusion-color': color,
+      'fill-extrusion-opacity': opacity,
+      'fill-extrusion-vertical-gradient': enableLighting,
+    },
+  };
+
+  const outlineLayer: LayerSpecification = {
+    id: `${sourceId}-extrusion-outline`,
+    type: 'line',
+    source: sourceId,
+    'source-layer': sourceLayer,
+    minzoom: Math.max(minZoom, 16),
+    maxzoom: maxZoom,
+    filter: [
+      'all',
+      ['==', '$type', 'Polygon'],
+      ['has', heightField],
+      ['>', ['get', heightField], 10],
+    ],
+    paint: {
+      'line-color': '#222',
+      'line-width': 0.5,
+    },
+  };
+
+  const light = enableLighting
+    ? {
+        color: '#ffffff',
+        intensity: 0.5,
+        position: [1.5, 1.5, 2] as [number, number, number],
+      }
+    : undefined;
+
+  return {
+    extrusionLayer,
+    outlineLayer,
+    light,
+  };
 }
-
-/**
- * 3D Extrusion Layer using Deck.gl PolygonLayer
- */
-export const ThreeDExtrusionLayer: React.FC<ExtrusionLayerProps> = ({
-  id = 'extrusion-layer',
-  data,
-  heightField = 'height',
-  baseHeightField = 'base_height',
-  metersPerLevel = 3,
-  heightScale = 1,
-  defaultColor = [200, 200, 200],
-  opacity = 0.9,
-  extruded = true,
-  wireframe = false,
-  lighting = true,
-  zoom = 15,
-  minZoom3D = 14,
-  autoRotate = false,
-  rotationSpeed = 0.5,
-}) => {
-  // Convert FeatureCollection to array
-  const features = useMemo(() => {
-    if ('features' in data) {
-      return data.features as BuildingFeature[];
-    }
-    return data as BuildingFeature[];
-  }, [data]);
-
-  // Process features for Deck.gl
-  const processedData = useMemo(() => {
-    return features.map((feature) => {
-      const props = feature.properties ?? {};
-      const height = calculateBuildingHeight(props, { metersPerLevel, heightScale });
-      const baseHeight = calculateBaseHeight(props);
-      const color = props.color
-        ? hexToRgb(props.color)
-        : defaultColor;
-
-      return {
-        ...feature,
-        properties: {
-          ...props,
-          _height: height,
-          _baseHeight: baseHeight,
-          _color: color,
-        },
-      };
-    });
-  }, [features, metersPerLevel, heightScale, defaultColor]);
-
-  // Create layer
-  const layer = useMemo(() => {
-    return new PolygonLayer<BuildingFeature>({
-      id,
-      data: processedData,
-      pickable: true,
-      stroked: wireframe,
-      filled: !wireframe,
-      extruded,
-      wireframe,
-      getPolygon: (d) => {
-        const coords = d.geometry.coordinates;
-        if (d.geometry.type === 'MultiPolygon') {
-          return coords[0]; // Use first polygon
-        }
-        return coords[0];
-      },
-      getElevation: (d) => d.properties._height,
-      getFillColor: (d) => [...d.properties._color, opacity * 255],
-      getLineColor: [0, 0, 0, opacity * 255],
-      getLineWidth: 1,
-      material: lighting
-        ? {
-            ambient: 0.3,
-            diffuse: 0.6,
-            shininess: 32,
-            specularColor: [60, 64, 70],
-          }
-        : undefined,
-      updateTriggers: {
-        getElevation: [heightField, metersPerLevel, heightScale],
-        getFillColor: [defaultColor, opacity],
-      },
-    });
-  }, [id, processedData, extruded, wireframe, opacity, lighting, heightField, metersPerLevel, heightScale, defaultColor]);
-
-  return <>{layer}</>;
-};
-
-/**
- * Progressive 3D Layer with Level of Detail
- * Shows more detail at higher zoom levels
- */
-export const ProgressiveThreeDLayer: React.FC<ExtrusionLayerProps> = ({
-  data,
-  zoom = 15,
-  minZoom3D = 14,
-  ...props
-}) => {
-  // Determine LOD based on zoom
-  const lod = useMemo(() => {
-    if (zoom < minZoom3D) {
-      return 'none'; // Show flat
-    } else if (zoom < 16) {
-      return 'simple'; // Simple extrusions
-    } else if (zoom < 18) {
-      return 'detailed'; // Detailed with colors
-    }
-    return 'full'; // Full detail with lighting
-  }, [zoom, minZoom3D]);
-
-  const extrusionProps = useMemo(() => {
-    switch (lod) {
-      case 'none':
-        return { extruded: false, lighting: false };
-      case 'simple':
-        return { extruded: true, lighting: false, opacity: 0.7 };
-      case 'detailed':
-        return { extruded: true, lighting: true, opacity: 0.85 };
-      case 'full':
-        return { extruded: true, lighting: true, opacity: 0.95 };
-      default:
-        return {};
-    }
-  }, [lod]);
-
-  return (
-    <ThreeDExtrusionLayer
-      data={data}
-      zoom={zoom}
-      minZoom3D={minZoom3D}
-      {...props}
-      {...extrusionProps}
-    />
-  );
-};
-
-/**
- * 3D Extrusion Controls Component
- */
-export const ExtrusionControls: React.FC<{
-  enabled: boolean;
-  onToggle: () => void;
-  heightScale: number;
-  onHeightScaleChange: (value: number) => void;
-  autoRotate: boolean;
-  onAutoRotateChange: (value: boolean) => void;
-}> = ({
-  enabled,
-  onToggle,
-  heightScale,
-  onHeightScaleChange,
-  autoRotate,
-  onAutoRotateChange,
-}) => {
-  return (
-    <div className="extrusion-controls">
-      <label>
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={onToggle}
-        />
-        3D View
-      </label>
-
-      {enabled && (
-        <>
-          <label>
-            Height Scale: {heightScale}x
-            <input
-              type="range"
-              min="0.5"
-              max="3"
-              step="0.1"
-              value={heightScale}
-              onChange={(e) => onHeightScaleChange(parseFloat(e.target.value))}
-            />
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              checked={autoRotate}
-              onChange={(e) => onAutoRotateChange(e.target.checked)}
-            />
-            Auto Rotate
-          </label>
-        </>
-      )}
-    </div>
-  );
-};
-
-export default ThreeDExtrusionLayer;
