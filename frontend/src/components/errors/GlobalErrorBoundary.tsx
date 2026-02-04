@@ -107,9 +107,9 @@ export class GlobalErrorBoundary extends Component<Props, State> {
                                 lineHeight: 1.6,
                             }}
                         >
-                            We encountered an unexpected error. This might be due to
-                            a WebGL context issue, loading problematic data, or a
-                            temporary network problem.
+                            We encountered an unexpected error. This might be
+                            due to a WebGL context issue, loading problematic
+                            data, or a temporary network problem.
                         </p>
 
                         {this.state.error && (
@@ -195,7 +195,10 @@ export class GlobalErrorBoundary extends Component<Props, State> {
                                 }}
                                 aria-label="Go to home page"
                             >
-                                <FaHome aria-hidden="true" style={{ marginRight: '8px' }} />
+                                <FaHome
+                                    aria-hidden="true"
+                                    style={{ marginRight: '8px' }}
+                                />
                                 Go to Home
                             </button>
                         </div>

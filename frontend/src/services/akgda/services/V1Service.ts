@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
+
 import type { Layer } from '../models/Layer';
 import type { PasswordReset } from '../models/PasswordReset';
 import type { PatchedLayer } from '../models/PatchedLayer';
