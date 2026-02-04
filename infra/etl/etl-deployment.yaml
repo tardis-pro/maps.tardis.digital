@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: etl
-        image: pronittardis/maps-etl:latest
+        image: pronittardis/maps-etl:${IMAGE_VERSION:-v0.1.0}
         ports:
         - containerPort: 8001
         resources:

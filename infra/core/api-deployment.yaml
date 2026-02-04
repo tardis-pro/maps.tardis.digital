@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: pronittardis/maps-api:latest
+        image: pronittardis/maps-api:${IMAGE_VERSION:-v0.1.0}
         ports:
         - containerPort: 8000
         resources:
