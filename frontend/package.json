@@ -38,7 +38,7 @@
     "broadcast-channel": "^7.0.0",
     "d3": "^7.9.0",
     "date-fns": "^4.1.0",
-    "deck.gl": "^9.2.5",
+    "deck.gl": "^9.2.6",
     "dotenv": "^16.4.7",
     "eslint-config-prettier": "^10.0.2",
     "eslint-config-react-app": "^7.0.1",
