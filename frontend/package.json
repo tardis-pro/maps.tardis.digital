@@ -109,6 +109,7 @@
   "scripts": {
     "start": "vite --open",
     "build": "vite build",
+    "build:wasm": "cd wasm-pip && wasm-pack build --target web --out-dir src/pkg",
     "serve": "npm run clean && vite index.html",
     "lint": "eslint .",
     "prettier:fix": "prettier \"src/**/*\" --write",
