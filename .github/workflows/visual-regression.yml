@@ -1,0 +1,102 @@
+name: Visual Regression Testing
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'e2e/**'
+  workflow_dispatch:
+
+jobs:
+  visual-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          pnpm install --frozen-lockfile
+
+      - name: Install Playwright and browsers
+        run: |
+          cd frontend
+          npx playwright install --with-deps chromium
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Start dev server
+        run: |
+          cd frontend
+          npm run dev &
+          sleep 10
+
+      - name: Run visual regression tests
+        run: |
+          cd frontend
+          npx playwright test e2e/visual-regression.spec.ts --project=chromium
+        env:
+          CI: true
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+
+      - name: Upload diff screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diff-screenshots
+          path: frontend/test-results/
+
+      - name: Comment on PR with results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Visual Regression Tests')
+            );
+            
+            const status = '${{ job.status }}' === 'success' ? '✅ Passed' : '❌ Failed';
+            const body = `## Visual Regression Tests ${status}
+            
+            Check the [playwright-report](${{ env.ACTIONS_ARTIFACT_BASE_URL }}/${{ env.ACTIONS_RUNTIME_TOKEN }}/playwright-report) for detailed results.
+            
+            ${'${{ job.status }}' === 'failure' ? 'Review the diff screenshots to see rendering differences.' : 'All visual tests passed!'}`;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }
