@@ -1,4 +1,3 @@
-import asyncio
 from typing import AsyncGenerator
 
 import pytest
@@ -11,44 +10,46 @@ from app.core.database import Base, get_db
 
 TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/maps_test"
 
-engine = create_async_engine(TEST_DATABASE_URL, echo=True)
-TestSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+@pytest.fixture
+async def db_engine():
+    """Create a fresh database engine for each test."""
+    eng = create_async_engine(TEST_DATABASE_URL, echo=False)
+    yield eng
+    await eng.dispose()
 
 
-async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with TestSessionLocal() as session:
-        yield session
-
-
-app.dependency_overrides[get_db] = override_get_db
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(scope="session")
-async def setup_database():
-    async with engine.begin() as conn:
-        # Set search path for PostGIS
+@pytest.fixture
+async def setup_database(db_engine):
+    """Set up database with PostGIS extensions and create tables."""
+    async with db_engine.begin() as conn:
         await conn.execute(text("SET search_path TO public, topology"))
         await conn.run_sync(Base.metadata.create_all)
     yield
-    async with engine.begin() as conn:
+    async with db_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
 
 @pytest.fixture
-async def client(setup_database) -> AsyncGenerator[AsyncClient, None]:
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
+async def session_factory(db_engine):
+    return async_sessionmaker(db_engine, class_=AsyncSession, expire_on_commit=False)
 
 
 @pytest.fixture
-async def db_session(setup_database) -> AsyncGenerator[AsyncSession, None]:
-    async with TestSessionLocal() as session:
+async def db_session(setup_database, session_factory):
+    """Get a database session."""
+    async with session_factory() as session:
         yield session
+
+
+@pytest.fixture
+async def client(setup_database, session_factory):
+    """Get a test client."""
+    async def override_get_db():
+        async with session_factory() as session:
+            yield session
+    
+    app.dependency_overrides[get_db] = override_get_db
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
