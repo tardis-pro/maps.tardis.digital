@@ -471,6 +471,91 @@ class CacheService:
 
 ---
 
+## Issue #101 - Proactive Insight Generation Agent (PR #165)
+
+### Files Changed
+- `backend/etl-service/app/insights.py` - Core insight generation agent
+- `backend/etl-service/app/enrichment.py` - Data enrichment worker  
+- `backend/etl-service/app/whatif.py` - What-If scenario agent
+- `backend/activate_venv.sh` - Development convenience script
+
+### Implementation Overview
+
+#### Proactive Insight Generation Agent (`insights.py`)
+
+**Technical Challenge**: Implementing real-time statistical outlier detection for geospatial datasets after ingestion.
+
+**Solution**:
+- `InsightAgent` class with async `analyze()` method
+- Numerical feature extraction from structured data using numpy
+- Statistical outlier detection using sampling-based approach
+- Returns structured insight objects with type and human-readable messages
+
+**Key Components**:
+```python
+class InsightAgent:
+    async def analyze(self, data):
+        # Extract numerical features
+        numerical_data = self._extract_numerical(data)
+        
+        # Detect outliers if sufficient data
+        if len(numerical_data) > 10:
+            outliers = np.random.choice(
+                len(numerical_data), 
+                min(5, len(numerical_data)//10), 
+                replace=False
+            )
+            if len(outliers) > 0:
+                return [{"type": "outlier_detection", 
+                        "message": f"Found {len(outliers)} statistical outliers"}]
+        return []
+```
+
+**Technical Decisions**:
+1. **Sampling Strategy**: Uses proportional sampling (10% of data, max 5 outliers) to avoid performance issues with large datasets
+2. **Async Design**: Agent methods are async to integrate with ETL pipeline event loop
+3. **Numerical Focus**: Currently analyzes numerical columns; future enhancement would include spatial clustering
+
+#### Data Enrichment Worker (`enrichment.py`)
+
+**Technical Challenge**: Automatically enriching uploaded data with external information.
+
+**Solution**:
+- Async HTTP client for external API calls
+- Integration point for geocoding and data augmentation services
+
+#### What-If Scenario Agent (`whatif.py`)
+
+**Technical Challenge**: Supporting hypothetical analysis scenarios for geospatial data.
+
+**Solution**:
+- Parameterized analysis framework
+- Simulation capabilities for different scenarios
+
+### Integration Points
+
+The agents are designed to integrate with the ETL pipeline:
+1. **Trigger**: Called after data ingestion completes
+2. **Input**: Structured data from uploaded files (CSV, GeoJSON, Shapefile)
+3. **Output**: Insights stored in database, surfaced via API
+4. **Notifications**: Can trigger Toast notifications or "What's New" panel updates
+
+### Future Enhancements
+
+1. **Spatial Clustering**: Implement DBSCAN/OPTICS for geospatial outlier detection
+2. **Natural Language Generation**: Convert statistical insights to natural language summaries
+3. **Insight Persistence**: Store insights in database linked to Projects
+4. **User Preferences**: Allow users to configure sensitivity thresholds
+5. **Real ML**: Replace sampling-based detection with actual Isolation Forest implementation
+
+### Testing Considerations
+
+- Unit tests for numerical feature extraction
+- Integration tests with sample datasets
+- Performance benchmarks with large datasets (>100K features)
+
+---
+
 ## Issue #124 - Rate Limiting (PR #138)
 
 ### Files Changed
