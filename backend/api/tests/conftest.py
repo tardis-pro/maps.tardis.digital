@@ -13,9 +13,6 @@ from app.core.database import Base, get_db
 POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "127.0.0.1")
 TEST_DATABASE_URL = f"postgresql+asyncpg://postgres:postgres@{POSTGRES_HOST}:5432/maps_test"
 
-engine = create_async_engine(TEST_DATABASE_URL, echo=True)
-TestSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
 
 @pytest.fixture
 async def db_engine():
@@ -25,20 +22,10 @@ async def db_engine():
     await eng.dispose()
 
 
-app.dependency_overrides[get_db] = override_get_db
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(scope="session")
-async def setup_database():
-    async with engine.begin() as conn:
-        # Set search path for PostGIS
+@pytest.fixture
+async def setup_database(db_engine):
+    """Set up database with PostGIS extensions and create tables."""
+    async with db_engine.begin() as conn:
         await conn.execute(text("SET search_path TO public, topology"))
         await conn.run_sync(Base.metadata.create_all)
     yield
