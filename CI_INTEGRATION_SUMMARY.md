@@ -28,9 +28,9 @@ Act has been configured to run GitHub Actions workflows locally:
    - Includes: pnpm, Node.js 20, linting, type checking, Cloudflare Pages deployment
 
 3. **Deploy to Kubernetes** (`.github/workflows/deploy.yml`)
-   - Triggered after successful Frontend and Backend CI/CD
-   - Jobs: prepare-deployment, deploy
-   - Requires: kubectl, AWS credentials, Kubernetes cluster access
+    - Triggered after successful Frontend and Backend CI/CD
+    - Jobs: prepare-deployment, deploy
+    - Requires: kubectl, AWS credentials, Kubernetes cluster access
 
 ## Database Setup ✅
 

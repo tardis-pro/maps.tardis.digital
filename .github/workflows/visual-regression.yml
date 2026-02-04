@@ -3,8 +3,8 @@ name: Visual Regression Testing
 on:
   pull_request:
     paths:
-      - 'frontend/**'
-      - 'e2e/**'
+      - "frontend/**"
+      - "e2e/**"
   workflow_dispatch:
 
 jobs:
@@ -14,11 +14,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: |
@@ -33,12 +38,12 @@ jobs:
       - name: Build frontend
         run: |
           cd frontend
-          npm run build
+          pnpm run build
 
       - name: Start dev server
         run: |
           cd frontend
-          npm run dev &
+          pnpm run dev &
           sleep 10
 
       - name: Run visual regression tests
@@ -72,19 +77,19 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.issue.number,
             });
-            
+
             const botComment = comments.find(comment => 
               comment.user.type === 'Bot' && 
               comment.body.includes('Visual Regression Tests')
             );
-            
+
             const status = '${{ job.status }}' === 'success' ? '✅ Passed' : '❌ Failed';
             const body = `## Visual Regression Tests ${status}
-            
+
             Check the [playwright-report](${{ env.ACTIONS_ARTIFACT_BASE_URL }}/${{ env.ACTIONS_RUNTIME_TOKEN }}/playwright-report) for detailed results.
-            
+
             ${'${{ job.status }}' === 'failure' ? 'Review the diff screenshots to see rendering differences.' : 'All visual tests passed!'}`;
-            
+
             if (botComment) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
