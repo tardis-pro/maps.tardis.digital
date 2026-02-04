@@ -1,4 +1,5 @@
 from typing import AsyncGenerator
+import os
 
 import pytest
 from httpx import AsyncClient, ASGITransport
@@ -8,7 +9,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from app.main import app
 from app.core.database import Base, get_db
 
-TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/maps_test"
+# Use environment variable or default to localhost
+POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "127.0.0.1")
+TEST_DATABASE_URL = f"postgresql+asyncpg://postgres:postgres@{POSTGRES_HOST}:5432/maps_test"
 
 
 @pytest.fixture
