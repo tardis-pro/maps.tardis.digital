@@ -176,9 +176,6 @@ class RedisCache:
         
         try:
             full_key = self._make_key(key)
-            await self._client.delete(full_key)
-            logger.debug(f"Cache DELETE: {key}")
-            return True
         except redis.RedisError as e:
             logger.error(f"Cache delete error: {e}")
             return False
@@ -200,14 +197,6 @@ class RedisCache:
         
         try:
             full_pattern = self._make_key(pattern)
-            keys = await self._client.keys(full_pattern)
-            
-            if keys:
-                deleted = await self._client.delete(*keys)
-                logger.info(f"Cache CLEAR: {pattern} ({deleted} keys)")
-                return deleted
-            
-            return 0
         except redis.RedisError as e:
             logger.error(f"Cache clear error: {e}")
             return 0
