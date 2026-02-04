@@ -45,7 +45,6 @@ repos:
   # Python Formatting & Linting
   # ========================================
   - repo: https://github.com/psf/black
-    rev: 24.10.0
     hooks:
       - id: black
         language_version: python3.11
@@ -114,14 +113,12 @@ repos:
   # Rust Formatting & Linting
   # ========================================
   - repo: https://github.com/rust-lang/rustfmt
-    rev: v1.75.0
     hooks:
       - id: rustfmt
         description: Format Rust code
         files: \.rs$
 
   - repo: https://github.com/rust-lang/rust-clippy
-    rev: v1.82.0
     hooks:
       - id: rust-clippy
         description: Lint Rust code
