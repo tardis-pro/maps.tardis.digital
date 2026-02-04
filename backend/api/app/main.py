@@ -13,6 +13,7 @@ from app.routes import (
     projects_router,
     geometry_router,
     users_router,
+    auth_keycloak_router,
 )
 from app.schemas import UserRead, UserCreate
 
@@ -62,6 +63,9 @@ app.include_router(layers_router)
 app.include_router(projects_router)
 app.include_router(geometry_router)
 app.include_router(users_router)
+
+# Keycloak authentication routes
+app.include_router(auth_keycloak_router)
 
 
 @app.get("/health")
