@@ -1,9 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.core.users import fastapi_users
 from app.core.security import auth_backend
+from app.core.rate_limit import get_rate_limiter, rate_limit_exceeded_handler
 from app.routes import (
     sources_router,
     layers_router,
@@ -21,9 +24,16 @@ app = FastAPI(
     openapi_url="/api/schema",
 )
 
+# Initialize rate limiter
+limiter = get_rate_limiter()
+app.state.limiter = limiter
+
+# Add rate limit exception handler
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # TODO: Restrict in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -57,3 +67,11 @@ app.include_router(users_router)
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+# Rate-limited health check
+@app.get("/ready", tags=["health"])
+@limiter.exempt  # Health checks are exempt from rate limiting
+async def readiness_check():
+    """Readiness probe endpoint."""
+    return {"status": "ready"}
