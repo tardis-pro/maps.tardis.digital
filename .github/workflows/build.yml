@@ -6,16 +6,32 @@ on:
       - 'backend/**'
     branches:
       - main
+      - 'feature/**'
   pull_request:
     paths:
       - 'backend/**'
     branches:
       - main
+      - 'feature/**'
 
 jobs:
   test:
     name: Test Backend
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: kartoza/postgis:16-3.5
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: maps_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,6 +42,14 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
           cache-dependency-path: backend/api/pyproject.toml
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
 
       - name: Install dependencies
         run: |

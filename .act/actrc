@@ -1,0 +1,5 @@
+--workflows .github/workflows
+--actor nektos
+--root
+--bind
+--env GITHUB_TOKEN=dummy_token_for_local

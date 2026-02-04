@@ -129,8 +129,8 @@ export class StoryReportGenerator {
         bearing: keyframe.bearing ?? 0,
         duration: keyframe.duration,
         essential: true,
-        resolve(),
       });
+      resolve();
     });
   }
 
