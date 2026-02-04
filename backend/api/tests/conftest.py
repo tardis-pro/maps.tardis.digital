@@ -3,12 +3,13 @@ from typing import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient, ASGITransport
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from app.main import app
 from app.core.database import Base, get_db
 
-TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/maps_test"
+TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/maps_test"
 
 engine = create_async_engine(TEST_DATABASE_URL, echo=True)
 TestSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -32,6 +33,8 @@ def event_loop():
 @pytest.fixture(scope="session")
 async def setup_database():
     async with engine.begin() as conn:
+        # Set search path for PostGIS
+        await conn.execute(text("SET search_path TO public, topology"))
         await conn.run_sync(Base.metadata.create_all)
     yield
     async with engine.begin() as conn:
