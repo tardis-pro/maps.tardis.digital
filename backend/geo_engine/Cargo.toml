@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.21", features = ["extension-module"] }
-geo = "0.28"
+geo = "0.32"
 geojson = "0.24"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
