@@ -20,7 +20,7 @@
     "@pmndrs/branding": "0.0.8",
     "@popperjs/core": "^2.11.8",
     "@react-email/components": "^0.0.33",
-    "@react-three/drei": "^10.0.3",
+    "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.0.4",
     "@react-three/postprocessing": "^3.0.4",
     "@shopify/react-native-skia": "^1.11.8",
