@@ -19,5 +19,5 @@
             "@/*": ["./*"]
         }
     },
-    "exclude": ["node_modules/*", "src/bits/Tardis.tsx"]
+    "exclude": ["node_modules/*", "src/bits/Tardis.tsx", "e2e/*"]
 }

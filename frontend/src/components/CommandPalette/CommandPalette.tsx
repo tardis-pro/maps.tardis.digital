@@ -25,7 +25,6 @@ import {
     FiSearch,
     FiCommand,
     FiArrowRight,
-    FiClock,
     FiFile,
     FiLayers,
     FiSettings,
@@ -310,7 +309,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     const [query, setQuery] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
-    const listRef = useRef<HTMLUListElement>(null);
+    const listRef = useRef<HTMLDivElement>(null);
 
     // Focus input when opened
     useEffect(() => {
@@ -514,7 +513,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                             </div>
 
                                             {/* Commands */}
-                                            {cmds.map((command, index) => {
+                                            {cmds.map((command) => {
                                                 const globalIndex =
                                                     filteredCommands.indexOf(
                                                         command
@@ -633,7 +632,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
 export function useCommandPalette() {
     const [isOpen, setIsOpen] = useState(false);
-    const navigate = useNavigate();
     const location = useLocation();
 
     const { commands, registerCommand, unregisterCommand, setActionHandler } =

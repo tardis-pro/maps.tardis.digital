@@ -12,7 +12,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { Layer, Source } from 'react-map-gl/maplibre';
+import { Layer } from 'react-map-gl/maplibre';
 import { LayerSpecification } from '@maplibre/maplibre-gl-style-spec';
 
 export interface ExtrusionConfig {
@@ -78,15 +78,8 @@ export const ThreeDExtrusionLayer: React.FC<ExtrusionLayerProps> = ({
         [config]
     );
 
-    const {
-        heightField,
-        baseHeightField,
-        color,
-        opacity,
-        enableLighting,
-        minZoom,
-        maxZoom,
-    } = extrusionConfig;
+    const { heightField, baseHeightField, color, opacity, minZoom, maxZoom } =
+        extrusionConfig;
 
     const layer: LayerSpecification = useMemo(
         () => ({
@@ -178,16 +171,8 @@ export const ThreeDExtrusionLayerWithLighting: React.FC<
         [config]
     );
 
-    const {
-        heightField,
-        baseHeightField,
-        color,
-        opacity,
-        enableLighting,
-        lightIntensity,
-        minZoom,
-        maxZoom,
-    } = extrusionConfig;
+    const { heightField, baseHeightField, opacity, minZoom, maxZoom } =
+        extrusionConfig;
 
     const layer: LayerSpecification = useMemo(
         () => ({
@@ -251,7 +236,6 @@ export const ThreeDExtrusionLayerWithLighting: React.FC<
             sourceLayer,
             heightField,
             baseHeightField,
-            color,
             opacity,
             minZoom,
             maxZoom,
@@ -273,15 +257,8 @@ export const ProgressiveThreeDLayer: React.FC<ExtrusionLayerProps> = ({
     config = {},
     visible = true,
 }) => {
-    const {
-        heightField,
-        baseHeightField,
-        color,
-        opacity,
-        enableLighting,
-        minZoom,
-        maxZoom,
-    } = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config]);
+    const { heightField, baseHeightField, color, opacity, minZoom, maxZoom } =
+        useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config]);
 
     // Base layer - visible at all zoom levels
     const baseLayer: LayerSpecification = useMemo(

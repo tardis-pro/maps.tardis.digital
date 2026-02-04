@@ -11,9 +11,9 @@
  * - Video export support (planned)
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useMap } from '../context/MapContext';
-import maplibregl, { Map } from 'maplibre-gl';
+import { Map } from 'maplibre-gl';
 
 export interface StoryKeyframe {
     /** Unique identifier for the keyframe */
@@ -78,17 +78,6 @@ export interface ExportOptions {
     includeNarrative?: boolean;
 }
 
-interface StoryReportProps {
-    /** Story keyframes */
-    keyframes: StoryKeyframe[];
-    /** Story configuration */
-    config?: Partial<StoryConfig>;
-    /** Export options */
-    exportOptions?: Partial<ExportOptions>;
-    /** Called when story is exported */
-    onExport?: (blob: Blob, filename: string) => void;
-}
-
 /**
  * Story Mode Report Generator
  */
@@ -96,7 +85,6 @@ export class StoryReportGenerator {
     private map: Map | null = null;
     private keyframes: StoryKeyframe[];
     private config: StoryConfig;
-    private canvas: HTMLCanvasElement | null = null;
 
     constructor(
         map: Map | null,
@@ -137,18 +125,17 @@ export class StoryReportGenerator {
     /**
      * Capture screenshot at current view
      */
-    async captureScreenshot(
-        options: Partial<ExportOptions> = {}
-    ): Promise<string> {
+    async captureScreenshot(): Promise<string> {
         if (!this.map) return '';
 
         return new Promise((resolve) => {
-            this.map.once('idle', () => {
-                this.map
-                    ?.getCanvas()
-                    .toDataURL('image/png', 1.0, (err, dataUrl) => {
-                        resolve(err ? '' : dataUrl);
-                    });
+            this.map?.once('idle', () => {
+                if (!this.map) {
+                    resolve('');
+                    return;
+                }
+                const canvas = this.map.getCanvas();
+                resolve(canvas.toDataURL('image/png'));
             });
         });
     }
@@ -278,16 +265,7 @@ export class StoryReportGenerator {
     /**
      * Generate image strip (all keyframes as single image)
      */
-    async generateImageStrip(
-        options: Partial<ExportOptions> = {}
-    ): Promise<string> {
-        const exportOptions: ExportOptions = {
-            format: 'png',
-            includeScreenshots: true,
-            includeNarrative: false,
-            ...options,
-        };
-
+    async generateImageStrip(): Promise<string> {
         const screenshots: string[] = [];
 
         for (const keyframe of this.keyframes) {
@@ -340,30 +318,27 @@ export const StoryModeEditor: React.FC<{
     keyframes: StoryKeyframe[];
     onChange: (keyframes: StoryKeyframe[]) => void;
 }> = ({ keyframes, onChange }) => {
-    const { map } = useMap();
+    const { viewState, setViewState } = useMap();
     const [selectedKeyframe, setSelectedKeyframe] = useState<string | null>(
         null
     );
     const [isPlaying, setIsPlaying] = useState(false);
 
     const addKeyframe = useCallback(() => {
-        if (!map) return;
-
-        const center = map.getCenter();
         const newKeyframe: StoryKeyframe = {
             id: `keyframe-${Date.now()}`,
             title: `Keyframe ${keyframes.length + 1}`,
             description: '',
-            center: [center.lng, center.lat],
-            zoom: map.getZoom(),
-            pitch: map.getPitch(),
-            bearing: map.getBearing(),
+            center: [viewState.longitude, viewState.latitude],
+            zoom: viewState.zoom,
+            pitch: viewState.pitch,
+            bearing: viewState.bearing,
             duration: 2000,
         };
 
         onChange([...keyframes, newKeyframe]);
         setSelectedKeyframe(newKeyframe.id);
-    }, [map, keyframes, onChange]);
+    }, [keyframes, onChange, viewState]);
 
     const updateKeyframe = useCallback(
         (id: string, updates: Partial<StoryKeyframe>) => {
@@ -386,20 +361,18 @@ export const StoryModeEditor: React.FC<{
 
     const navigateTo = useCallback(
         async (id: string) => {
-            if (!map) return;
             const keyframe = keyframes.find((k) => k.id === id);
             if (!keyframe) return;
 
-            await map.flyTo({
-                center: keyframe.center,
+            setViewState({
+                longitude: keyframe.center[0],
+                latitude: keyframe.center[1],
                 zoom: keyframe.zoom,
                 pitch: keyframe.pitch ?? 0,
                 bearing: keyframe.bearing ?? 0,
-                duration: keyframe.duration,
-                essential: true,
             });
         },
-        [map, keyframes]
+        [keyframes, setViewState]
     );
 
     return (
@@ -529,8 +502,7 @@ export const StoryModeViewer: React.FC<{
     keyframes: StoryKeyframe[];
     config?: Partial<StoryConfig>;
     onExport?: (format: ExportOptions['format']) => void;
-}> = ({ keyframes, config, onExport }) => {
-    const { map } = useMap();
+}> = ({ keyframes, onExport }) => {
     const [currentKeyframeIndex, setCurrentKeyframeIndex] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
 

@@ -10,10 +10,10 @@
  * 3. Run tests: npx playwright test
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page, type Route } from '@playwright/test';
 
 test.describe('Map Component Visual Regression', () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }: { page: Page }) => {
         // Set up viewport and mock Geolocation API for consistent testing
         await page.setViewportSize({ width: 1280, height: 720 });
         await page.route('**/api/**', async (route) => {
@@ -194,7 +194,8 @@ test.describe('Sidebar Component Visual Regression', () => {
 
 // Helper function to generate baseline images
 // Run with: npx playwright test --update-snapshots
-test('generate baseline screenshots', async ({ page }) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+test('generate baseline screenshots', async () => {
     // This test is only for generating initial baselines
     // In CI, this would be run separately and baselines committed
     test.skip();

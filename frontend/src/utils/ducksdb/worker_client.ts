@@ -5,18 +5,12 @@
  * Ensures all database operations run off the main UI thread.
  */
 
-import type {
-    DuckDBConfig,
-    DuckDBBundle,
-    ColumnType,
-    RowDataType,
-} from '@duckdb/duckdb-wasm';
-import * as duckdb from '@duckdb/duckdb-wasm';
+import type { DuckDBConfig } from '@duckdb/duckdb-wasm';
 import duckdbWorker from './duckdb.worker?worker';
 
 export interface QueryResult {
-    data: RowDataType[];
-    columns: ColumnType[];
+    data: Record<string, unknown>[];
+    columns: { columnName: string; columnType: string }[];
 }
 
 export interface WorkerClientConfig {
@@ -24,17 +18,13 @@ export interface WorkerClientConfig {
     onProgress?: (progress: number) => void;
 }
 
-type WorkerMessage =
-    | { type: 'init'; config?: DuckDBConfig }
-    | { type: 'query'; query: string; params?: unknown[] }
-    | { type: 'registerFile'; name: string; data: Uint8Array }
-    | { type: 'insertArrow'; name: string; arrow: Uint8Array }
-    | { type: 'close' }
-    | { type: 'ping' };
-
 type WorkerResponse =
     | { type: 'ready'; version: string }
-    | { type: 'result'; data: RowDataType[]; types: ColumnType[] }
+    | {
+          type: 'result';
+          data: Record<string, unknown>[];
+          types: { columnName: string; columnType: string }[];
+      }
     | { type: 'error'; message: string }
     | { type: 'pong' }
     | { type: 'progress'; value: number };
@@ -48,7 +38,6 @@ type WorkerResponse =
 export class DuckDBWorkerClient {
     private worker: Worker;
     private ready: Promise<void>;
-    private bundle: DuckDBBundle | null = null;
     private config?: DuckDBConfig;
     private onProgress?: (progress: number) => void;
     private resolveReady!: () => void;

@@ -96,11 +96,7 @@ export class HybridLayerManager {
     /**
      * Determine the optimal rendering strategy
      */
-    determineStrategy(
-        featureCount: number,
-        zoomLevel: number,
-        viewportFeatures?: number
-    ): RenderStrategy {
+    determineStrategy(featureCount: number, zoomLevel: number): RenderStrategy {
         // Small datasets always use vector tiles
         if (featureCount < this.config.vectorThreshold) {
             return RenderStrategy.VECTOR;
@@ -208,7 +204,7 @@ export class HybridLayerManager {
     /**
      * Get clustering configuration for hybrid mode
      */
-    getClusterConfig(sourceId: number): Record<string, unknown> {
+    getClusterConfig(): Record<string, unknown> {
         return {
             cluster: true,
             clusterMaxZoom: 14,
@@ -225,7 +221,6 @@ export class HybridLayerManager {
      */
     createLayerSetup(
         sourceId: number,
-        layerName: string,
         options: {
             visible?: boolean;
             opacity?: number;

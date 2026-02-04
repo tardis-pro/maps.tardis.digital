@@ -44,6 +44,23 @@ export interface QueryOptions {
     format?: 'arrow' | 'json' | 'object';
 }
 
+type QueryRow = Record<string, unknown>;
+type QueryRowValue = { toJSON: () => QueryRow };
+type QueryField = { name: string; type: { toString: () => string } };
+type QueryTable = {
+    toArray: () => QueryRowValue[];
+    schema: { fields: QueryField[] };
+};
+type DuckDBConnection = duckdb.AsyncDuckDBConnection & {
+    query: (text: string) => Promise<QueryTable>;
+    close: () => Promise<void>;
+};
+type DuckDBDatabase = duckdb.AsyncDuckDB & {
+    registerFileText: (name: string, text: string) => Promise<void>;
+    registerFileBuffer: (name: string, buffer: Uint8Array) => Promise<void>;
+    dropFile: (name: string) => Promise<null>;
+};
+
 /**
  * Connection information
  */
@@ -451,6 +468,16 @@ export const DuckDBWorkerProvider: React.FC<{
                 const bundle = await resolveBundle();
                 const duckdb = await import('@duckdb/duckdb-wasm');
 
+                if (!bundle) {
+                    console.error('Failed to resolve DuckDB bundle');
+                    return;
+                }
+
+                if (!bundle.mainWorker) {
+                    console.error('DuckDB bundle missing worker entry');
+                    return;
+                }
+
                 // Create proper DuckDB WASM worker setup
                 let dbWorker: Worker;
                 let db: duckdb.AsyncDuckDB;
@@ -478,12 +505,13 @@ export const DuckDBWorkerProvider: React.FC<{
                             if (cfg) await db.open(cfg);
                         },
                         async destroy() {
-                            await dbWorker?.terminate();
+                            dbWorker?.terminate();
                         },
                         isReady: () => true,
 
                         async createConnection() {
                             const conn = await db.connect();
+                            void conn;
                             const id = 'conn_' + Date.now();
                             return {
                                 id,
@@ -493,6 +521,7 @@ export const DuckDBWorkerProvider: React.FC<{
                         },
 
                         async closeConnection(id) {
+                            void id;
                             // Connection management would go here
                         },
 
@@ -502,16 +531,23 @@ export const DuckDBWorkerProvider: React.FC<{
 
                         async query(sql, options = {}) {
                             const start = performance.now();
-                            const conn = await db.connect();
-                            const result = await conn.query(sql);
+                            const connection =
+                                (await db.connect()) as DuckDBConnection;
+                            const result = await connection.query(sql);
                             const time = performance.now() - start;
+                            const maxRows = options.maxRows ?? 10000;
 
                             // Convert to serializable format
-                            const rows = result.toJSON();
-                            const schema = result.schema.fields.map((f) => ({
-                                name: f.name,
-                                type: f.type.toString(),
-                            }));
+                            const rows = result
+                                .toArray()
+                                .map((row: QueryRowValue) => row.toJSON())
+                                .slice(0, maxRows);
+                            const schema = result.schema.fields.map(
+                                (f: QueryField) => ({
+                                    name: f.name,
+                                    type: f.type.toString(),
+                                })
+                            );
 
                             return {
                                 rows,
@@ -521,8 +557,7 @@ export const DuckDBWorkerProvider: React.FC<{
                             };
                         },
 
-                        async queryBatch(sql, batchSize = 1000) {
-                            // Batch query implementation
+                        async *queryBatch(sql, batchSize = 1000) {
                             const result = await this.query(sql, {
                                 maxRows: batchSize,
                             });
@@ -531,14 +566,20 @@ export const DuckDBWorkerProvider: React.FC<{
 
                         async registerFile(name, data) {
                             if (typeof data === 'string') {
-                                await db.registerFileText(name, data);
+                                await (db as DuckDBDatabase).registerFileText(
+                                    name,
+                                    data
+                                );
                             } else {
-                                await db.registerFileBuffer(name, data);
+                                await (db as DuckDBDatabase).registerFileBuffer(
+                                    name,
+                                    data
+                                );
                             }
                         },
 
                         async unregisterFile(name) {
-                            await db.dropFile(name);
+                            await (db as DuckDBDatabase).dropFile(name);
                         },
 
                         async listFiles() {
@@ -546,7 +587,9 @@ export const DuckDBWorkerProvider: React.FC<{
                         },
 
                         async getVersion() {
-                            return duckdb.VERSION;
+                            return 'VERSION' in duckdb
+                                ? (duckdb as { VERSION: string }).VERSION
+                                : 'unknown';
                         },
 
                         async getDatabaseSize() {
@@ -591,7 +634,7 @@ async function sendWorkerMessage(
     payload: unknown
 ): Promise<{ success: boolean; result?: unknown; error?: string }> {
     return new Promise((resolve, reject) => {
-        const id = Math.random().toString(36).substr(2, 9);
+        const id = Math.random().toString(36).slice(2, 11);
 
         const timeout = setTimeout(() => {
             reject(new Error('Worker message timeout'));
@@ -673,6 +716,3 @@ export const DuckDBWorkerReady: React.FC<{
 
     return children;
 };
-
-// Export types for external use
-export type { DuckDBWorkerAPI, QueryResult, QueryOptions, ConnectionInfo };

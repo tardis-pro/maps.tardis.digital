@@ -10,8 +10,17 @@
  * 3. Trigger tile prefetching for predicted bounds
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import maplibregl, { Map } from 'maplibre-gl';
+import React, { useCallback, useEffect, useState } from 'react';
+import type {
+    Map,
+    MapMouseEvent,
+    MapTouchEvent,
+    PointLike,
+    RasterSourceSpecification,
+    SourceSpecification,
+    StyleSpecification,
+    VectorSourceSpecification,
+} from 'maplibre-gl';
 
 interface VelocityData {
     vx: number; // Velocity X (pixels per ms)
@@ -59,11 +68,13 @@ export function usePredictiveTileFetch(
 ) {
     const mergedConfig = { ...DEFAULT_CONFIG, ...config };
 
-    const velocityHistory = useRef<VelocityData[]>([]);
-    const lastMovementTime = useRef<number>(0);
-    const isMoving = useRef<boolean>(false);
-    const prefetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const prefetchInProgress = useRef<boolean>(false);
+    const velocityHistory = React.useRef<VelocityData[]>([]);
+    const lastMovementTime = React.useRef<number>(0);
+    const isMoving = React.useRef<boolean>(false);
+    const prefetchTimer = React.useRef<ReturnType<typeof setTimeout> | null>(
+        null
+    );
+    const prefetchInProgress = React.useRef<boolean>(false);
 
     const [isPredicting, setIsPredicting] = useState(false);
 
@@ -125,10 +136,10 @@ export function usePredictiveTileFetch(
 
             const currentCenter = map.getCenter();
             const currentPoint = map.project(currentCenter);
-            const newPoint = {
-                x: currentPoint.x + pixelsX,
-                y: currentPoint.y + pixelsY,
-            };
+            const newPoint: PointLike = [
+                currentPoint.x + pixelsX,
+                currentPoint.y + pixelsY,
+            ];
             const newCenter = map.unproject(newPoint);
 
             return {
@@ -227,18 +238,10 @@ export function usePredictiveTileFetch(
         const zoom = map.getZoom();
         const tiles = boundsToTiles(predictedBounds, zoom);
 
-        // Trigger tile loading for predicted tiles
-        // This tells MapLibre to load these tiles
+        const style = map.getStyle();
         tiles.forEach((tile) => {
-            // Request the tile from the source
-            map.style?.sourceCaches.forEach((cache) => {
-                // This is a simplified approach - in practice, you'd want to
-                // use the source's tile loading mechanism directly
-                const url = tileToURL(tile, map.getStyle());
-                if (url) {
-                    preloadImage(url);
-                }
-            });
+            const urls = tileToURLs(tile, style);
+            urls.forEach(preloadImage);
         });
 
         prefetchInProgress.current = true;
@@ -255,7 +258,7 @@ export function usePredictiveTileFetch(
      * Handle move/drag events - update velocity tracking
      */
     const handleMove = useCallback(
-        (event: maplibregl.MapMouseEvent | maplibregl.MapTouchEvent) => {
+        (event: MapMouseEvent | MapTouchEvent) => {
             const now = Date.now();
             const timeSinceLast = now - lastMovementTime.current;
 
@@ -382,23 +385,51 @@ function latToTileY(lat: number, zoom: number): number {
 /**
  * Generate tile URL for prefetching
  */
-function tileToURL(tile: TileCoord, style: maplibregl.Style): string | null {
-    // Extract tile URL from source configuration
-    // This is a simplified version - in practice, you'd want to
-    // use the source's tile URL template directly
+function tileToURLs(
+    tile: TileCoord,
+    style: StyleSpecification | undefined
+): string[] {
+    if (!hasStyleSources(style)) {
+        return [];
+    }
+
+    const urls: string[] = [];
     for (const source of Object.values(style.sources)) {
-        if (source.type === 'vector' || source.type === 'raster') {
-            const tiles = source.tiles;
-            if (tiles && tiles.length > 0) {
-                let url = tiles[0];
-                url = url.replace('{z}', tile.z.toString());
-                url = url.replace('{x}', tile.x.toString());
-                url = url.replace('{y}', tile.y.toString());
-                return url;
+        if (isRasterOrVectorSource(source) && Array.isArray(source.tiles)) {
+            if (source.tiles.length === 0) {
+                continue;
             }
+
+            const template = source.tiles[0];
+            const url = template
+                .replace('{z}', tile.z.toString())
+                .replace('{x}', tile.x.toString())
+                .replace('{y}', tile.y.toString());
+            urls.push(url);
         }
     }
-    return null;
+
+    return urls;
+}
+
+function hasStyleSources(
+    style: StyleSpecification | undefined
+): style is StyleSpecification & {
+    sources: Record<string, SourceSpecification>;
+} {
+    return (
+        typeof style === 'object' &&
+        style !== null &&
+        'sources' in style &&
+        typeof style.sources === 'object' &&
+        style.sources !== null
+    );
+}
+
+function isRasterOrVectorSource(
+    source: SourceSpecification
+): source is RasterSourceSpecification | VectorSourceSpecification {
+    return source.type === 'raster' || source.type === 'vector';
 }
 
 /**
@@ -434,19 +465,17 @@ export function useAutoPredictiveFetch(
         if (speed < config.minVelocity) return;
 
         // Get predicted bounds and convert to tiles
-        const now = Date.now();
-        const windowStart = now - config.velocityWindowMs;
-
         // Calculate predicted viewport based on velocity
         const displacementX = velocity.vx * config.predictionHorizonMs;
         const displacementY = velocity.vy * config.predictionHorizonMs;
 
         const bounds = map.getBounds();
         const projectedCenter = map.project(bounds.getCenter());
-        const predictedCenter = map.unproject({
-            x: projectedCenter.x + displacementX,
-            y: projectedCenter.y + displacementY,
-        });
+        const predictedPoint: PointLike = [
+            projectedCenter.x + displacementX,
+            projectedCenter.y + displacementY,
+        ];
+        const predictedCenter = map.unproject(predictedPoint);
 
         const lngSpan = bounds.getEast() - bounds.getWest();
         const latSpan = bounds.getNorth() - bounds.getSouth();

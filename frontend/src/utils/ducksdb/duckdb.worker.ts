@@ -6,12 +6,7 @@
  */
 
 import * as duckdb from '@duckdb/duckdb-wasm';
-import type {
-    DuckDBConfig,
-    AsyncDuckDB,
-    AsyncDuckDBConnection,
-    RowDataType,
-} from '@duckdb/duckdb-wasm';
+import type { DuckDBConfig } from '@duckdb/duckdb-wasm';
 
 type WorkerMessage =
     | { type: 'init'; config?: DuckDBConfig }
@@ -21,35 +16,102 @@ type WorkerMessage =
     | { type: 'close' }
     | { type: 'ping' };
 
-type WorkerResponse =
-    | { type: 'ready'; version: string }
-    | { type: 'result'; data: RowDataType[]; types: ColumnType[] }
-    | { type: 'error'; message: string }
-    | { type: 'pong' }
-    | { type: 'progress'; value: number };
-
 interface ColumnType {
     columnName: string;
-    columnType: duckdb.DuckDataType;
+    columnType: string;
 }
 
-let db: AsyncDuckDB | null = null;
-let conn: AsyncDuckDBConnection | null = null;
+type QueryRow = Record<string, unknown>;
+type QueryRowValue = { toJSON: () => QueryRow };
+type QueryField = { name: string; type: { toString: () => string } };
+type QueryTable = {
+    toArray: () => QueryRowValue[];
+    schema: { fields: QueryField[] };
+};
+type PreparedStatement = {
+    query: (...params: unknown[]) => Promise<QueryTable>;
+    close: () => Promise<void>;
+};
+type DuckDBConnection = duckdb.AsyncDuckDBConnection & {
+    query: (text: string) => Promise<QueryTable>;
+    prepare: (text: string) => Promise<PreparedStatement>;
+    insertArrowFromIPCStream: (
+        buffer: Uint8Array,
+        options: { name: string }
+    ) => Promise<void>;
+    close: () => Promise<void>;
+};
+type DuckDBDatabase = duckdb.AsyncDuckDB & {
+    registerFileBuffer: (name: string, buffer: Uint8Array) => Promise<void>;
+    terminate: () => Promise<void>;
+};
+
+let db: duckdb.AsyncDuckDB | null = null;
+let conn: duckdb.AsyncDuckDBConnection | null = null;
 let bundle: duckdb.DuckDBBundle | null = null;
+
+async function runQuery(
+    connection: DuckDBConnection,
+    sql: string,
+    params?: unknown[]
+): Promise<QueryTable> {
+    if (!params || params.length === 0) {
+        return connection.query(sql);
+    }
+
+    const statement = await connection.prepare(sql);
+    try {
+        return await statement.query(...params);
+    } finally {
+        await statement.close();
+    }
+}
 
 // Initialize the worker
 async function init(config?: DuckDBConfig): Promise<void> {
     try {
         // Load DuckDB WASM bundles
-        const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
-        bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+        const bundles = {
+            mvp: {
+                mainModule: new URL(
+                    '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.wasm',
+                    import.meta.url
+                ).toString(),
+                mainWorker: new URL(
+                    '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js',
+                    import.meta.url
+                ).toString(),
+            },
+            eh: {
+                mainModule: new URL(
+                    '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.wasm',
+                    import.meta.url
+                ).toString(),
+                mainWorker: new URL(
+                    '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js',
+                    import.meta.url
+                ).toString(),
+                pthreadWorker: new URL(
+                    '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.pthread.worker.js',
+                    import.meta.url
+                ).toString(),
+            },
+        } as duckdb.DuckDBBundles;
+
+        bundle = await duckdb.selectBundle(bundles);
 
         // Set up web worker for DuckDB
         const worker = new Worker(bundle.mainWorker!);
-        const logger = new duckdb.ConsoleLogger();
+        const logger: duckdb.Logger = {
+            log: (...args: unknown[]) => console.log(...args),
+            info: (...args: unknown[]) => console.info(...args),
+            warn: (...args: unknown[]) => console.warn(...args),
+            error: (...args: unknown[]) => console.error(...args),
+            debug: (...args: unknown[]) => console.debug(...args),
+        };
 
         // Create AsyncDuckDB instance
-        db = new AsyncDuckDB(logger, worker);
+        db = new duckdb.AsyncDuckDB(logger, worker);
 
         // Instantiate the database
         await db.instantiate(
@@ -69,9 +131,14 @@ async function init(config?: DuckDBConfig): Promise<void> {
         conn = await db.connect();
 
         // Send ready message
+        const version =
+            'VERSION' in duckdb
+                ? (duckdb as { VERSION: string }).VERSION
+                : 'unknown';
+
         postMessage({
             type: 'ready',
-            version: db.getVersion(),
+            version,
         });
     } catch (error) {
         postMessage({
@@ -89,17 +156,19 @@ async function query(sql: string, params?: unknown[]): Promise<void> {
     }
 
     try {
-        // Execute query and get result as arrow
-        const result = await conn.query(sql, params);
+        const connection = conn as DuckDBConnection;
+        const result = await runQuery(connection, sql, params);
 
         // Convert to row data
-        const rows = result.toArray().map((row) => row.toJSON());
+        const rows = result.toArray().map((row: QueryRowValue) => row.toJSON());
 
         // Get column types
-        const columns = result.schema.fields.map((field) => ({
-            columnName: field.name,
-            columnType: field.type,
-        }));
+        const columns: ColumnType[] = result.schema.fields.map(
+            (field: QueryField) => ({
+                columnName: field.name,
+                columnType: field.type.toString(),
+            })
+        );
 
         postMessage({
             type: 'result',
@@ -122,7 +191,7 @@ async function registerFile(name: string, data: Uint8Array): Promise<void> {
     }
 
     try {
-        await db.registerFileFromArrayBuffer(name, data);
+        await (db as DuckDBDatabase).registerFileBuffer(name, data);
         postMessage({
             type: 'result',
             data: [{ success: true, name }],
@@ -147,8 +216,8 @@ async function insertArrow(name: string, arrow: Uint8Array): Promise<void> {
     }
 
     try {
-        // Create an Arrow table from the data
-        await conn.insertArrowFromLocalFile(name, []);
+        const connection = conn as DuckDBConnection;
+        await connection.insertArrowFromIPCStream(arrow, { name });
         postMessage({
             type: 'result',
             data: [{ success: true, name }],
@@ -166,11 +235,11 @@ async function insertArrow(name: string, arrow: Uint8Array): Promise<void> {
 // Close the database
 async function close(): Promise<void> {
     if (conn) {
-        await conn.close();
+        await (conn as DuckDBConnection).close();
         conn = null;
     }
     if (db) {
-        await db.terminate();
+        await (db as DuckDBDatabase).terminate();
         db = null;
     }
     postMessage({ type: 'result', data: [{ closed: true }], types: [] });

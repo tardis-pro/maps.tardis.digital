@@ -9,14 +9,6 @@ interface WidgetConfig {
 }
 
 export class LayoutGenerator {
-    private static WIDGET_MAPPING: Record<string, string[]> = {
-        temporal: ['timeline', 'time-series'],
-        monetary: ['kpi-card', 'bar-chart', 'pie-chart'],
-        spatial: ['map-view', 'choropleth'],
-        categorical: ['bar-chart', 'pie-chart', 'table'],
-        numeric: ['histogram', 'scatter-plot', 'stats-card'],
-    };
-
     generate(dataTypes: string[]): WidgetConfig[] {
         const widgets: WidgetConfig[] = [];
 

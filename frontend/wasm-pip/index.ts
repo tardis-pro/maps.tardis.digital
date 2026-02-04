@@ -5,17 +5,18 @@
  * Provides client-side geospatial queries with R-Tree acceleration.
  */
 
-import init, { SpatialIndex } from './pkg/maps_pip_wasm';
+import init, {
+    SpatialIndex,
+    type MapsPipWasmModule,
+} from './pkg/maps_pip_wasm';
 
 // WASM module instance
-let wasmModule: typeof import('./pkg/maps_pip_wasm') | null = null;
+let wasmModule: MapsPipWasmModule | null = null;
 
 /**
  * Initialize the WASM module
  */
-export async function initPipWasm(): Promise<
-    typeof import('./pkg/maps_pip_wasm')
-> {
+export async function initPipWasm(): Promise<MapsPipWasmModule> {
     if (!wasmModule) {
         wasmModule = await init();
     }

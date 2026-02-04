@@ -325,7 +325,9 @@ export function getTransitionConfig(zoom: number): {
  * Check if zoom level is at a transition boundary
  */
 function isZoomBoundary(zoom: number): boolean {
-    return Object.values(ZOOM_THRESHOLDS).includes(Math.round(zoom));
+    return Object.values(ZOOM_THRESHOLDS).some(
+        (threshold) => threshold === Math.round(zoom)
+    );
 }
 
 /**
@@ -454,12 +456,6 @@ export class ContextAwareLayerManager {
     private updateLayer(id: string): void {
         const layer = this.layers.get(id);
         if (!layer) return;
-
-        const zoomConfig = getZoomConfig(this.currentZoom);
-        const renderMode = getOptimalRenderMode(
-            this.currentZoom,
-            this.currentDensity
-        );
 
         // Update visibility based on zoom level
         const isVisible =
@@ -595,8 +591,6 @@ export function getAdaptivePolygonStyle(zoom: number): Record<string, any> {
  * Style function for vector lines (roads, borders) that adapts to zoom
  */
 export function getAdaptiveLineStyle(zoom: number): Record<string, any> {
-    const roadConfig = getRoadLabelConfig(zoom);
-
     return {
         width: Math.max(1, (zoom - ZOOM_THRESHOLDS.REGION) / 2),
         opacity: zoom < ZOOM_THRESHOLDS.REGION ? 0.6 : 0.9,

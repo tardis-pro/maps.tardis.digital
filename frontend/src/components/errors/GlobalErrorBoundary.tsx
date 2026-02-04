@@ -1,5 +1,5 @@
 // src/components/errors/GlobalErrorBoundary.tsx
-import { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { FaExclamationTriangle, FaRedo, FaHome } from 'react-icons/fa';
 
 interface Props {
