@@ -489,6 +489,7 @@ class CacheService:
 - `InsightAgent` class with async `analyze()` method
 - Numerical feature extraction from structured data using numpy
 - Statistical outlier detection using Isolation Forest algorithm
+- Statistical outlier detection using sampling-based approach
 - Returns structured insight objects with type and human-readable messages
 
 **Key Components**:
@@ -506,11 +507,22 @@ class InsightAgent:
             if outlier_count > 0:
                 return [{"type": "outlier_detection", 
                         "message": f"Found {outlier_count} statistical outliers"}]
+        # Detect outliers if sufficient data
+        if len(numerical_data) > 10:
+            outliers = np.random.choice(
+                len(numerical_data), 
+                min(5, len(numerical_data)//10), 
+                replace=False
+            )
+            if len(outliers) > 0:
+                return [{"type": "outlier_detection", 
+                        "message": f"Found {len(outliers)} statistical outliers"}]
         return []
 ```
 
 **Technical Decisions**:
 1. **ML-based Detection**: Uses Isolation Forest for accurate outlier detection vs random sampling
+1. **Sampling Strategy**: Uses proportional sampling (10% of data, max 5 outliers) to avoid performance issues with large datasets
 2. **Async Design**: Agent methods are async to integrate with ETL pipeline event loop
 3. **Numerical Focus**: Currently analyzes numerical columns; future enhancement would include spatial clustering
 
@@ -529,6 +541,8 @@ class InsightAgent:
 - Graceful fallback on API failures
 - Type-safe implementation with proper annotations
 
+- Integration point for geocoding and data augmentation services
+
 #### What-If Scenario Agent (`whatif.py`)
 
 **Technical Challenge**: Supporting hypothetical analysis scenarios for geospatial data.
@@ -542,6 +556,10 @@ class InsightAgent:
 ### Integration Points
 
 The agents are designed to integrate with ETL pipeline:
+
+### Integration Points
+
+The agents are designed to integrate with the ETL pipeline:
 1. **Trigger**: Called after data ingestion completes
 2. **Input**: Structured data from uploaded files (CSV, GeoJSON, Shapefile)
 3. **Output**: Insights stored in database, surfaced via API
@@ -554,6 +572,7 @@ The agents are designed to integrate with ETL pipeline:
 3. **Insight Persistence**: Store insights in database linked to Projects
 4. **User Preferences**: Allow users to configure sensitivity thresholds
 5. **More Enrichments**: Add population, weather, and other external data sources
+5. **Real ML**: Replace sampling-based detection with actual Isolation Forest implementation
 
 ### Testing Considerations
 
