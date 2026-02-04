@@ -8,7 +8,6 @@ for the Maps Platform API.
 import logging
 import sys
 import time
-from datetime import datetime
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
@@ -201,7 +200,6 @@ class LokiHandler(jsonlogger.JsonFormatter):
                         "stream": data.get("labels", {}),
                         "values": [
                             [
-                                str(int(datetime.utcnow().timestamp() * 1e9)),
                                 data.get("message", ""),
                             ]
                         ],
