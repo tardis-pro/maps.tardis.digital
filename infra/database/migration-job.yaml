@@ -1,0 +1,86 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration-latest
+  labels:
+    app: maps-api
+    component: migration
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 86400
+  concurrencyPolicy: Forbid
+  template:
+    metadata:
+      labels:
+        app: maps-api
+        component: migration
+    spec:
+      serviceAccountName: maps-api-migration
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      restartPolicy: Never
+      containers:
+        - name: migration
+          image: ghcr.io/tardis-pro/maps-api:latest
+          command: ["alembic", "upgrade", "head"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: maps-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: maps-secrets
+                  key: REDIS_URL
+                  optional: true
+            - name: ENVIRONMENT
+              value: "production"
+            - name: LOG_LEVEL
+              value: "INFO"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: alembic-config
+              mountPath: /app/alembic.ini
+              subPath: alembic.ini
+              readOnly: true
+      volumes:
+        - name: alembic-config
+          configMap:
+            name: maps-alembic
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: maps-api-migration
+  labels:
+    app: maps-api
+    component: migration
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: maps-api-migration-role
+  labels:
+    app: maps-api
+    component: migration
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["maps-secrets"]
+    verbs: ["get"]
