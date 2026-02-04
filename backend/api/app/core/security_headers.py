@@ -218,7 +218,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.config = config or SecurityHeaderConfig()
     
-    async def dispatch(self, request: Request, call_next):
         """
         Process the request and add security headers to the response.
         
@@ -229,7 +228,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         Returns:
             Response with security headers added
         """
-        response = await call_next(request)
         
         # Skip headers for non-HTML responses (e.g., images, API JSON)
         content_type = response.headers.get("content-type", "")
@@ -334,9 +332,6 @@ class ContentSecurityPolicyReportOnlyMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.report_endpoint = report_endpoint
     
-    async def dispatch(self, request: Request, call_next):
-        """Add CSP-Report-Only header to responses."""
-        response = await call_next(request)
         
         # Only add to HTML responses
         content_type = response.headers.get("content-type", "")

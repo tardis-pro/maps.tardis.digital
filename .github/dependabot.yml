@@ -1,63 +1,282 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+# Dependabot Configuration for Automated Dependency Updates
+# Enhanced version with grouping, auto-merge, and comprehensive ecosystem support
 
 version: 2
 updates:
-- package-ecosystem: npm
-  directory: '/frontend'
-  schedule:
-    interval: daily
-    time: '00:00'
-  open-pull-requests-limit: 10
-  reviewers:
-    - pronitdas
-  assignees:
-    - pronitdas
-  commit-message:
-    prefix: fix
-    prefix-development: chore
-    include: scope
-- package-ecosystem: maven
+  # Enable version updates for npm dependencies (Frontend)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "npm"
+      - "frontend"
+    reviewers:
+      - "pronitdas"
+    assignees:
+      - "pronitdas"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    # Group related updates
+    groups:
+      # Security updates - highest priority
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      # React ecosystem updates
+      react-ecosystem:
+        applies-to: version-updates
+        dependency-type: "direct"
+        patterns:
+          - "react*"
+          - "@types/react*"
+          - "react-dom*"
+          - "@mantine/**"
+          - "@deck.gl/**"
+          - "@loaders.gl/**"
+      # Build tooling updates
+      build-tooling:
+        applies-to: version-updates
+        dependency-type: "direct"
+        patterns:
+          - "vite*"
+          - "typescript*"
+          - "eslint*"
+          - "prettier*"
+          - "tailwindcss*"
+          - "jest*"
+          - "@testing-library/**"
+      # Map and visualization libraries
+      mapping-libraries:
+        applies-to: version-updates
+        dependency-type: "direct"
+        patterns:
+          - "maplibre-gl*"
+          - "@react-three/**"
+          - "three*"
+          - "deck.gl*"
+          - "@deck.gl/**"
+          - "pmtiles*"
+    # Ignore specific versions if needed
+    ignore: []
+    # Allow direct and development dependencies
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "development"
+    # Auto-merge settings for non-major updates
+    automerged:
+      - dependency-type: "direct"
+      - update-type: "version-update:semver-patch"
+      - dependency-name: "react"
+      - dependency-name: "react-dom"
+      - dependency-name: "typescript"
+    # Specify matching rules for auto-merge
+    pull-request-branch-name:
+      separator: "/"
+
+  # Python dependencies - Backend API
+  - package-ecosystem: "pip"
+    directory: "/backend/api"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 15
+    labels:
+      - "dependencies"
+      - "python"
+      - "backend"
+    reviewers:
+      - "pronitdas"
+    assignees:
+      - "pronitdas"
+    commit-message:
+      prefix: "chore(deps-py)"
+      prefix-development: "chore(deps-py-dev)"
+      include: "scope"
+    # Group Python updates
+    groups:
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      fastapi-ecosystem:
+        applies-to: version-updates
+        dependency-type: "direct"
+        patterns:
+          - "fastapi*"
+          - "uvicorn*"
+          - "pydantic*"
+      sqlalchemy-ecosystem:
+        applies-to: version-updates
+        dependency-type: "direct"
+        patterns:
+          - "sqlalchemy*"
+          - "alembic*"
+      geospatial-libraries:
+        applies-to: version-updates
+        dependency-type: "direct"
+        patterns:
+          - "geoalchemy*"
+          - "shapely*"
+          - "geopandas*"
+          - "rasterio*"
+          - "fiona*"
+    # Ignore specific versions
+    ignore: []
+    # Allow direct dependencies
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "development"
+    # Auto-merge settings
+    automerged:
+      - dependency-type: "direct"
+      - update-type: "version-update:semver-patch"
+      - dependency-name: "fastapi"
+      - dependency-name: "uvicorn"
+    pull-request-branch-name:
+      separator: "/"
+
+  # Python dependencies - Core Monolith (Legacy)
+  - package-ecosystem: "pip"
+    directory: "/backend/core-monolith/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:30"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+      - "backend"
+    reviewers:
+      - "pronitdas"
+    assignees:
+      - "pronitdas"
+    commit-message:
+      prefix: "chore(deps-py)"
+      prefix-development: "chore(deps-py-dev)"
+      include: "scope"
+
+  # Python dependencies - ETL Service
+  - package-ecosystem: "pip"
+    directory: "/backend/etl-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "11:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+      - "etl"
+    reviewers:
+      - "pronitdas"
+    assignees:
+      - "pronitdas"
+    commit-message:
+      prefix: "chore(deps-etl)"
+      include: "scope"
+
+  # Maven dependencies - Planetiler (if exists)
+  - package-ecosystem: "maven"
     directory: "/backend/etl/osm-pbf-tiles/planetiler-openmaptiles"
     open-pull-requests-limit: 10
     schedule:
-      interval: daily
-      time: '00:00'
+      interval: "weekly"
+      day: "monday"
+      time: "11:30"
+      timezone: "America/New_York"
     labels:
-      - dependencies
-      - maven
+      - "dependencies"
+      - "maven"
+      - "etl"
     commit-message:
-      prefix: fix
-      prefix-development: chore
-      include: scope
-- package-ecosystem: pip
-  directory: '/backend/core-monolith/'
-  schedule:
-    interval: daily
-    time: '00:00'
-  open-pull-requests-limit: 10
-  reviewers:
-    - pronitdas
-  assignees:
-    - pronitdas
+      prefix: "chore(deps-java)"
+      include: "scope"
+
+  # Rust dependencies - PIP Microservice
+  - package-ecosystem: "cargo"
+    directory: "/backend/micros/pip"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "12:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "rust"
+      - "microservices"
+    reviewers:
+      - "pronitdas"
+    commit-message:
+      prefix: "chore(deps-rust)"
+      include: "scope"
+    # Ignore Rust updates by default (can be breaking)
+    ignore: []
+
+  # Rust dependencies - Geo Engine
+  - package-ecosystem: "cargo"
+    directory: "/backend/geo_engine"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "12:30"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "rust"
+      - "geo-engine"
+    reviewers:
+      - "pronitdas"
+    commit-message:
+      prefix: "chore(deps-rust)"
+      include: "scope"
+
+  # GitHub Actions - All workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "13:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 20
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci"
+    reviewers:
+      - "pronitdas"
+    assignees:
+      - "pronitdas"
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"
+    # Auto-merge GitHub Actions patches
+    automerged:
+      - update-type: "version-update:semver-patch"
+
+# Configuration for noise reduction
+configuration:
+  # Show changelogs for better review
+  show: "changelog"
+  # Focus on production dependencies
+  focus: "production"
+  # Set commit message convention
   commit-message:
-    prefix: fix
-    prefix-development: chore
-    include: scope
-# Fetch and update latest `github-actions` pkgs
-- package-ecosystem: github-actions
-  directory: '/'
-  schedule:
-    interval: daily
-    time: '00:00'
-  open-pull-requests-limit: 10
-  reviewers:
-    - pronitdas
-  assignees:
-    - pronitdas
-  commit-message:
-    prefix: fix
-    prefix-development: chore
-    include: scope
+    prefix: "chore(deps)"
+    prefix-development: "chore(deps-dev)"

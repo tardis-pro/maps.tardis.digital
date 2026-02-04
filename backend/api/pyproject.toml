@@ -19,7 +19,6 @@ dependencies = [
     "shapely>=2.0.0",
     "geojson-pydantic>=1.0.0",
     "slowapi>=0.1.9",
-    "sentry-sdk[fastapi]>=2.0.0",
 ]
 
 [project.optional-dependencies]
